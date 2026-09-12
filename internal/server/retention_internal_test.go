@@ -2,6 +2,8 @@ package server
 
 import (
 	"github.com/Busness-app/kyrecovery-server/internal/audit"
+	"net/http"
+	"net/http/httptest"
 	"runtime"
 	"testing"
 	"time"
@@ -110,5 +112,36 @@ func TestMonthlyRetentionClampsMonthEnd(t *testing.T) {
 	caps := []db.CapsuleRecord{{ID: "feb", DepositedAt: time.Date(2026, 2, 28, 13, 0, 0, 0, time.UTC)}}
 	if got := retentionCandidates(caps, retentionPolicy{Days: 1, Months: 1}, now); len(got) != 0 {
 		t.Fatal("February survivor lost to month normalization")
+	}
+}
+
+func TestRetentionPreviewDoesNotWaitForPublish(t *testing.T) {
+	database, err := db.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	s, err := New(Config{DataDir: t.TempDir()}, database, audit.NewLedger(database))
+	if err != nil {
+		t.Fatal(err)
+	}
+	release := s.idLocks.acquire("pending")
+	defer release()
+	if err := database.InsertCapsule(t.Context(), db.CapsuleRecord{ID: "pending", CreatedAt: time.Now(), DepositedAt: time.Now(), Status: "active"}); err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan int, 1)
+	go func() {
+		rr := httptest.NewRecorder()
+		s.handleRetention(rr, httptest.NewRequest(http.MethodGet, "/api/retention", nil))
+		done <- rr.Code
+	}()
+	select {
+	case code := <-done:
+		if code != http.StatusOK {
+			t.Fatalf("preview status %d", code)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("preview blocked on an in-flight publish")
 	}
 }

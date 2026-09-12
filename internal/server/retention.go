@@ -131,9 +131,25 @@ func (s *Server) retentionCapsules(ctx context.Context) ([]db.CapsuleRecord, err
 	return stable, nil
 }
 
-func (s *Server) handleRetention(w http.ResponseWriter, r *http.Request) {
+type httpError struct {
+	status int
+	msg    string
+}
+
+func (s *Server) saveRetention(ctx context.Context, policy retentionPolicy, actor string) *httpError {
 	s.retentionMu.Lock()
 	defer s.retentionMu.Unlock()
+	if _, err := s.ledger.Record(ctx, "retention_change_requested", actor, retentionSetting, map[string]interface{}{"policy": policy}); err != nil {
+		return &httpError{http.StatusServiceUnavailable, "Audit ledger unavailable; retention unchanged"}
+	}
+	value, _ := json.Marshal(policy)
+	if err := s.db.SetSetting(ctx, retentionSetting, string(value)); err != nil {
+		return &httpError{http.StatusInternalServerError, "Failed saving retention"}
+	}
+	return nil
+}
+
+func (s *Server) handleRetention(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	switch r.Method {
 	case http.MethodPost:
@@ -142,13 +158,8 @@ func (s *Server) handleRetention(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusBadRequest, "Use integer days (0–36500), weeks (0–5200), months (0–1200); days 0 keeps forever")
 			return
 		}
-		if _, err := s.ledger.Record(ctx, "retention_change_requested", s.actor(r), retentionSetting, map[string]interface{}{"policy": policy}); err != nil {
-			writeError(w, http.StatusServiceUnavailable, "Audit ledger unavailable; retention unchanged")
-			return
-		}
-		value, _ := json.Marshal(policy)
-		if err := s.db.SetSetting(ctx, retentionSetting, string(value)); err != nil {
-			writeError(w, http.StatusInternalServerError, "Failed saving retention")
+		if err := s.saveRetention(ctx, policy, s.actor(r)); err != nil {
+			writeError(w, err.status, err.msg)
 			return
 		}
 	case http.MethodGet:
@@ -161,7 +172,9 @@ func (s *Server) handleRetention(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "Failed reading retention")
 		return
 	}
-	caps, err := s.retentionCapsules(ctx)
+	// The preview is a count: it must not block on in-flight publishes or hold
+	// retentionMu. purgeExpired re-reads every candidate under its ID lock.
+	caps, err := s.db.ListCapsules(ctx)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "Failed listing capsules")
 		return
