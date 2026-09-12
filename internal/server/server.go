@@ -16,6 +16,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Busness-app/ky-primitives/offsite"
@@ -56,6 +57,7 @@ type Server struct {
 	pushLimit   *rateLimiter
 	pushSlots   chan struct{}
 	idLocks     idLocks
+	retentionMu sync.Mutex
 	mux         *http.ServeMux
 }
 
@@ -158,6 +160,8 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("/api/auth/logout", s.handleAuthLogout)
 
 	// API Routes
+	s.mux.Handle("/api/retention", http.NewCrossOriginProtection().Handler(http.HandlerFunc(s.handleRetention)))
+	s.mux.Handle("/api/retention/purge", http.NewCrossOriginProtection().Handler(http.HandlerFunc(s.handleRetentionPurge)))
 	s.mux.HandleFunc("/api/readiness", s.handleReadiness)
 	s.mux.HandleFunc("/api/capsules", s.handleCapsules)
 	s.mux.HandleFunc("/api/capsules/", s.handleCapsuleDetail)
@@ -170,6 +174,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("/api/pairing/generate", s.handlePairingGenerate)
 	s.mux.HandleFunc("/api/pairing/list", s.handlePairingList)
 	s.mux.HandleFunc("/api/pairing/revoke", s.handlePairingRevoke)
+	s.mux.Handle("/api/pairing/clear", http.NewCrossOriginProtection().Handler(http.HandlerFunc(s.handlePairingClear)))
 	s.mux.HandleFunc("/api/pairing/claim", s.handlePairingClaim)
 
 	// Product deposit (bearer product token)
@@ -212,15 +217,18 @@ const rolePublic = ""
 // with "*" matching any method. Everything not listed defaults to admin, so a new
 // route is closed until it is deliberately opened here.
 var apiPolicy = map[string]string{
-	"* /api/auth/config":       rolePublic,
-	"* /api/auth/me":           rolePublic,
-	"* /api/auth/login":        rolePublic,
-	"* /api/auth/login/local":  rolePublic,
-	"* /api/auth/callback":     rolePublic,
-	"* /api/auth/logout":       rolePublic,
-	"GET /api/auth/sso/config": rolePublic, // the sign-in page must know whether SSO is offered
-	"* /api/pairing/claim":     rolePublic, // one-time pairing code
-	"* /api/backup/deposit":    rolePublic, // product API token
+	"GET /api/retention":        auth.RoleViewer,
+	"POST /api/retention":       auth.RoleAdmin,
+	"POST /api/retention/purge": auth.RoleAdmin,
+	"* /api/auth/config":        rolePublic,
+	"* /api/auth/me":            rolePublic,
+	"* /api/auth/login":         rolePublic,
+	"* /api/auth/login/local":   rolePublic,
+	"* /api/auth/callback":      rolePublic,
+	"* /api/auth/logout":        rolePublic,
+	"GET /api/auth/sso/config":  rolePublic, // the sign-in page must know whether SSO is offered
+	"* /api/pairing/claim":      rolePublic, // one-time pairing code
+	"* /api/backup/deposit":     rolePublic, // product API token
 
 	"* /api/auth/password":         auth.RoleViewer,
 	"GET /api/readiness":           auth.RoleViewer,
@@ -243,6 +251,7 @@ var apiPolicy = map[string]string{
 	"POST /api/recovery-key":             auth.RoleAdmin,
 	"POST /api/pairing/generate":         auth.RoleAdmin,
 	"POST /api/pairing/revoke":           auth.RoleAdmin,
+	"POST /api/pairing/clear":            auth.RoleAdmin,
 	"POST /api/replication/targets":      auth.RoleAdmin,
 	"POST /api/replication/targets/test": auth.RoleAdmin,
 }
@@ -645,6 +654,36 @@ func (s *Server) handlePairingRevoke(w http.ResponseWriter, r *http.Request) {
 	}
 	_, _ = s.ledger.Record(r.Context(), "pairing_token_revoked", s.actor(r), req.ID, nil)
 	writeJSON(w, http.StatusOK, map[string]string{"status": "revoked"})
+}
+
+func (s *Server) handlePairingClear(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+	var req pairingRevokeRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.ID == "" {
+		writeError(w, http.StatusBadRequest, "ID is required")
+		return
+	}
+	if _, err := s.ledger.Record(r.Context(), "pairing_clear_requested", s.actor(r), req.ID, nil); err != nil {
+		writeError(w, http.StatusServiceUnavailable, "Audit ledger unavailable; pairing not cleared")
+		return
+	}
+	cleared, err := s.db.ClearRevokedPairedApp(r.Context(), req.ID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Failed clearing revoked pairing")
+		return
+	}
+	if !cleared {
+		writeError(w, http.StatusConflict, "Only an existing revoked pairing can be cleared")
+		return
+	}
+	if _, err := s.ledger.Record(context.WithoutCancel(r.Context()), "pairing_cleared", s.actor(r), req.ID, nil); err != nil {
+		writeError(w, http.StatusServiceUnavailable, "Pairing cleared, but audit completion failed; refresh the list")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "cleared"})
 }
 
 // 13. Pairing Claim

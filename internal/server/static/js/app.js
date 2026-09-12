@@ -267,12 +267,15 @@ async function loadPairing() {
           <div style="font-size: 12px;">${p.status === 'paired' && p.paired_at ? new Date(p.paired_at).toLocaleString() : 'Expires ' + new Date(p.expires_at).toLocaleTimeString()}</div>
         </td>
         <td class="admin-only" style="display:none; text-align:right;">
-          ${p.status === 'revoked' ? '' : `<button class="btn btn-danger btn-sm revoke-pairing" data-id="${esc(p.id)}" data-app-name="${esc(p.app_name)}">Revoke</button>`}
+          ${p.status === 'revoked' ? `<button class="btn btn-secondary btn-sm clear-pairing" data-id="${esc(p.id)}" data-app-name="${esc(p.app_name)}">Clear</button>` : `<button class="btn btn-danger btn-sm revoke-pairing" data-id="${esc(p.id)}" data-app-name="${esc(p.app_name)}">Revoke</button>`}
         </td>
       </tr>
     `).join('');
     // Bound here rather than inline: app_name is chosen by whoever claims a code, so it
     // never goes inside a script string.
+    tbody.querySelectorAll('.clear-pairing').forEach(btn => {
+      btn.addEventListener('click', () => clearPairing(btn.dataset.id, btn.dataset.appName));
+    });
     tbody.querySelectorAll('.revoke-pairing').forEach(btn => {
       btn.addEventListener('click', () => revokePairing(btn.dataset.id, btn.dataset.appName));
     });
@@ -302,6 +305,24 @@ async function revokePairing(id, appName) {
     if (typeof loadAudit === 'function') loadAudit();
   } catch (err) {
     console.error('Error revoking pairing:', err);
+  }
+}
+
+async function clearPairing(id, appName) {
+  if (!confirm(`Clear ${appName}'s revoked registration from this list? Existing backups and audit history will be kept.`)) return;
+  try {
+    const res = await fetch('/api/pairing/clear', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    });
+    await loadPairing();
+    loadAudit();
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      alert(body.error || `Clear failed (HTTP ${res.status})`);
+    }
+  } catch (err) {
+    alert('Could not clear the revoked registration. Refresh and try again.');
   }
 }
 
@@ -402,6 +423,7 @@ async function loadAuthUser() {
       // Load protected dashboard data
       loadReadiness();
       loadCapsules();
+      loadRetention();
       loadPairing();
       loadCustodians();
       loadAudit();
@@ -965,3 +987,61 @@ async function executeSnapshotDiff() {
 
 
 
+
+
+async function loadRetention() {
+  const status = document.getElementById('retention-status');
+  try {
+    const res = await fetch('/api/retention');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed loading retention');
+    for (const field of ['days', 'weeks', 'months']) document.getElementById(`retention-${field}`).value = data[field];
+    status.textContent = `${data.days === 0 ? 'Keep forever' : `All for ${data.days} days; weekly for ${data.weeks} weeks; monthly for ${data.months} months`}. ${data.expired_count} expired backups (${data.expired_bytes.toLocaleString()} bytes) eligible for manual purge.`;
+    return data;
+  } catch (err) {
+    status.textContent = err.message;
+    return null;
+  }
+}
+
+async function saveRetention() {
+  const policy = {};
+  for (const field of ['days', 'weeks', 'months']) {
+    const input = document.getElementById(`retention-${field}`);
+    if (!input.reportValidity()) return;
+    policy[field] = Number(input.value);
+  }
+  try {
+    const res = await fetch('/api/retention', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(policy)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed saving retention');
+    await loadRetention();
+    loadAudit();
+  } catch (err) {
+    document.getElementById('retention-status').textContent = err.message;
+  }
+}
+
+async function purgeExpiredBackups() {
+  const preview = await loadRetention();
+  if (!preview || !preview.expired_count) return;
+  if (!confirm(`Permanently purge local backups outside the saved policy (all: ${preview.days} days, weekly: ${preview.weeks} weeks, monthly: ${preview.months} months)? Currently ${preview.expired_count} backups qualify. This may remove a product's last backup. Offsite copies are unaffected.`)) return;
+  try {
+    const res = await fetch('/api/retention/purge', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ days: preview.days, weeks: preview.weeks, months: preview.months })
+    });
+    const data = await res.json();
+    await loadRetention();
+    loadCapsules();
+    loadReadiness();
+    loadAudit();
+    if (!res.ok) throw new Error(`${data.error || 'Purge failed'} Purged: ${data.purged_count || 0}.`);
+    document.getElementById('retention-status').textContent += ` Purged ${data.purged_count} backups.`;
+  } catch (err) {
+    document.getElementById('retention-status').textContent = err.message;
+  }
+}
