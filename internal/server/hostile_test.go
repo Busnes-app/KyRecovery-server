@@ -72,6 +72,7 @@ func TestRoleEnforcementOverHTTP(t *testing.T) {
 		{"replication sync", http.MethodPost, "/api/replication/sync", `{"capsule_id":"cap-x"}`, auth.RoleOperator},
 		{"pairing generate", http.MethodPost, "/api/pairing/generate", `{}`, auth.RoleAdmin},
 		{"pairing revoke", http.MethodPost, "/api/pairing/revoke", `{"id":"pair-x"}`, auth.RoleAdmin},
+		{"pairing clear", http.MethodPost, "/api/pairing/clear", `{"id":"pair-x"}`, auth.RoleAdmin},
 		{"replication target create", http.MethodPost, "/api/replication/targets", `{"type":"local","endpoint":"/tmp/x"}`, auth.RoleAdmin},
 		{"replication target delete", http.MethodDelete, "/api/replication/targets/target-1", ``, auth.RoleAdmin},
 		{"sso config write", http.MethodPost, "/api/auth/sso/config", `{"enabled":false}`, auth.RoleAdmin},

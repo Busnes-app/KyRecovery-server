@@ -31,6 +31,9 @@ func TestRequiredRolePolicy(t *testing.T) {
 		{http.MethodPost, "/api/pairing/claim", rolePublic},
 		{http.MethodPost, "/api/backup/deposit", rolePublic}, // product bearer token, checked in the handler
 
+		{http.MethodGet, "/api/retention", auth.RoleViewer},
+		{http.MethodPost, "/api/retention", auth.RoleAdmin},
+		{http.MethodPost, "/api/retention/purge", auth.RoleAdmin},
 		// Read-only.
 		{http.MethodPost, "/api/auth/password", auth.RoleViewer},
 		{http.MethodGet, "/api/readiness", auth.RoleViewer},
@@ -60,6 +63,7 @@ func TestRequiredRolePolicy(t *testing.T) {
 
 		{http.MethodPost, "/api/pairing/generate", auth.RoleAdmin},
 		{http.MethodPost, "/api/pairing/revoke", auth.RoleAdmin},
+		{http.MethodPost, "/api/pairing/clear", auth.RoleAdmin},
 		{http.MethodPost, "/api/replication/targets", auth.RoleAdmin},
 		{http.MethodPost, "/api/replication/targets/test", auth.RoleAdmin},
 		{http.MethodDelete, "/api/replication/targets/target-1", auth.RoleAdmin},

@@ -31,6 +31,15 @@ import (
 // operator then has to disbelieve.
 func (s *Server) verifyCapsule(ctx context.Context, rec *db.CapsuleRecord, actor string) (bool, error) {
 	defer s.idLocks.acquire(rec.ID)()
+	// A purge may have completed after the caller listed this capsule.
+	current, err := s.db.GetCapsule(ctx, rec.ID)
+	if err != nil {
+		return false, err
+	}
+	if current == nil {
+		return false, os.ErrNotExist
+	}
+	rec = current
 	f, err := os.Open(rec.FilePath)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {

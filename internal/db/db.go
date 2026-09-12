@@ -679,6 +679,17 @@ func (d *DB) RevokePairedApp(ctx context.Context, id string) error {
 	return err
 }
 
+// ClearRevokedPairedApp removes only an already-revoked registration. Capsule
+// metadata and audit history are independent records and remain intact.
+func (d *DB) ClearRevokedPairedApp(ctx context.Context, id string) (bool, error) {
+	result, err := d.conn.ExecContext(ctx, `DELETE FROM paired_apps WHERE id = ? AND status = 'revoked'`, id)
+	if err != nil {
+		return false, err
+	}
+	count, err := result.RowsAffected()
+	return count == 1, err
+}
+
 // InsertRecoveryKey pins the suite recovery public key. Only one row is ever allowed.
 func (d *DB) InsertRecoveryKey(ctx context.Context, k RecoveryKeyRecord) error {
 	q := `INSERT INTO recovery_key (singleton, key_id, public_key, threshold, total_shares, imported_by, imported_at)
