@@ -15,4 +15,4 @@ data/
 .idea/
 .vscode/
 .env
-.env.*
+.env.??????

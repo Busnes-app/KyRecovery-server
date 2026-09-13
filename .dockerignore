@@ -4,4 +4,4 @@ data
 *.kycap
 kyrecovery
 .env
-**/.env.*
+**/.env.??????
