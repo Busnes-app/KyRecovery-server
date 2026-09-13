@@ -5,11 +5,13 @@ services:
     # name with unattested bytes, so it lives in docker-compose.build.yml under a local tag.
     # Source installs put `COMPOSE_FILE=docker-compose.yml:docker-compose.build.yml` in .env; Compose
     # reads it before every command. An explicit -f list replaces it outright, so never mix the two.
-    # To run only what CI attested, pin by digest and verify it first (gh logged in):
-    #   d=$(docker buildx imagetools inspect ghcr.io/busness-app/kyrecovery-server:latest --format '{{.Manifest.Digest}}')
-    #   gh attestation verify oci://ghcr.io/busness-app/kyrecovery-server@$d --repo Busness-app/kyrecovery-server \
-    #     --cert-identity https://github.com/Busness-app/kyrecovery-server/.github/workflows/ci.yml@refs/heads/main
-    #   (umask 077; echo "KYRECOVERY_IMAGE=ghcr.io/busness-app/kyrecovery-server@$d" >> .env); chmod 600 .env
+    # To run only what CI attested, pin by digest and verify it first (gh logged in). The
+    # chain stops at the first failure, so a failed verify never writes the pin; re-run it
+    # to move to a newer image, or delete the KYRECOVERY_IMAGE line to follow :latest again.
+    #   d=$(docker buildx imagetools inspect ghcr.io/busness-app/kyrecovery-server:latest --format '{{.Manifest.Digest}}') \
+    #   && gh attestation verify "oci://ghcr.io/busness-app/kyrecovery-server@$d" --repo Busness-app/kyrecovery-server \
+    #        --cert-identity https://github.com/Busness-app/kyrecovery-server/.github/workflows/ci.yml@refs/heads/main \
+    #   && (umask 077; touch .env; sed -i '/^KYRECOVERY_IMAGE=/d' .env; echo "KYRECOVERY_IMAGE=ghcr.io/busness-app/kyrecovery-server@$d" >> .env; chmod 600 .env)
     image: ${KYRECOVERY_IMAGE:-ghcr.io/busness-app/kyrecovery-server:latest}
     pull_policy: missing
     container_name: kyrecovery-server
