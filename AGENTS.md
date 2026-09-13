@@ -85,6 +85,8 @@ Run all unit and integration tests across the repository:
 go test -race -count=1 ./...
 ```
 
+- On a push to `main` that passes every job, the `publish` job pushes the image to `ghcr.io/busness-app/kyrecovery-server` as `:latest` and `:<commit sha>`; `docker-compose.yml` names that image.
+
 Verify the binary builds and the CLI answers:
 ```bash
 go build -o kyrecovery cmd/kyrecovery/main.go
