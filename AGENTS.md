@@ -85,7 +85,7 @@ Run all unit and integration tests across the repository:
 go test -race -count=1 ./...
 ```
 
-- On a push to `main` that passes every job, the `publish` job pushes the image to `ghcr.io/busness-app/kyrecovery-server` as `:latest` and `:<commit sha>`; `docker-compose.yml` names that image.
+- On a push to `main` that passes every job, the `publish` job pushes the exact image the Docker check ran against (handed over as an artifact, no rebuild) to `ghcr.io/busness-app/kyrecovery-server` as `:latest` and `:<commit sha>`, then attests and verifies its provenance; `docker-compose.yml` names that image with `pull_policy: missing`.
 
 Verify the binary builds and the CLI answers:
 ```bash
