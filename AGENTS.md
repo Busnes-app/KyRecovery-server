@@ -85,7 +85,7 @@ Run all unit and integration tests across the repository:
 go test -race -count=1 ./...
 ```
 
-- On a push to `main` that passes every job, `publish` pushes the exact image the Docker check ran against (handed over as an artifact, no rebuild) to `ghcr.io/busness-app/kyrecovery-server:<commit sha>`, attests it and verifies the attestation; `promote` then moves `:latest` to that digest, only at the tip of `main`, and asserts the tag resolves to the attested digest. `docker-compose.yml` names the published image and never builds; source installs set `COMPOSE_FILE=docker-compose.yml:docker-compose.build.yml` in `.env` (overlay tags `kyrecovery-server:local`) so every compose command, recovery docs included, uses the local build.
+- On a push to `main` that passes every job, `publish` pushes the exact image the Docker check ran against (handed over as an artifact, no rebuild) to `ghcr.io/busness-app/kyrecovery-server:<commit sha>`, attests it and verifies the attestation pinned to this workflow on `main`; `promote` then moves `:latest` to that digest, only at the tip of `main`, and asserts the tag resolves to the attested digest. `docker-compose.yml` names the published image and never builds; source installs set `COMPOSE_FILE=docker-compose.yml:docker-compose.build.yml` in `.env` (overlay tags `kyrecovery-server:local`) so every compose command, recovery docs included, uses the local build.
 
 Verify the binary builds and the CLI answers:
 ```bash
