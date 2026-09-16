@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/Busnes-app/ky-primitives/auditchain"
 	"github.com/Busnes-app/kyrecovery-server/internal/audit"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
-	"github.com/Busness-app/ky-primitives/auditchain"
 
 	_ "modernc.org/sqlite"
 )

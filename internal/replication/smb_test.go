@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-	"github.com/Busness-app/ky-primitives/offsite"
+	"github.com/Busnes-app/ky-primitives/offsite"
 	"net"
 	"os"
 	"strings"

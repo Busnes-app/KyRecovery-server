@@ -15,7 +15,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Busness-app/ky-primitives/keyfile"
+	"github.com/Busnes-app/ky-primitives/keyfile"
 	"golang.org/x/crypto/hkdf"
 
 	"github.com/Busnes-app/kyrecovery-server/internal/crypto"

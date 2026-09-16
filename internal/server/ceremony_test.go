@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Busnes-app/ky-primitives/recoverykey"
+	"github.com/Busnes-app/ky-primitives/shamir"
 	"github.com/Busnes-app/kyrecovery-server/internal/auth"
-	"github.com/Busness-app/ky-primitives/recoverykey"
-	"github.com/Busness-app/ky-primitives/shamir"
 )
 
 // The WASM module calls exactly Generate and Split. This test pins that any k of the n

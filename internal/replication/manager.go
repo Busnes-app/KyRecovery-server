@@ -6,9 +6,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/Busnes-app/ky-primitives/offsite"
 	"github.com/Busnes-app/kyrecovery-server/internal/audit"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
-	"github.com/Busness-app/ky-primitives/offsite"
 )
 
 // Manager coordinates replication of encrypted capsules to offsite storage targets.

@@ -10,7 +10,7 @@ import (
 	"encoding/base64"
 	"syscall/js"
 
-	"github.com/Busness-app/ky-primitives/recoverykey"
+	"github.com/Busnes-app/ky-primitives/recoverykey"
 )
 
 func ceremony(_ js.Value, args []js.Value) any {

@@ -8,11 +8,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/Busnes-app/ky-primitives/recoverykey"
 	"github.com/Busnes-app/kyrecovery-server/internal/audit"
 	"github.com/Busnes-app/kyrecovery-server/internal/auth"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
 	"github.com/Busnes-app/kyrecovery-server/internal/server"
-	"github.com/Busness-app/ky-primitives/recoverykey"
 )
 
 // newAdminServer mirrors server_test.go's inline setup: in-memory DB, local admin login,

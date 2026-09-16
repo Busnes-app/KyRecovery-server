@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Busnes-app/ky-primitives/capsule"
+	"github.com/Busnes-app/ky-primitives/recoverykey"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
-	"github.com/Busness-app/ky-primitives/capsule"
-	"github.com/Busness-app/ky-primitives/recoverykey"
 )
 
 func TestVerifyDetectsAFlippedByte(t *testing.T) {

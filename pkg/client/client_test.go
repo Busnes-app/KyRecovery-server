@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Busnes-app/ky-primitives/recoverykey"
 	"github.com/Busnes-app/kyrecovery-server/internal/audit"
 	"github.com/Busnes-app/kyrecovery-server/internal/auth"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
 	"github.com/Busnes-app/kyrecovery-server/internal/pairing"
 	"github.com/Busnes-app/kyrecovery-server/internal/server"
 	"github.com/Busnes-app/kyrecovery-server/pkg/client"
-	"github.com/Busness-app/ky-primitives/recoverykey"
 )
 
 func TestClientClaimsPairingCode(t *testing.T) {

@@ -6,9 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/Busnes-app/ky-primitives/recoverykey"
 	"github.com/Busnes-app/kyrecovery-server/internal/audit"
 	"github.com/Busnes-app/kyrecovery-server/internal/server"
-	"github.com/Busness-app/ky-primitives/recoverykey"
 )
 
 // A ledger that cannot append is not a quiet degradation for a blind store: the audit

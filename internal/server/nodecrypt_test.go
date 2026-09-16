@@ -17,12 +17,12 @@ import (
 // material. An empty set means the package is off limits entirely.
 var allowedSelectors = map[string]map[string]bool{
 	// Parsing and holding the public half is the whole of the server's business with it.
-	"github.com/Busness-app/ky-primitives/recoverykey": {"ParsePublicKey": true, "PublicKey": true},
+	"github.com/Busnes-app/ky-primitives/recoverykey": {"ParsePublicKey": true, "PublicKey": true},
 	// Reading the unencrypted manifest and knowing how big a container may be.
 	// UnverifiedManifest is what ReadUnverifiedManifest returns; Manifest is what Open and
 	// Seal return, so naming it means holding the output of a decryption.
-	"github.com/Busness-app/ky-primitives/capsule": {"ReadUnverifiedManifest": true, "UnverifiedManifest": true, "MaxContainerBytes": true},
-	"github.com/Busness-app/ky-primitives/shamir":  {},
+	"github.com/Busnes-app/ky-primitives/capsule": {"ReadUnverifiedManifest": true, "UnverifiedManifest": true, "MaxContainerBytes": true},
+	"github.com/Busnes-app/ky-primitives/shamir":  {},
 	"crypto/hpke": {},
 }
 
@@ -30,7 +30,7 @@ var allowedSelectors = map[string]map[string]bool{
 // binary still links them transitively — recoverykey and capsule use them, as does TLS —
 // and this says nothing about that; it says the server's own code never reaches for them.
 var forbiddenImports = []string{
-	"github.com/Busness-app/ky-primitives/shamir",
+	"github.com/Busnes-app/ky-primitives/shamir",
 	"crypto/hpke", "crypto/mlkem", "crypto/ecdh",
 }
 
@@ -99,7 +99,7 @@ func checkFile(t *testing.T, file string) {
 		if spec.Name != nil {
 			name = spec.Name.Name
 		}
-		if name == "." && (strings.HasPrefix(p, "github.com/Busness-app/ky-primitives/") || p == "crypto/hpke") {
+		if name == "." && (strings.HasPrefix(p, "github.com/Busnes-app/ky-primitives/") || p == "crypto/hpke") {
 			// A dot import puts the package's whole surface in scope under no name at
 			// all, which no amount of selector checking can follow.
 			t.Errorf("%s dot-imports %s; that hides every call it makes", file, p)

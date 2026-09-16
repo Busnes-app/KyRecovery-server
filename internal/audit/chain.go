@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Busnes-app/ky-primitives/auditchain"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
-	"github.com/Busness-app/ky-primitives/auditchain"
 )
 
 // Ledger appends to the tamper-evident audit chain.
