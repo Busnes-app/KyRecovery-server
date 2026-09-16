@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Busness-app/kyrecovery-server/internal/audit"
-	"github.com/Busness-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/kyrecovery-server/internal/audit"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
 )
 
 // trickle delivers one byte per interval, the shape of a client that never finishes a

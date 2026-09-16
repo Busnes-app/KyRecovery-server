@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/Busness-app/kyrecovery-server/cmd/kyrecovery/app"
+	"github.com/Busnes-app/kyrecovery-server/cmd/kyrecovery/app"
 )
 
 func main() {

@@ -13,7 +13,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Busness-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
 )
 
 // verifyCapsule re-hashes the stored container against the digest recorded at deposit and

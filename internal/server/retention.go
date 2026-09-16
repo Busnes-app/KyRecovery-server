@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Busness-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
 )
 
 const retentionSetting = "capsule_retention_policy"

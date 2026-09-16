@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Busness-app/ky-primitives/capsule"
-	"github.com/Busness-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/ky-primitives/capsule"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
 )
 
 // maxAPIBodyBytes bounds every API route but the deposit, which carries a sealed

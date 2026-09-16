@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/Busness-app/kyrecovery-server/internal/crypto"
+	"github.com/Busnes-app/kyrecovery-server/internal/crypto"
 )
 
 func TestAESGCMEnvelope(t *testing.T) {

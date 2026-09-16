@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Busness-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
 )
 
 func TestCompareManifests(t *testing.T) {

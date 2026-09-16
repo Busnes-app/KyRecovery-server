@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Busness-app/ky-primitives/capsule"
-	"github.com/Busness-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/ky-primitives/capsule"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
 )
 
 // handleDeposit stores a sealed container. It reads the manifest without a key, decides on

@@ -3,8 +3,8 @@ package replication
 import (
 	"context"
 	"fmt"
-	"github.com/Busness-app/ky-primitives/offsite"
-	"github.com/Busness-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/ky-primitives/offsite"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
 	"io"
 	"net"
 	"os"

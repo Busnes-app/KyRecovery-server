@@ -15,10 +15,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Busness-app/ky-primitives/keyfile"
+	"github.com/Busnes-app/ky-primitives/keyfile"
 	"golang.org/x/crypto/hkdf"
 
-	"github.com/Busness-app/kyrecovery-server/internal/crypto"
+	"github.com/Busnes-app/kyrecovery-server/internal/crypto"
 )
 
 // EnvKey overrides the on-disk key file. Value must be 32 bytes, hex or base64.

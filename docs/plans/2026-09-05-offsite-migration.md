@@ -1,5 +1,5 @@
 **Repo:** kyrecovery-server
-**PR:** library dependency #14 — https://github.com/Busness-app/ky-primitives/pull/14 (merged; no consumer PR yet)
+**PR:** library dependency #14 — https://github.com/Busnes-app/ky-primitives/pull/14 (merged; no consumer PR yet)
 **Worktree:** /home/yoshi/busness.app/kyrecovery-server (main, 7071908)
 
 # Offsite transport migration plan
@@ -25,7 +25,7 @@ preserve it and keep the transport migration in its own change set.
 
 ## Outcome and boundaries
 
-Delegate opaque-byte transfer to `github.com/Busness-app/ky-primitives/offsite`.
+Delegate opaque-byte transfer to `github.com/Busnes-app/ky-primitives/offsite`.
 KyRecovery continues to own target records, sealed credentials, scheduling,
 retention, sync history and the audit ledger. Existing target records must resolve
 to the same destinations. Historical replicas must remain discoverable.
@@ -40,7 +40,7 @@ provides Put/Get/Test, not Delete. Local tiered retention remains independent.
   Separate or commit the retention changes before preparing the migration PR;
   do not stash, reset, or include them accidentally.
 - Check the released nested-module tag and source against the local library checkout.
-  Add `github.com/Busness-app/ky-primitives/offsite@v0.1.0`; its version is independent
+  Add `github.com/Busnes-app/ky-primitives/offsite@v0.1.0`; its version is independent
   of the root module. Do not use `@offsite/v0.1.0` in go get.
 - Add golden adapter fixtures before changing dispatch in `manager.go`. Assert exact
   endpoint, remote object location, credentials and pin, including these cases:

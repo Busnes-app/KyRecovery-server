@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Busness-app/ky-primitives/capsule"
-	"github.com/Busness-app/kyrecovery-server/internal/audit"
-	"github.com/Busness-app/kyrecovery-server/internal/auth"
-	"github.com/Busness-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/ky-primitives/capsule"
+	"github.com/Busnes-app/kyrecovery-server/internal/audit"
+	"github.com/Busnes-app/kyrecovery-server/internal/auth"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
 )
 
 // TestRequiredRolePolicy pins the authorization decision for every API route, for

@@ -3,7 +3,7 @@ package secrets_test
 import (
 	"testing"
 
-	"github.com/Busness-app/kyrecovery-server/internal/secrets"
+	"github.com/Busnes-app/kyrecovery-server/internal/secrets"
 )
 
 // A value that is not a sealed envelope never comes back out of Open. Anyone who can write

@@ -14,8 +14,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Busness-app/ky-primitives/offsite"
-	"github.com/Busness-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/ky-primitives/offsite"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
 )
 
 var replicaID = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$`)

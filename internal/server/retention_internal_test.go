@@ -1,14 +1,14 @@
 package server
 
 import (
-	"github.com/Busness-app/kyrecovery-server/internal/audit"
+	"github.com/Busnes-app/kyrecovery-server/internal/audit"
 	"net/http"
 	"net/http/httptest"
 	"runtime"
 	"testing"
 	"time"
 
-	"github.com/Busness-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
 )
 
 func TestExpiryBoundary(t *testing.T) {
