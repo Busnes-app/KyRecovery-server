@@ -13,8 +13,8 @@ import (
 
 	"github.com/hirochachacha/go-smb2"
 
-	"github.com/Busness-app/kyrecovery-server/internal/db"
-	"github.com/Busness-app/kyrecovery-server/internal/replication"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/kyrecovery-server/internal/replication"
 )
 
 // SMB has no in-process server in Go, so this runs only when CI (or a

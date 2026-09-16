@@ -3,8 +3,8 @@ package audit_test
 import (
 	"testing"
 
-	"github.com/Busness-app/kyrecovery-server/internal/audit"
-	"github.com/Busness-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/kyrecovery-server/internal/audit"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
 )
 
 func TestLedgerVerifiesAndDetectsTruncation(t *testing.T) {

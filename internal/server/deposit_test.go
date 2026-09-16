@@ -15,10 +15,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/kyrecovery-server/internal/server"
 	"github.com/Busness-app/ky-primitives/capsule"
 	"github.com/Busness-app/ky-primitives/recoverykey"
-	"github.com/Busness-app/kyrecovery-server/internal/db"
-	"github.com/Busness-app/kyrecovery-server/internal/server"
 )
 
 // pairProduct generates a code as admin and claims it as the product, returning the token

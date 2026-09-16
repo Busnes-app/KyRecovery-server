@@ -12,8 +12,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
 	"github.com/Busness-app/ky-primitives/offsite"
-	"github.com/Busness-app/kyrecovery-server/internal/db"
 )
 
 func TestTargetLocations(t *testing.T) {

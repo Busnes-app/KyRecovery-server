@@ -238,7 +238,7 @@ import (
 
 	"github.com/Busness-app/ky-primitives/capsule"
 	"github.com/Busness-app/ky-primitives/recoverykey"
-	"github.com/Busness-app/kyrecovery-server/pkg/client"
+	"github.com/Busnes-app/kyrecovery-server/pkg/client"
 )
 
 func pairAndDeposit(ctx context.Context, serverURL, pin string, container []byte) error {

@@ -20,9 +20,9 @@ import (
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/Busness-app/kyrecovery-server/internal/audit"
-	"github.com/Busness-app/kyrecovery-server/internal/db"
-	"github.com/Busness-app/kyrecovery-server/internal/replication"
+	"github.com/Busnes-app/kyrecovery-server/internal/audit"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/kyrecovery-server/internal/replication"
 )
 
 const sftpUser, sftpPass = "ky", "correct-horse"

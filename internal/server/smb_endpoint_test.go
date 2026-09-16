@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Busness-app/kyrecovery-server/internal/auth"
+	"github.com/Busnes-app/kyrecovery-server/internal/auth"
 )
 
 // A share password pasted inside the SMB URL must never reach the cleartext

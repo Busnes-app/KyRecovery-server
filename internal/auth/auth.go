@@ -22,9 +22,9 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
 
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/kyrecovery-server/internal/secrets"
 	"github.com/Busness-app/ky-primitives/password"
-	"github.com/Busness-app/kyrecovery-server/internal/db"
-	"github.com/Busness-app/kyrecovery-server/internal/secrets"
 )
 
 const (

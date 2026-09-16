@@ -19,13 +19,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Busnes-app/kyrecovery-server/internal/audit"
+	"github.com/Busnes-app/kyrecovery-server/internal/auth"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/kyrecovery-server/internal/diff"
+	"github.com/Busnes-app/kyrecovery-server/internal/pairing"
+	"github.com/Busnes-app/kyrecovery-server/internal/replication"
 	"github.com/Busness-app/ky-primitives/offsite"
-	"github.com/Busness-app/kyrecovery-server/internal/audit"
-	"github.com/Busness-app/kyrecovery-server/internal/auth"
-	"github.com/Busness-app/kyrecovery-server/internal/db"
-	"github.com/Busness-app/kyrecovery-server/internal/diff"
-	"github.com/Busness-app/kyrecovery-server/internal/pairing"
-	"github.com/Busness-app/kyrecovery-server/internal/replication"
 )
 
 //go:embed static/*

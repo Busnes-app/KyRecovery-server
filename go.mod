@@ -1,4 +1,4 @@
-module github.com/Busness-app/kyrecovery-server
+module github.com/Busnes-app/kyrecovery-server
 
 go 1.26.6
 

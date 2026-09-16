@@ -11,12 +11,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Busness-app/kyrecovery-server/internal/audit"
-	"github.com/Busness-app/kyrecovery-server/internal/auth"
-	"github.com/Busness-app/kyrecovery-server/internal/db"
-	"github.com/Busness-app/kyrecovery-server/internal/pairing"
-	"github.com/Busness-app/kyrecovery-server/internal/server"
-	"github.com/Busness-app/kyrecovery-server/pkg/client"
+	"github.com/Busnes-app/kyrecovery-server/internal/audit"
+	"github.com/Busnes-app/kyrecovery-server/internal/auth"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/kyrecovery-server/internal/pairing"
+	"github.com/Busnes-app/kyrecovery-server/internal/server"
+	"github.com/Busnes-app/kyrecovery-server/pkg/client"
 )
 
 func Run(args []string) {

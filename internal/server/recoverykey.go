@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
 	"github.com/Busness-app/ky-primitives/recoverykey"
-	"github.com/Busness-app/kyrecovery-server/internal/db"
 )
 
 // recoveryKeyImport is the whole body the ceremony page may send. It has no field for

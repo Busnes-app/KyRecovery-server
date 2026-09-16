@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Busness-app/kyrecovery-server/internal/audit"
+	"github.com/Busnes-app/kyrecovery-server/internal/audit"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 )

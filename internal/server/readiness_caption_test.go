@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Busness-app/kyrecovery-server/internal/auth"
+	"github.com/Busnes-app/kyrecovery-server/internal/auth"
 )
 
 // The overview shows custodian_count as a directory size. The reconstruction

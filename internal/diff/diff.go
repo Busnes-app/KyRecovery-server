@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Busness-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
 )
 
 // manifestView is what the inspector compares: the deposited record, not the container.

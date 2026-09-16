@@ -8,7 +8,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/Busness-app/kyrecovery-server/internal/db"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
 )
 
 // GeneratePairingCode creates a new ephemeral pairing code for connecting a product.
