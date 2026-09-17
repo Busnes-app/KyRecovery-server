@@ -17,10 +17,10 @@ services:
 #   Images built before 2026-09-16 cannot be verified by name any more (their owner is no longer held by this project); pin a later commit or build from source with docker-compose.build.yml.
     #   sha=<full commit sha you intend to run, e.g. $(git rev-parse origin/main)>
     #   d=$(docker buildx imagetools inspect ghcr.io/busnes-app/kyrecovery-server:$sha --format '{{.Manifest.Digest}}') \
-    #     && gh attestation verify "oci://ghcr.io/busnes-app/kyrecovery-server@$d" --repo Busnes-app/KyRecovery-server \
-    #          --cert-identity https://github.com/Busnes-app/KyRecovery-server/.github/workflows/ci.yml@refs/heads/main \
-    #     && [ "$(gh attestation verify "oci://ghcr.io/busnes-app/kyrecovery-server@$d" --repo Busnes-app/KyRecovery-server \
-    #          --cert-identity https://github.com/Busnes-app/KyRecovery-server/.github/workflows/ci.yml@refs/heads/main \
+    #     && gh attestation verify "oci://ghcr.io/busnes-app/kyrecovery-server@$d" --repo Busnes-app/kyrecovery-server \
+    #          --cert-identity https://github.com/Busnes-app/kyrecovery-server/.github/workflows/ci.yml@refs/heads/main \
+    #     && [ "$(gh attestation verify "oci://ghcr.io/busnes-app/kyrecovery-server@$d" --repo Busnes-app/kyrecovery-server \
+    #          --cert-identity https://github.com/Busnes-app/kyrecovery-server/.github/workflows/ci.yml@refs/heads/main \
     #          --format json --jq '.[0].verificationResult.statement.predicate.buildDefinition.resolvedDependencies[0].digest.gitCommit')" = "$sha" ] \
     #     && (umask 077; t=$(mktemp ./.env.XXXXXX) && touch .env && { grep -v '^KYRECOVERY_IMAGE=' .env || [ $? -eq 1 ]; } > "$t" \
     #         && echo "KYRECOVERY_IMAGE=ghcr.io/busnes-app/kyrecovery-server@$d" >> "$t" && mv "$t" .env) \
