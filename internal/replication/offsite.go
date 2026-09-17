@@ -112,7 +112,7 @@ func (m *Manager) transfer(ctx context.Context, t db.ReplicationTargetRecord, re
 	if err != nil {
 		return err
 	}
-	// ponytail: compatibility branches preserve targets v0.1.0 cannot express.
+	// ponytail: compatibility branches preserve targets offsite v0.2.0 cannot express.
 	// Remove them after a released library supports absolute SFTP and virtual-host S3.
 	if l.absoluteSFTP {
 		return NewSFTPClient(t.Endpoint, t.AccessKey, t.SecretKey, t.Prefix, t.HostKey).Put(ctx, l.name, f)

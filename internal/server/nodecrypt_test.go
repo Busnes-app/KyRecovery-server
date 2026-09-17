@@ -5,6 +5,7 @@ import (
 	"go/parser"
 	"go/token"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -12,25 +13,30 @@ import (
 	"testing"
 )
 
+// primitives is the ky-primitives module path as go.mod requires it. Every policed path is
+// built from it, and the test proves each one resolves, so a rename cannot leave the
+// allowlist keyed on paths nothing imports.
+const primitives = "github.com/Busnes-app/ky-primitives"
+
 // allowedSelectors names, per package, the only identifiers a file linked into the server
 // may reach for. Everything else in these packages either opens a capsule or handles key
 // material. An empty set means the package is off limits entirely.
 var allowedSelectors = map[string]map[string]bool{
 	// Parsing and holding the public half is the whole of the server's business with it.
-	"github.com/Busnes-app/ky-primitives/recoverykey": {"ParsePublicKey": true, "PublicKey": true},
+	primitives + "/recoverykey": {"ParsePublicKey": true, "PublicKey": true},
 	// Reading the unencrypted manifest and knowing how big a container may be.
 	// UnverifiedManifest is what ReadUnverifiedManifest returns; Manifest is what Open and
 	// Seal return, so naming it means holding the output of a decryption.
-	"github.com/Busnes-app/ky-primitives/capsule": {"ReadUnverifiedManifest": true, "UnverifiedManifest": true, "MaxContainerBytes": true},
-	"github.com/Busnes-app/ky-primitives/shamir":  {},
-	"crypto/hpke": {},
+	primitives + "/capsule": {"ReadUnverifiedManifest": true, "UnverifiedManifest": true, "MaxContainerBytes": true},
+	primitives + "/shamir":  {},
+	"crypto/hpke":           {},
 }
 
 // forbiddenImports are packages no file linked into the server may name directly. The
 // binary still links them transitively — recoverykey and capsule use them, as does TLS —
 // and this says nothing about that; it says the server's own code never reaches for them.
 var forbiddenImports = []string{
-	"github.com/Busnes-app/ky-primitives/shamir",
+	primitives + "/shamir",
 	"crypto/hpke", "crypto/mlkem", "crypto/ecdh",
 }
 
@@ -47,6 +53,8 @@ func TestNothingInTheServerDecrypts(t *testing.T) {
 	if _, err := os.Stat(ceremony); err != nil {
 		t.Fatalf("the excluded ceremony directory must exist, or this test excludes nothing: %v", err)
 	}
+	requireResolvable(t, root)
+	seen := map[string]bool{}
 	checked := 0
 	err := filepath.WalkDir(root, func(p string, d os.DirEntry, err error) error {
 		if err != nil {
@@ -64,7 +72,7 @@ func TestNothingInTheServerDecrypts(t *testing.T) {
 			return nil
 		}
 		checked++
-		checkFile(t, p)
+		checkFile(t, p, seen)
 		return nil
 	})
 	if err != nil {
@@ -73,9 +81,30 @@ func TestNothingInTheServerDecrypts(t *testing.T) {
 	if checked < 10 {
 		t.Fatalf("only %d files scanned; the walk is not covering the module", checked)
 	}
+	for p, sels := range allowedSelectors {
+		if len(sels) > 0 && !seen[p] {
+			t.Errorf("%s is never imported; its allowlist is enforcing nothing", p)
+		}
+	}
 }
 
-func checkFile(t *testing.T, file string) {
+// requireResolvable fails when any policed import path does not resolve under go.mod,
+// which is what a stale or misspelled key looks like: the guard would still pass.
+func requireResolvable(t *testing.T, root string) {
+	t.Helper()
+	paths := append([]string(nil), forbiddenImports...)
+	for p := range allowedSelectors {
+		paths = append(paths, p)
+	}
+	cmd := exec.Command("go", append([]string{"list", "-e", "-f", "{{if .Error}}{{.ImportPath}}: {{.Error}}{{end}}"}, paths...)...)
+	cmd.Dir = root
+	out, err := cmd.CombinedOutput()
+	if err != nil || strings.TrimSpace(string(out)) != "" {
+		t.Fatalf("a policed import path does not resolve, so this test would enforce nothing for it:\n%s%v", out, err)
+	}
+}
+
+func checkFile(t *testing.T, file string, seen map[string]bool) {
 	t.Helper()
 	f, err := parser.ParseFile(token.NewFileSet(), file, nil, 0)
 	if err != nil {
@@ -99,13 +128,16 @@ func checkFile(t *testing.T, file string) {
 		if spec.Name != nil {
 			name = spec.Name.Name
 		}
-		if name == "." && (strings.HasPrefix(p, "github.com/Busnes-app/ky-primitives/") || p == "crypto/hpke") {
+		if name == "." && (strings.HasPrefix(p, primitives+"/") || p == "crypto/hpke") {
 			// A dot import puts the package's whole surface in scope under no name at
 			// all, which no amount of selector checking can follow.
 			t.Errorf("%s dot-imports %s; that hides every call it makes", file, p)
 		}
-		if _, ok := allowedSelectors[p]; ok && name != "_" && name != "." {
-			watched[name] = p
+		if _, ok := allowedSelectors[p]; ok {
+			seen[p] = true
+			if name != "_" && name != "." {
+				watched[name] = p
+			}
 		}
 	}
 	if len(watched) == 0 {
