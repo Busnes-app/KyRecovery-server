@@ -112,17 +112,29 @@
       <div class="panel">
         <div class="panel-header"><div class="panel-title">Backup retention</div></div>
         <p class="panel-note">Keep all recent backups plus the newest per UTC calendar week and month for each paired product. Each window counts back from today and overlaps the others: for example, all backups for 14 days, weekly backups for 8 weeks, and monthly backups for 12 months. Daily 0 keeps everything forever; weekly/monthly 0 disables that tier. Saving does not delete anything. Manual purge can remove the last backup beyond all windows. Offsite copies require their own retention policy.</p>
-        <div class="admin-only" style="display:none;">
-          <label for="retention-days">Keep every backup from the last (days)</label>
-          <input id="retention-days" class="form-input" type="number" min="0" max="36500" step="1" value="0" required aria-describedby="retention-status">
-          <label for="retention-weeks">Keep newest per week over the last (weeks)</label>
-          <input id="retention-weeks" class="form-input" type="number" min="0" max="5200" step="1" value="0" required>
-          <label for="retention-months">Keep newest per month over the last (months)</label>
-          <input id="retention-months" class="form-input" type="number" min="0" max="1200" step="1" value="0" required>
-          <button class="btn btn-primary btn-sm" onclick="saveRetention()">Save retention</button>
-          <button class="btn btn-secondary btn-sm" onclick="purgeExpiredBackups()">Purge expired</button>
+        <div class="panel-body">
+          <div class="admin-only" style="display:none;">
+            <div class="retention-fields">
+              <div>
+                <label class="form-label" for="retention-days">Keep every backup (days)</label>
+                <input id="retention-days" class="form-input" type="number" min="0" max="36500" step="1" value="0" required aria-describedby="retention-status">
+              </div>
+              <div>
+                <label class="form-label" for="retention-weeks">Keep newest per week (weeks)</label>
+                <input id="retention-weeks" class="form-input" type="number" min="0" max="5200" step="1" value="0" required>
+              </div>
+              <div>
+                <label class="form-label" for="retention-months">Keep newest per month (months)</label>
+                <input id="retention-months" class="form-input" type="number" min="0" max="1200" step="1" value="0" required>
+              </div>
+            </div>
+          </div>
+          <div class="retention-actions">
+            <button class="btn btn-primary btn-sm admin-only" style="display:none;" onclick="saveRetention()">Save retention</button>
+            <button class="btn btn-secondary btn-sm" onclick="loadRetention()">Refresh preview</button>
+            <button class="btn btn-secondary btn-sm admin-only" style="display:none;" onclick="purgeExpiredBackups()">Purge expired</button>
+          </div>
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="loadRetention()">Refresh preview</button>
         <p id="retention-status" class="panel-note" role="status" aria-live="polite">Loading retention…</p>
       </div>
       <div class="panel">
