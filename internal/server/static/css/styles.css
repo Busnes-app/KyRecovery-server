@@ -250,3 +250,81 @@ footer { padding: 16px 32px; border-top: 1px solid var(--rule); font-size: 13px;
   .metric-value { font-size: 52px; }
   .panel-header { flex-wrap: wrap; }
 }
+
+/* Busnes.app palettes: ink is the background in this dashboard. */
+:root[data-theme="light"] {
+  --ink: #f8f6f0;
+  --paper: #182326;
+  --brass: #bf3f18;
+  --rule: rgba(24,35,38,.12);
+  --ok: #267442;
+  --warn: #875b12;
+  --bad: #b42318;
+  --ink-raised: #ffffff;
+  --ink-well: #f2efe7;
+  --paper-muted: #566461;
+  --paper-dim: #66736f;
+  --brass-ink: #ffffff;
+  --brass-wash: #fbf0ec;
+  --rule-strong: rgba(24,35,38,.22);
+  color-scheme: light;
+}
+:root:not([data-theme]) {
+  --ink: #f8f6f0;
+  --paper: #182326;
+  --brass: #bf3f18;
+  --rule: rgba(24,35,38,.12);
+  --ok: #267442;
+  --warn: #875b12;
+  --bad: #b42318;
+  --ink-raised: #ffffff;
+  --ink-well: #f2efe7;
+  --paper-muted: #566461;
+  --paper-dim: #66736f;
+  --brass-ink: #ffffff;
+  --brass-wash: #fbf0ec;
+  --rule-strong: rgba(24,35,38,.22);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --ink: #182326;
+  --paper: #f2efe8;
+  --brass: #f5865f;
+  --rule: rgba(242,239,232,.12);
+  --ok: #6fbf8a;
+  --warn: #d8a657;
+  --bad: #eb9d93;
+  --ink-raised: #1f2b2e;
+  --ink-well: #243033;
+  --paper-muted: #b3bcb8;
+  --paper-dim: #8e9894;
+  --brass-ink: #182326;
+  --brass-wash: #2b2622;
+  --rule-strong: rgba(242,239,232,.24);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme]) {
+  --ink: #182326;
+  --paper: #f2efe8;
+  --brass: #f5865f;
+  --rule: rgba(242,239,232,.12);
+  --ok: #6fbf8a;
+  --warn: #d8a657;
+  --bad: #eb9d93;
+  --ink-raised: #1f2b2e;
+  --ink-well: #243033;
+  --paper-muted: #b3bcb8;
+  --paper-dim: #8e9894;
+  --brass-ink: #182326;
+  --brass-wash: #2b2622;
+  --rule-strong: rgba(242,239,232,.24);
+  color-scheme: dark;
+} }
+
+.theme-selector { font: inherit; max-width: 100%; min-height: 36px; padding: 6px 10px; background: var(--ink-raised); color: var(--paper); border: 1px solid var(--rule-strong); border-radius: 4px; }
+.theme-selector:focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; }
+@media (max-width: 680px) {
+  header { flex-wrap: wrap; }
+  .header-meta, #user-auth-area { flex-wrap: wrap; }
+  .header-meta { min-width: 0; }
+}

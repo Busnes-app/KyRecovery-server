@@ -6,9 +6,11 @@
   <link rel="stylesheet" href="/static/css/styles.css">
   <link rel="stylesheet" href="/static/css/ceremony.css">
   <meta http-equiv="Cache-Control" content="no-store">
+  <script src="/static/js/theme.js"></script>
 </head>
 <body>
 <main class="ceremony">
+  <select class="theme-selector no-print" data-theme-select aria-label="Color theme"><option value="system">System (Busnes)</option><option value="light">Busnes Light</option><option value="dark">Busnes Dark</option></select>
   <h1>Recovery key ceremony</h1>
   <div class="panel">
     <p><strong>Read before you begin.</strong> This tab will generate the suite's recovery private key and split it into custodian cards. The key exists only in this tab's memory and cannot be erased before the tab closes. Run this in a <strong>fresh private window</strong>, with <strong>no browser extensions</strong>, on a machine that will <strong>not hibernate</strong> during the ceremony. Print the cards, confirm the import, then <strong>close the tab</strong>. Nothing but the public key leaves this page.</p>
