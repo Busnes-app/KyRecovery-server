@@ -3,18 +3,18 @@
    monospace only for hashes and identifiers. No font is downloaded. */
 
 :root {
-  --ink: #1c2430;
-  --ink-raised: #243040;
-  --ink-well: #171e28;
-  --rule: rgba(160, 176, 196, 0.18);
-  --rule-strong: rgba(160, 176, 196, 0.34);
-  --paper: #ede9e0;
-  --paper-muted: #a9b2bd;
-  --paper-dim: #939eab; /* 5.7:1 on --ink, 4.9:1 on --ink-raised: AA for body text */
-  --brass: #c9a227;
-  --brass-ink: #1a1508;
-  --brass-wash: rgba(201, 162, 39, 0.1);
-  --ok: #6fbf8a;
+  --ink: var(--ky-bg);
+  --ink-raised: var(--ky-panel);
+  --ink-well: var(--ky-panel-hover);
+  --rule: var(--ky-line);
+  --rule-strong: var(--ky-line-strong);
+  --paper: var(--ky-ink-strong);
+  --paper-muted: var(--ky-ink);
+  --paper-dim: var(--ky-ink-muted);
+  --brass: var(--ky-accent);
+  --brass-ink: var(--ky-button-text);
+  --brass-wash: var(--ky-accent-soft);
+  --ok: var(--ky-success);
   --ok-wash: rgba(111, 191, 138, 0.12);
   --warn: #d8a657;
   --warn-wash: rgba(216, 166, 87, 0.12);
