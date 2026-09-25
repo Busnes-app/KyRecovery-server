@@ -34,10 +34,11 @@ function initTabs() {
   const tabs = document.querySelectorAll('.tab-btn');
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
+      tabs.forEach(t => { t.classList.remove('active'); t.removeAttribute('aria-current'); });
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
       tab.classList.add('active');
+      tab.setAttribute('aria-current', 'page');
       const target = document.getElementById(tab.dataset.tab);
       if (target) target.classList.add('active');
     });
