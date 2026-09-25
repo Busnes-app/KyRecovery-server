@@ -6,7 +6,7 @@
   let choice = stored();
   function apply() {
     const theme = choice === 'system' ? (media.matches ? 'dark' : 'light') : choice;
-    document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset.theme = theme === 'dark' ? 'busnes-dark' : 'busnes-light';
     document.querySelectorAll('[data-theme-select]').forEach(select => { select.value = choice; });
   }
   apply();

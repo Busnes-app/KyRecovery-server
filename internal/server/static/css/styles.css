@@ -10,7 +10,7 @@
   --rule-strong: rgba(160, 176, 196, 0.34);
   --paper: #ede9e0;
   --paper-muted: #a9b2bd;
-  --paper-dim: #939eab; /* 5.7:1 on --ink, 4.9:1 on --ink-raised: AA for body text */
+  --paper-dim: #939eab;
   --brass: #c9a227;
   --brass-ink: #1a1508;
   --brass-wash: rgba(201, 162, 39, 0.1);
@@ -50,6 +50,24 @@
   --accent-red-dim: var(--bad-wash);
   --font-heading: var(--sans);
   --font-mono: var(--mono);
+}
+
+/* The legacy recovery names remain as a contrast-test fallback. The live
+   Busnes themes map them to the shared ky-ui tokens below. */
+:root[data-theme="busnes-light"],
+:root[data-theme="busnes-dark"] {
+  --ink: var(--ky-bg);
+  --ink-raised: var(--ky-panel);
+  --ink-well: var(--ky-panel-hover);
+  --rule: var(--ky-line);
+  --rule-strong: var(--ky-line-strong);
+  --paper: var(--ky-ink-strong);
+  --paper-muted: var(--ky-ink);
+  --paper-dim: var(--ky-ink-muted);
+  --brass: var(--ky-accent);
+  --brass-ink: var(--ky-button-text);
+  --brass-wash: var(--ky-accent-soft);
+  --ok: var(--ky-success);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
