@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/Busnes-app/ky-primitives/recoverykey"
@@ -52,6 +53,13 @@ func TestPoisonedLedgerRefusesDepositsAndIsVisible(t *testing.T) {
 	ready := ask(t, poisoned, cookie, http.MethodGet, "/api/readiness")
 	if ready["audit_append_disabled"] != true {
 		t.Fatalf("readiness does not report the latched ledger: %v", ready)
+	}
+	health, got := getHealth(t, poisoned)
+	if health.Code != http.StatusOK || got.Status != "degraded" || len(got.Checks) != 2 || got.Checks[0].Status != "ok" || got.Checks[1].Name != "audit" || got.Checks[1].Status != "degraded" || got.Checks[1].Reason != "append_disabled" {
+		t.Fatalf("poisoned health=%d %+v", health.Code, got)
+	}
+	if strings.Contains(health.Body.String(), "audit log") || strings.Contains(health.Body.String(), "anchor") {
+		t.Fatalf("public health leaked ledger detail: %q", health.Body.String())
 	}
 }
 
