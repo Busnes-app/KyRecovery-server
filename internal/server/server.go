@@ -19,6 +19,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Busnes-app/ky-primitives/logging"
 	"github.com/Busnes-app/ky-primitives/offsite"
 	"github.com/Busnes-app/kyrecovery-server/internal/audit"
 	"github.com/Busnes-app/kyrecovery-server/internal/auth"
@@ -59,6 +60,7 @@ type Server struct {
 	idLocks     idLocks
 	retentionMu sync.Mutex
 	mux         *http.ServeMux
+	health      http.Handler
 }
 
 // New creates a new KyRecovery server instance.
@@ -88,12 +90,18 @@ func New(cfg Config, database *db.DB, ledger *audit.Ledger) (*Server, error) {
 		pushSlots:   make(chan struct{}, maxConcurrentPushes),
 		mux:         http.NewServeMux(),
 	}
+	lg, err := logging.New(logging.Config{App: "kyrecovery"})
+	if err != nil {
+		return nil, err
+	}
+	s.health = healthHandler(s, lg)
 
 	s.routes()
 	return s, nil
 }
 
 func (s *Server) routes() {
+	s.mux.Handle("/healthz", s.health)
 	// Static files
 	staticSub, _ := fs.Sub(staticFS, "static")
 	fileServer := http.FileServer(http.FS(staticSub))

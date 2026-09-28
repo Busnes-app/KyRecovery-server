@@ -146,6 +146,14 @@ fixture does not substitute for an operator-observed sync to an existing target.
 - `GET /api/readiness` (viewer) reports `capsule_count`, `custodian_count` and
   `audit_append_disabled`. A blind store cannot open a capsule, so it never
   claims a verified restore.
+- `GET /healthz` is public and serves the suite `ky.health/1` response for
+  `kyrecovery`. It checks whether SQLite answers and whether the audit ledger
+  can append. An unavailable database is `down` (HTTP 503); a poisoned ledger
+  is `degraded` (HTTP 200, fixed reason `append_disabled`). Healthy is HTTP 200.
+  Responses are bounded and shared for five seconds. They contain no database
+  or ledger error text, paths, capsule counts, or ceremony state. The endpoint
+  remains healthy before the recovery-key ceremony; use the authenticated
+  `/api/readiness` for its existing operational fields.
 
 ## Backup retention
 

@@ -198,6 +198,9 @@ func Open(dbPath string) (*DB, error) {
 // Keyring returns the server keyring protecting at-rest secrets.
 func (d *DB) Keyring() *secrets.Keyring { return d.keys }
 
+// PingContext checks whether the database can answer a bounded request.
+func (d *DB) PingContext(ctx context.Context) error { return d.conn.PingContext(ctx) }
+
 // Close closes the database connection.
 func (d *DB) Close() error {
 	return d.conn.Close()
