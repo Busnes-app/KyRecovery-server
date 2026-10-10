@@ -107,9 +107,13 @@ node scripts/test-wasm.mjs
 - Verify vendored files with `node internal/server/static/ky-ui/check-vendor.mjs` from this document's directory. Builds/CI run that check. Rendered evidence and capture limitations are recorded in the repository-root `UI-VERIFICATION.md`.
 
 ## Child DOX Index
+- `docs/plans/2026-10-10-release-readiness-handoff.md`: read when resuming the release-readiness and backup/restore work; lists local changes, next steps, and verification limits.
+- `docs/plans/2026-10-08-release-readiness-review.md`: read before planning the backup/restore implementation or assessing its release gates; records spec corrections and verification against current main.
 - `zero_code_pairing_handoff_spec.md`: the wire contract for pairing and deposit that this server exposes (`/api/pairing/generate`, `/api/pairing/claim`, `/api/backup/deposit`). A change here is breaking for every paired product; update their copies in the same change set.
 
 - `docs/plans/2026-09-05-offsite-migration.md`: migration plan and compatibility gates; read before removing the remaining absolute-SFTP, virtual-host-S3 or read-only SMB adapters.
+
+- `docs/superpowers/specs/2026-10-07-backup-status-restore-ui-design.md`: backup status (capsules, read-only restic repositories, `/healthz` for kyPulse) and guided restore; read before touching the Backups tab or `/api/backups/*`. Its input was `docs/plans/2026-10-07-backup-restore-ui-handoff.md`.
 
 ## Theme contract
 
