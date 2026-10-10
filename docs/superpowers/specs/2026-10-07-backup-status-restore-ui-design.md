@@ -64,8 +64,11 @@ degraded for lacking restic; a restic-only service is not degraded for lacking c
   service row shows the worst.
 - **Unassigned repositories** (no link) are listed for linking. They raise only `key_added` and
   `scan_error`, never staleness.
-- **Auto-link.** On first sight, a repository whose last path segment equals exactly one paired
-  service name links to it. Otherwise it stays unassigned.
+- **Auto-link.** On first sight, a repository whose first path segment (the rest-server user,
+  the credential KyQuickStart issued to one app) equals a paired service name links to it,
+  with every subrepository under that user. Later segments are chosen by the app's client and
+  never link: `mallory/kynotes` must not claim kynotes. Otherwise it stays unassigned. Aligned
+  with post 2810, 2026-10-10.
 
 ## Architecture
 
@@ -125,7 +128,7 @@ installations migrate in place.
   read. Feeds the restore plan and the cadence hint.
 - `restic_samples`: `path`, `day` (UTC date), `size_bytes`, `snapshot_count`. One row per
   repository per day, upserted by a successful scan. The same scan deletes rows older than
-  400 days.
+  90 days, the span the graphs show.
 - `backup_expectations`: `service_name` (primary key), `expected_interval_seconds`.
 - `capsules.verified_at` (new, nullable): set by `verifyCapsule` when the digest matches.
   `status` stays `active`/`corrupt`. Existing capsules read "stored, not yet verified" until the
@@ -192,7 +195,7 @@ Inputs are rows plus `now`; no filesystem access.
 **Command contract** (pinned; KyQuickStart implements it):
 
 ```
-kyquickstart restore <service> --capsule <capsule-id> --repo <repo-path> --snapshot <snapshot-id>
+kyquickstart restore <service> --capsule <capsule-id> --snapshot <repo-path>:<snapshot-id>
 ```
 
 Every interpolated value is validated against its own grammar before display:

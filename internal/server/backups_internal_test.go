@@ -51,7 +51,7 @@ func newBackupFixture(t *testing.T) *backupFixture {
 	dir := t.TempDir()
 	now := time.Now().UTC()
 
-	repo := filepath.Join(dir, "alice", "kynotes")
+	repo := filepath.Join(dir, "kynotes", "main") // rest-server user kynotes
 	writeFile(t, filepath.Join(repo, "config"), now)
 	writeFile(t, filepath.Join(repo, "keys", hexID(1)), now)
 	writeFile(t, filepath.Join(repo, "snapshots", hexID(2)), now.Add(-50*time.Minute))
@@ -137,7 +137,7 @@ func TestBackupStatusPlanAndHealth(t *testing.T) {
 	if reason(h) != "ok/" {
 		t.Fatalf("backups check = %s; body %s", reason(h), body)
 	}
-	for _, leak := range []string{"kynotes", "alice", "cap-"} {
+	for _, leak := range []string{"kynotes", "main", "cap-"} {
 		if strings.Contains(body, leak) {
 			t.Fatalf("public health leaks %q: %s", leak, body)
 		}
@@ -175,7 +175,7 @@ func TestBackupStatusPlanAndHealth(t *testing.T) {
 	if err := json.Unmarshal(rr.Body.Bytes(), &plan); err != nil || rr.Code != http.StatusOK {
 		t.Fatalf("plan %d %s", rr.Code, rr.Body.String())
 	}
-	want := "kyquickstart restore 'kynotes' --capsule 'cap-kynotes-1' --repo 'alice/kynotes' --snapshot '" + f.snapshot + "'"
+	want := "kyquickstart restore 'kynotes' --capsule 'cap-kynotes-1' --snapshot 'kynotes/main:" + f.snapshot + "'"
 	if plan.Command != want || plan.GapSeconds != 600 {
 		t.Fatalf("plan = %s", rr.Body.String())
 	}
@@ -216,14 +216,14 @@ func TestBackupAdminWrites(t *testing.T) {
 		body any
 		want int
 	}{
-		{"/api/backups/repos/link", map[string]string{"repo_path": "alice/kynotes", "service_name": "vaultwarden"}, http.StatusOK},
+		{"/api/backups/repos/link", map[string]string{"repo_path": "kynotes/main", "service_name": "vaultwarden"}, http.StatusOK},
 		{"/api/backups/repos/link", map[string]string{"repo_path": "nope", "service_name": "x"}, http.StatusNotFound},
-		{"/api/backups/repos/link", map[string]string{"repo_path": "alice/kynotes", "service_name": "../x"}, http.StatusBadRequest},
+		{"/api/backups/repos/link", map[string]string{"repo_path": "kynotes/main", "service_name": "../x"}, http.StatusBadRequest},
 		{"/api/backups/expectations", map[string]any{"service_name": "kynotes", "expected_interval_seconds": 3600}, http.StatusOK},
-		{"/api/backups/expectations", map[string]any{"repo_path": "alice/kynotes", "expected_interval_seconds": 7200}, http.StatusOK},
+		{"/api/backups/expectations", map[string]any{"repo_path": "kynotes/main", "expected_interval_seconds": 7200}, http.StatusOK},
 		{"/api/backups/expectations", map[string]any{"service_name": "kynotes", "expected_interval_seconds": 60}, http.StatusBadRequest},
-		{"/api/backups/expectations", map[string]any{"service_name": "kynotes", "repo_path": "alice/kynotes", "expected_interval_seconds": 3600}, http.StatusBadRequest},
-		{"/api/backups/repos/ack-key", map[string]string{"repo_path": "alice/kynotes"}, http.StatusOK},
+		{"/api/backups/expectations", map[string]any{"service_name": "kynotes", "repo_path": "kynotes/main", "expected_interval_seconds": 3600}, http.StatusBadRequest},
+		{"/api/backups/repos/ack-key", map[string]string{"repo_path": "kynotes/main"}, http.StatusOK},
 	}
 	for _, tc := range cases {
 		if rr := call(t, f.srv, admin, http.MethodPost, tc.path, tc.body); rr.Code != tc.want {
@@ -244,7 +244,7 @@ func TestBackupAdminWrites(t *testing.T) {
 	}
 
 	if rr := call(t, f.srv, cookieFor(t, f.db, auth.RoleOperator), http.MethodPost, "/api/backups/repos/link",
-		map[string]string{"repo_path": "alice/kynotes", "service_name": "x"}); rr.Code != http.StatusForbidden {
+		map[string]string{"repo_path": "kynotes/main", "service_name": "x"}); rr.Code != http.StatusForbidden {
 		t.Fatalf("operator link = %d", rr.Code)
 	}
 }
@@ -254,7 +254,7 @@ func TestBackupAdminWriteFailsClosedOnAudit(t *testing.T) {
 	f := newBackupFixture(t)
 	f.srv.scanRestic(t.Context())
 	admin := cookieFor(t, f.db, auth.RoleAdmin)
-	if rr := call(t, f.srv, admin, http.MethodPost, "/api/backups/repos/ack-key", map[string]string{"repo_path": "alice/kynotes"}); rr.Code != http.StatusOK {
+	if rr := call(t, f.srv, admin, http.MethodPost, "/api/backups/repos/ack-key", map[string]string{"repo_path": "kynotes/main"}); rr.Code != http.StatusOK {
 		t.Fatalf("ack = %d", rr.Code)
 	}
 	last, err := f.db.GetLastAuditEvent(t.Context())
@@ -266,7 +266,7 @@ func TestBackupAdminWriteFailsClosedOnAudit(t *testing.T) {
 	}
 	poisoned := fixtureServer(t, f.db, f.resticDir)
 
-	rr := call(t, poisoned, admin, http.MethodPost, "/api/backups/repos/link", map[string]string{"repo_path": "alice/kynotes", "service_name": "other"})
+	rr := call(t, poisoned, admin, http.MethodPost, "/api/backups/repos/link", map[string]string{"repo_path": "kynotes/main", "service_name": "other"})
 	if rr.Code != http.StatusServiceUnavailable {
 		t.Fatalf("link on poisoned ledger = %d %s", rr.Code, rr.Body.String())
 	}

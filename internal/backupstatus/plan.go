@@ -195,7 +195,7 @@ func command(p Plan) string {
 		b += " --capsule '" + p.Capsule.ID + "'"
 	}
 	if p.Snapshot != nil {
-		b += " --repo '" + p.Repo + "' --snapshot '" + p.Snapshot.ID + "'"
+		b += " --snapshot '" + p.Repo + ":" + p.Snapshot.ID + "'"
 	}
 	return b
 }

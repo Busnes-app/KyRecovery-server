@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
-	"path"
+	"strings"
 	"time"
 
 	"github.com/Busnes-app/kyrecovery-server/internal/backupstatus"
@@ -11,7 +11,7 @@ import (
 )
 
 // sampleRetention is how long daily restic samples are kept.
-const sampleRetention = 400 * 24 * time.Hour
+const sampleRetention = 90 * 24 * time.Hour
 
 // RecordResticScanFailure notes a failed scan. Repository rows are left exactly as they were.
 func (d *DB) RecordResticScanFailure(ctx context.Context, at time.Time, scanErr string) error {
@@ -49,9 +49,11 @@ func (d *DB) ApplyResticScan(ctx context.Context, at time.Time, repos []resticsc
 	seen := map[string]bool{}
 	for _, r := range repos {
 		seen[r.Path] = true
-		link := ""
-		if paired[path.Base(r.Path)] {
-			link = path.Base(r.Path)
+		// Under --private-repos the first segment is the rest-server user, the credential
+		// KyQuickStart issued to one app. Later segments are chosen by that app's client.
+		link, _, _ := strings.Cut(r.Path, "/")
+		if !paired[link] {
+			link = ""
 		}
 		// First sight sets the auto-link and the first good read sets the key baseline;
 		// later scans change neither.

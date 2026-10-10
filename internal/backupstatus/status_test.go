@@ -235,7 +235,7 @@ func TestRestorePlan(t *testing.T) {
 	if p.Capsule.ID != "cap-new" || p.Snapshot.ID != hexB || *p.GapSeconds != 600 {
 		t.Fatalf("plan = %+v", p)
 	}
-	want := "kyquickstart restore 'kynotes' --capsule 'cap-new' --repo 'u/kynotes' --snapshot '" + hexB + "'"
+	want := "kyquickstart restore 'kynotes' --capsule 'cap-new' --snapshot 'u/kynotes:" + hexB + "'"
 	if p.Command != want {
 		t.Fatalf("command = %q", p.Command)
 	}
@@ -318,7 +318,7 @@ func TestRestorePlan(t *testing.T) {
 		if p.Snapshot == nil || p.Snapshot.ID != hexA || p.GapSeconds != nil {
 			t.Fatalf("plan = %+v", p)
 		}
-		if p.Command != "kyquickstart restore 'kynotes' --repo 'u/kynotes' --snapshot '"+hexA+"'" {
+		if p.Command != "kyquickstart restore 'kynotes' --snapshot 'u/kynotes:"+hexA+"'" {
 			t.Fatalf("command = %q", p.Command)
 		}
 	})

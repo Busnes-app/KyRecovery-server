@@ -143,6 +143,8 @@ func TestScanErrorKeepsMeasurementsAndMissingNeedsSuccess(t *testing.T) {
 	}
 }
 
+// Auto-link follows the rest-server user (first segment), the identity KyQuickStart issued to
+// one app. A repository name another app chose must not claim a service.
 func TestAutoLinkOnlyToPairedServiceOnFirstSight(t *testing.T) {
 	ctx, d := context.Background(), openMem(t)
 	now := time.Now().UTC()
@@ -150,23 +152,22 @@ func TestAutoLinkOnlyToPairedServiceOnFirstSight(t *testing.T) {
 	if err := d.InsertPairedApp(ctx, app); err != nil {
 		t.Fatal(err)
 	}
-	if err := d.ApplyResticScan(ctx, now, []resticscan.Repo{scanned("alice/kynotes", 1), scanned("alice/other", 1)}); err != nil {
+	if err := d.ApplyResticScan(ctx, now, []resticscan.Repo{scanned("kynotes", 1), scanned("kynotes/files", 1), scanned("mallory/kynotes", 1), scanned("alice/other", 1)}); err != nil {
 		t.Fatal(err)
 	}
-	if r := repoRow(t, d, "alice/kynotes"); r.Service != "kynotes" {
-		t.Fatalf("auto-link = %q", r.Service)
-	}
-	if r := repoRow(t, d, "alice/other"); r.Service != "" {
-		t.Fatalf("unpaired name linked: %q", r.Service)
+	for path, want := range map[string]string{"kynotes": "kynotes", "kynotes/files": "kynotes", "mallory/kynotes": "", "alice/other": ""} {
+		if r := repoRow(t, d, path); r.Service != want {
+			t.Fatalf("%s auto-linked to %q, want %q", path, r.Service, want)
+		}
 	}
 	// An admin unlink survives later scans.
-	if _, err := d.LinkResticRepo(ctx, "alice/kynotes", ""); err != nil {
+	if _, err := d.LinkResticRepo(ctx, "kynotes/files", ""); err != nil {
 		t.Fatal(err)
 	}
-	if err := d.ApplyResticScan(ctx, now.Add(time.Minute), []resticscan.Repo{scanned("alice/kynotes", 1)}); err != nil {
+	if err := d.ApplyResticScan(ctx, now.Add(time.Minute), []resticscan.Repo{scanned("kynotes/files", 1)}); err != nil {
 		t.Fatal(err)
 	}
-	if r := repoRow(t, d, "alice/kynotes"); r.Service != "" {
+	if r := repoRow(t, d, "kynotes/files"); r.Service != "" {
 		t.Fatalf("rescan re-linked: %q", r.Service)
 	}
 }
