@@ -216,11 +216,9 @@ thereby consistent. KyRecovery never holds a restic password and never runs
 restic.
 
 The restore wizard picks the capsule and snapshot for a point in time and shows
-the command to run on your workstation:
-
-```
-kyquickstart restore '<service>' --capsule '<id>' --repo '<path>' --snapshot '<id>'
-```
+the `kyquickstart restore` command to run on your workstation, naming the
+service and passing the capsule ID, repository path and snapshot ID as flags
+(the exact contract is in the design spec's Restore plan section).
 
 That command needs KyQuickStart with restore support; custodian shares are typed
 into it, never into the dashboard.
