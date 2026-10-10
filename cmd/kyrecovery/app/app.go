@@ -65,6 +65,7 @@ func cmdServe(args []string) {
 	ssoClientSecret := fs.String("sso-client-secret", os.Getenv("KY_SSO_CLIENT_SECRET"), "KySignOn OAuth Client Secret")
 	ssoRedirectURL := fs.String("sso-redirect-url", os.Getenv("KY_SSO_REDIRECT_URL"), "KySignOn OAuth Callback Redirect URL")
 	ssoAdminEmail := fs.String("sso-admin-email", os.Getenv("KY_ADMIN_EMAIL"), "Admin user email address")
+	resticDir := fs.String("restic-dir", os.Getenv("KYRECOVERY_RESTIC_DIR"), "rest-server data directory, mounted read-only, for backup status (empty disables)")
 	cookieSecure := fs.String("cookie-secure", os.Getenv("KYRECOVERY_COOKIE_SECURE"), "Force the Secure flag on session cookies: true, false, or empty to follow the request transport")
 	fs.Parse(args)
 
@@ -130,6 +131,7 @@ func cmdServe(args []string) {
 		DatabasePath: dbPath,
 		Auth:         authCfg,
 		CookieSecure: cookieSecureFlag,
+		ResticDir:    *resticDir,
 	}, database, ledger)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Server initialization error: %v\n", err)

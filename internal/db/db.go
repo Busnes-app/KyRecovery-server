@@ -37,6 +37,8 @@ type CapsuleRecord struct {
 	DepositedAt     time.Time `json:"deposited_at"` // kyrecovery's clock
 	PairedAppID     string    `json:"paired_app_id"`
 	Status          string    `json:"status"` // "active" | "corrupt"
+	// VerifiedAt is the last time the stored bytes matched Digest; nil means stored, never checked.
+	VerifiedAt *time.Time `json:"verified_at,omitempty"`
 }
 
 // CustodianRecord represents a designated recovery custodian.
@@ -331,6 +333,48 @@ func (d *DB) migrate() error {
 		imported_at DATETIME NOT NULL
 	);
 
+	CREATE TABLE IF NOT EXISTS restic_scan_state (
+		singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+		last_attempt_at DATETIME,
+		last_success_at DATETIME,
+		last_error TEXT NOT NULL DEFAULT ''
+	);
+
+	CREATE TABLE IF NOT EXISTS restic_repos (
+		path TEXT PRIMARY KEY,
+		service_name TEXT NOT NULL DEFAULT '',
+		expected_interval_seconds INTEGER NOT NULL DEFAULT 0,
+		snapshot_count INTEGER NOT NULL DEFAULT 0,
+		last_snapshot_at DATETIME,
+		size_bytes INTEGER NOT NULL DEFAULT 0,
+		lock_seen_at DATETIME,
+		key_count INTEGER NOT NULL DEFAULT 0,
+		acked_key_count INTEGER NOT NULL DEFAULT 0,
+		missing_since DATETIME,
+		scan_error TEXT NOT NULL DEFAULT '',
+		measured_at DATETIME
+	);
+
+	CREATE TABLE IF NOT EXISTS restic_snapshots (
+		path TEXT NOT NULL REFERENCES restic_repos(path) ON DELETE CASCADE,
+		id TEXT NOT NULL,
+		written_at DATETIME NOT NULL,
+		PRIMARY KEY (path, id)
+	);
+
+	CREATE TABLE IF NOT EXISTS restic_samples (
+		path TEXT NOT NULL REFERENCES restic_repos(path) ON DELETE CASCADE,
+		day TEXT NOT NULL,
+		size_bytes INTEGER NOT NULL,
+		snapshot_count INTEGER NOT NULL,
+		PRIMARY KEY (path, day)
+	);
+
+	CREATE TABLE IF NOT EXISTS backup_expectations (
+		service_name TEXT PRIMARY KEY,
+		expected_interval_seconds INTEGER NOT NULL
+	);
+
 	CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 	CREATE INDEX IF NOT EXISTS idx_capsules_service ON capsules(service_name);
 	CREATE INDEX IF NOT EXISTS idx_paired_code ON paired_apps(pairing_code);
@@ -342,7 +386,10 @@ func (d *DB) migrate() error {
 	if _, err := d.conn.Exec(schema); err != nil {
 		return err
 	}
-	return d.addColumn("replication_targets", "host_key", "TEXT NOT NULL DEFAULT ''")
+	if err := d.addColumn("replication_targets", "host_key", "TEXT NOT NULL DEFAULT ''"); err != nil {
+		return err
+	}
+	return d.addColumn("capsules", "verified_at", "DATETIME")
 }
 
 // addColumn adds a column to a table created by an older schema, once.
@@ -378,6 +425,12 @@ func (d *DB) InsertCapsule(ctx context.Context, c CapsuleRecord) error {
 	return err
 }
 
+// MarkCapsuleVerified records that the stored bytes matched the digest at t.
+func (d *DB) MarkCapsuleVerified(ctx context.Context, id string, t time.Time) error {
+	_, err := d.conn.ExecContext(ctx, `UPDATE capsules SET status = 'active', verified_at = ? WHERE id = ?`, t.UTC(), id)
+	return err
+}
+
 // SetCapsuleStatus updates a capsule's status ("active" or "corrupt").
 func (d *DB) SetCapsuleStatus(ctx context.Context, id, status string) error {
 	_, err := d.conn.ExecContext(ctx, `UPDATE capsules SET status = ? WHERE id = ?`, status, id)
@@ -393,10 +446,10 @@ func (d *DB) DeleteCapsule(ctx context.Context, id string) error {
 
 // GetCapsule retrieves a capsule by ID.
 func (d *DB) GetCapsule(ctx context.Context, id string) (*CapsuleRecord, error) {
-	q := `SELECT id, service_name, app_name, app_version, file_path, size_bytes, digest, payload_hash, threshold, total_shares, recovery_key_id, encapsulated_key, created_at, deposited_at, paired_app_id, status FROM capsules WHERE id = ?`
+	q := `SELECT id, service_name, app_name, app_version, file_path, size_bytes, digest, payload_hash, threshold, total_shares, recovery_key_id, encapsulated_key, created_at, deposited_at, paired_app_id, status, verified_at FROM capsules WHERE id = ?`
 	row := d.conn.QueryRowContext(ctx, q, id)
 	var c CapsuleRecord
-	err := row.Scan(&c.ID, &c.ServiceName, &c.AppName, &c.AppVersion, &c.FilePath, &c.SizeBytes, &c.Digest, &c.PayloadHash, &c.Threshold, &c.TotalShares, &c.RecoveryKeyID, &c.EncapsulatedKey, &c.CreatedAt, &c.DepositedAt, &c.PairedAppID, &c.Status)
+	err := row.Scan(&c.ID, &c.ServiceName, &c.AppName, &c.AppVersion, &c.FilePath, &c.SizeBytes, &c.Digest, &c.PayloadHash, &c.Threshold, &c.TotalShares, &c.RecoveryKeyID, &c.EncapsulatedKey, &c.CreatedAt, &c.DepositedAt, &c.PairedAppID, &c.Status, &c.VerifiedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -408,7 +461,7 @@ func (d *DB) GetCapsule(ctx context.Context, id string) (*CapsuleRecord, error) 
 
 // ListCapsules returns all active capsules.
 func (d *DB) ListCapsules(ctx context.Context) ([]CapsuleRecord, error) {
-	q := `SELECT id, service_name, app_name, app_version, file_path, size_bytes, digest, payload_hash, threshold, total_shares, recovery_key_id, encapsulated_key, created_at, deposited_at, paired_app_id, status FROM capsules ORDER BY created_at DESC`
+	q := `SELECT id, service_name, app_name, app_version, file_path, size_bytes, digest, payload_hash, threshold, total_shares, recovery_key_id, encapsulated_key, created_at, deposited_at, paired_app_id, status, verified_at FROM capsules ORDER BY created_at DESC`
 	rows, err := d.conn.QueryContext(ctx, q)
 	if err != nil {
 		return nil, err
@@ -418,7 +471,7 @@ func (d *DB) ListCapsules(ctx context.Context) ([]CapsuleRecord, error) {
 	var list []CapsuleRecord
 	for rows.Next() {
 		var c CapsuleRecord
-		if err := rows.Scan(&c.ID, &c.ServiceName, &c.AppName, &c.AppVersion, &c.FilePath, &c.SizeBytes, &c.Digest, &c.PayloadHash, &c.Threshold, &c.TotalShares, &c.RecoveryKeyID, &c.EncapsulatedKey, &c.CreatedAt, &c.DepositedAt, &c.PairedAppID, &c.Status); err != nil {
+		if err := rows.Scan(&c.ID, &c.ServiceName, &c.AppName, &c.AppVersion, &c.FilePath, &c.SizeBytes, &c.Digest, &c.PayloadHash, &c.Threshold, &c.TotalShares, &c.RecoveryKeyID, &c.EncapsulatedKey, &c.CreatedAt, &c.DepositedAt, &c.PairedAppID, &c.Status, &c.VerifiedAt); err != nil {
 			return nil, err
 		}
 		list = append(list, c)

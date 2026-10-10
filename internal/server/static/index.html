@@ -75,6 +75,7 @@
   <!-- Navigation Tabs -->
   <nav class="nav-tabs">
     <button class="ky-nav-item tab-btn active" aria-current="page" data-tab="tab-overview">Overview</button>
+    <button class="ky-nav-item tab-btn" data-tab="tab-backups">Backups</button>
     <button class="ky-nav-item tab-btn" data-tab="tab-capsules">Capsules</button>
     <button class="ky-nav-item tab-btn" data-tab="tab-pairing">Paired Products</button>
     <button class="ky-nav-item tab-btn" data-tab="tab-custodians">Custodians & Quorum</button>
@@ -105,6 +106,78 @@
           <p style="color: var(--text-muted); font-size: 13px;">
             KyRecovery is a blind store. Products seal their own backup capsules to the suite recovery public key before deposit, so nothing here can read what it holds — and a stolen copy of this server yields no plaintext.
           </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Backups -->
+    <div id="tab-backups" class="tab-content">
+      <p id="backups-banner" class="backups-banner" role="status" hidden></p>
+      <div class="metrics-grid backups-metrics">
+        <div class="metric-card"><div class="metric-label">services healthy</div><div id="backups-healthy" class="metric-value">--</div></div>
+        <div class="metric-card"><div class="metric-label">stale or never backed up</div><div id="backups-stale" class="metric-value">--</div></div>
+        <div class="metric-card"><div class="metric-label">corrupt</div><div id="backups-corrupt" class="metric-value">--</div></div>
+        <div class="metric-card"><div class="metric-label">scan problems</div><div id="backups-scan" class="metric-value">--</div></div>
+        <div class="metric-card"><div class="metric-label">restic storage</div><div id="backups-storage" class="metric-value">--</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Backup health</div>
+          <button class="btn btn-secondary btn-sm" onclick="loadBackups()">Refresh</button>
+        </div>
+        <p class="panel-note">Restic snapshot contents are encrypted; only write times are visible here.</p>
+        <p class="panel-note restic-off-note" hidden>Restic scanning is off. Set <code>KYRECOVERY_RESTIC_DIR</code> or <code>--restic-dir</code> to rest-server's data directory, mounted read-only (see <code>docker-compose.restic.yml</code>).</p>
+        <p id="backups-status" class="panel-note" role="status" aria-live="polite">Loading backup status…</p>
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Service</th>
+                <th>Channels</th>
+                <th>Newest capsule</th>
+                <th>Last snapshot</th>
+                <th>Expected interval</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="backups-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Unassigned repositories</div></div>
+        <p class="panel-note restic-off-note" hidden>Restic scanning is off. Set <code>KYRECOVERY_RESTIC_DIR</code> or <code>--restic-dir</code> to rest-server's data directory, mounted read-only (see <code>docker-compose.restic.yml</code>).</p>
+        <div id="backups-unassigned" class="panel-body"></div>
+        <datalist id="backups-service-names"></datalist>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Restore</div></div>
+        <p class="panel-note">Finds the capsule and restic snapshot to restore from, by metadata only. Requires KyQuickStart with restore support.</p>
+        <div class="panel-body">
+          <div class="retention-fields">
+            <div>
+              <label class="form-label" for="restore-service">Service</label>
+              <select id="restore-service" class="form-input form-select" onchange="resetRestorePickers()"></select>
+            </div>
+            <div id="restore-instance-field" hidden>
+              <label class="form-label" for="restore-instance">Instance</label>
+              <select id="restore-instance" class="form-input form-select" onchange="planRestore()"></select>
+            </div>
+            <div id="restore-repo-field" hidden>
+              <label class="form-label" for="restore-repo">Repository</label>
+              <select id="restore-repo" class="form-input form-select" onchange="planRestore()"></select>
+            </div>
+            <div>
+              <label class="form-label" for="restore-at">Restore to (local time; empty means now)</label>
+              <input id="restore-at" class="form-input" type="datetime-local">
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="planRestore()">Find restore point</button>
+          <p id="restore-status" class="form-hint" role="status" aria-live="polite"></p>
+          <div id="restore-plan"></div>
         </div>
       </div>
     </div>

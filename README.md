@@ -201,6 +201,34 @@ the bytes are the sealed ones and were sealed to the pinned key; comparing the
 capsule ID and creation time against KyRecovery's deposit record is where
 freshness comes from.
 
+## Backup status and restore planning
+
+The **Backups** tab shows, per service, the newest capsule (stored, or verified
+and when) and, with the restic overlay enabled, the newest restic snapshot of
+each linked repository. It flags corrupt, missing, never-backed-up, stale, scan
+problems, new repository keys and old locks; `/healthz` degrades with one fixed
+reason code and no names.
+
+Restic metadata is observation, not proof. KyRecovery reads only file names,
+sizes and mtimes: a snapshot shows when rest-server **wrote** it, a lock is
+repository activity, and a capsule and snapshot written close together are not
+thereby consistent. KyRecovery never holds a restic password and never runs
+restic.
+
+The restore wizard picks the capsule and snapshot for a point in time and shows
+the command to run on your workstation:
+
+```
+kyquickstart restore '<service>' --capsule '<id>' --repo '<path>' --snapshot '<id>'
+```
+
+That command needs KyQuickStart with restore support; custodian shares are typed
+into it, never into the dashboard.
+
+To enable restic status, add `docker-compose.restic.yml` to `COMPOSE_FILE` and
+follow the setup at its top. `scripts/verify-restic-overlay.sh` proves the
+arrangement with real backups (needs Docker).
+
 ## CLI
 
 ```
@@ -212,7 +240,7 @@ kyrecovery help
 
 `serve` flags: `--port` (8095), `--data-dir` (`./data`), `--sso-issuer`,
 `--sso-client-id`, `--sso-client-secret`, `--sso-redirect-url`,
-`--sso-admin-email`, `--cookie-secure`.
+`--sso-admin-email`, `--cookie-secure`, `--restic-dir`.
 
 ## Configuration
 
@@ -223,6 +251,7 @@ kyrecovery help
 | `KY_ADMIN_EMAIL` | The SSO identity granted `admin`. |
 | `KY_ADMIN_INITIAL_PASSWORD` | The local `admin` password on first start. Without it one is generated and printed once. |
 | `KYRECOVERY_COOKIE_SECURE` | `true`, `false`, or empty to follow the request transport. |
+| `KYRECOVERY_RESTIC_DIR` | rest-server's data directory, mounted read-only, for restic backup status. Empty disables the scanner. |
 
 The data directory holds `kyrecovery.db`, `secret.key` and `capsules/`. Back all
 three up together: without `secret.key` the sealed replication credentials, the

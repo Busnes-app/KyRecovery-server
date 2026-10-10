@@ -56,7 +56,7 @@ func (s *Server) verifyCapsule(ctx context.Context, rec *db.CapsuleRecord, actor
 	if !valid {
 		return s.markCorrupt(ctx, rec, actor, "digest mismatch")
 	}
-	if err := s.db.SetCapsuleStatus(ctx, rec.ID, "active"); err != nil {
+	if err := s.db.MarkCapsuleVerified(ctx, rec.ID, time.Now()); err != nil {
 		return true, err
 	}
 	_, _ = s.ledger.Record(ctx, "capsule_verified", actor, rec.ID, map[string]interface{}{"digest": rec.Digest})
