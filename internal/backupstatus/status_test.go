@@ -67,12 +67,15 @@ func TestFreshPairingIsPendingForOneInterval(t *testing.T) {
 	for _, tc := range []struct {
 		pairedAgo time.Duration
 		want      State
-	}{{time.Hour, Pending}, {29 * time.Hour, Never}} {
+	}{{time.Hour, Pending}, {27 * time.Hour, Never}, {29 * time.Hour, Never}} {
 		inst := paired("a", "kynotes")
 		inst.PairedAt = agoP(tc.pairedAgo)
 		r := Evaluate(Input{Now: now, Instances: []Instance{inst}})
 		if got := service(t, r, "kynotes").State; got != tc.want || (tc.want == Pending && r.Worst != Pending) {
 			t.Fatalf("paired %v ago: state = %s worst = %s, want %s", tc.pairedAgo, got, r.Worst, tc.want)
+		}
+		if tc.want == Never && Reason(r.Worst) != "backup_never" {
+			t.Fatalf("paired %v ago: reason = %q", tc.pairedAgo, Reason(r.Worst))
 		}
 	}
 }

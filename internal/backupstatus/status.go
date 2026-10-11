@@ -228,7 +228,7 @@ func classifyInstance(inst Instance, caps []Capsule, exp time.Duration, now time
 	}
 	st.Cadence = cadence(times, exp)
 	switch {
-	case len(caps) == 0 && inst.PairedAt != nil && !overdue(*inst.PairedAt, exp, now):
+	case len(caps) == 0 && inst.PairedAt != nil && now.Sub(*inst.PairedAt) <= exp:
 		st.State = Pending
 	case len(caps) == 0:
 		st.State = Never
