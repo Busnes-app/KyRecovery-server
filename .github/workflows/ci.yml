@@ -69,7 +69,8 @@ jobs:
           (grep -ohE 'docs/[A-Za-z0-9._/-]+\.md' README.md || true) | sort -u | xargs -r -I{} test -f {}
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: go.mod
+          go-version: stable
+          check-latest: true
       - run: test -z "$(gofmt -l $(git ls-files '*.go'))"
       - run: go mod tidy && git diff --exit-code go.mod go.sum && go mod verify
       - run: go vet ./...
@@ -90,7 +91,8 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: go.mod
+          go-version: stable
+          check-latest: true
       - run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
   docker:
     runs-on: ubuntu-latest
