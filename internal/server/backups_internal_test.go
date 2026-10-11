@@ -337,3 +337,27 @@ func TestExpectationRejectsOverflowingSeconds(t *testing.T) {
 		t.Fatalf("expectations = %v, %v", exp, err)
 	}
 }
+
+// A repository a successful scan no longer finds is reported, and its cached snapshots are not offered.
+func TestRestorePlanReportsMissingRepo(t *testing.T) {
+	f := newBackupFixture(t)
+	f.srv.scanRestic(t.Context())
+	if err := os.RemoveAll(filepath.Join(f.resticDir, "kynotes")); err != nil {
+		t.Fatal(err)
+	}
+	f.srv.scanRestic(t.Context())
+
+	rr := call(t, f.srv, cookieFor(t, f.db, auth.RoleViewer), http.MethodGet, "/api/backups/restore-plan?service=kynotes", nil)
+	var plan struct {
+		Repo        string          `json:"repo"`
+		RepoMissing bool            `json:"repo_missing"`
+		Snapshot    json.RawMessage `json:"snapshot"`
+		Command     string          `json:"command"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &plan); err != nil || rr.Code != http.StatusOK {
+		t.Fatalf("plan %d %s", rr.Code, rr.Body.String())
+	}
+	if plan.Repo != "kynotes/main" || !plan.RepoMissing || plan.Snapshot != nil || strings.Contains(plan.Command, "--snapshot") {
+		t.Fatalf("plan = %s", rr.Body.String())
+	}
+}

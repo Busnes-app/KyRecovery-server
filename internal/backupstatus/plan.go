@@ -23,14 +23,16 @@ type PlanInput struct {
 	Instances []Instance            // every instance of Service that holds capsules or is paired
 	Capsules  []Capsule             // extant capsules of Service
 	Snapshots map[string][]Snapshot // per linked repository path
+	Missing   map[string]bool       // linked repositories the last good scan did not find
 }
 
 type Plan struct {
-	Service  string    `json:"service_name"`
-	Instance string    `json:"instance,omitempty"`
-	Repo     string    `json:"repo,omitempty"`
-	At       time.Time `json:"at"`
-	Capsule  *Capsule  `json:"capsule,omitempty"`
+	Service     string    `json:"service_name"`
+	Instance    string    `json:"instance,omitempty"`
+	Repo        string    `json:"repo,omitempty"`
+	RepoMissing bool      `json:"repo_missing,omitempty"` // Repo not found by the last good scan: no snapshot
+	At          time.Time `json:"at"`
+	Capsule     *Capsule  `json:"capsule,omitempty"`
 	// Skipped are newer corrupt capsules passed over to reach Capsule, newest first.
 	Skipped    []Capsule `json:"skipped"`
 	Snapshot   *Snapshot `json:"snapshot,omitempty"`
@@ -111,7 +113,8 @@ func RestorePlan(in PlanInput) (Plan, error) {
 		break
 	}
 
-	if repo != "" {
+	p.RepoMissing = in.Missing[repo]
+	if repo != "" && !p.RepoMissing {
 		// With a capsule, pair by write time; without one (restic-only), take the newest as of At.
 		target, bound := at, true
 		if p.Capsule != nil {

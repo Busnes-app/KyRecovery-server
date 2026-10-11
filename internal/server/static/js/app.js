@@ -1297,7 +1297,7 @@ function restorePlanHtml(p) {
       <dt>Integrity</dt><dd>${esc(capsuleState(c))}</dd>` : '<dt>Capsule</dt><dd>No capsule deposited at or before this time.</dd>'}
       ${p.repo ? `<dt>Repository</dt><dd><code>${esc(p.repo)}</code></dd>` : ''}
       ${snap ? `<dt>Snapshot</dt><dd><code>${esc(snap.id)}</code></dd>
-      <dt>Written at</dt><dd>${esc(fmtTime(snap.written_at))}${p.gap_seconds !== undefined ? esc(`, ${fmtDuration(gap)} ${gap < 0 ? 'before' : 'after'} the capsule was deposited`) : ''}</dd>` : (p.repo ? '<dt>Snapshot</dt><dd>No snapshot written in this repository.</dd>' : '')}
+      <dt>Written at</dt><dd>${esc(fmtTime(snap.written_at))}${p.gap_seconds !== undefined ? esc(`, ${fmtDuration(gap)} ${gap < 0 ? 'before' : 'after'} the capsule was deposited`) : ''}</dd>` : (p.repo ? `<dt>Snapshot</dt><dd>${p.repo_missing ? 'Repository not found by the last scan.' : 'No snapshot written in this repository.'}</dd>` : '')}
     </dl>` +
     (p.warnings || []).map(w => `<p class="backups-alert">${esc(w)}</p>`).join('') +
     (p.command ? `<pre class="backups-command"><code id="restore-command">${esc(p.command)}</code></pre>

@@ -143,7 +143,7 @@ func (s *Server) handleRestorePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	in := backupstatus.PlanInput{Now: time.Now().UTC(), Service: service, Instance: q.Get("instance"), Repo: q.Get("repo"),
-		Snapshots: map[string][]backupstatus.Snapshot{}}
+		Snapshots: map[string][]backupstatus.Snapshot{}, Missing: map[string]bool{}}
 	in.At = in.Now
 	if at := q.Get("at"); at != "" {
 		t, err := time.Parse(time.RFC3339, at)
@@ -180,6 +180,10 @@ func (s *Server) handleRestorePlan(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, repo := range all.Repos {
 		if repo.Service != service {
+			continue
+		}
+		if repo.MissingSince != nil {
+			in.Snapshots[repo.Path], in.Missing[repo.Path] = nil, true
 			continue
 		}
 		if in.Snapshots[repo.Path], err = s.db.ListResticSnapshots(ctx, repo.Path); err != nil {
