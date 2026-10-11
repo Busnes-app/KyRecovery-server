@@ -268,10 +268,10 @@ func classifyRepo(r Repo, linked bool, exp time.Duration, fresh bool, now time.T
 	}
 	activity := false
 	if r.LockSeenAt != nil {
-		if now.Sub(*r.LockSeenAt) > lockStaleAfter {
-			f = append(f, OldLock)
-		} else {
+		if now.Sub(*r.LockSeenAt) <= lockStaleAfter {
 			activity = true
+		} else if linked {
+			f = append(f, OldLock)
 		}
 	}
 	flags := sortedSet(f)

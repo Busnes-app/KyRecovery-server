@@ -331,3 +331,10 @@ func TestRestorePlan(t *testing.T) {
 		}
 	})
 }
+
+func TestUnassignedOldLockIsNotAFinding(t *testing.T) {
+	r := Evaluate(Input{Now: now, Scan: freshScan(), Repos: []Repo{{Path: "u/r", LockSeenAt: agoP(31 * time.Minute)}}})
+	if r.Worst != OK || r.Unassigned[0].State != OK {
+		t.Fatalf("worst = %s, unassigned = %+v", r.Worst, r.Unassigned)
+	}
+}
