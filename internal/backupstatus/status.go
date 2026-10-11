@@ -49,6 +49,7 @@ const (
 type Capsule struct {
 	ID          string     `json:"id"`
 	Instance    string     `json:"instance"`
+	Service     string     `json:"-"`
 	Digest      string     `json:"digest"`
 	Status      string     `json:"status"` // "active" | "corrupt"
 	CreatedAt   time.Time  `json:"created_at"`

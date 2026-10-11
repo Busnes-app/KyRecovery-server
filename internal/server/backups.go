@@ -58,7 +58,7 @@ func (s *Server) backupInput(ctx context.Context) (backupstatus.Input, error) {
 		return in, err
 	}
 	for _, c := range caps {
-		in.Capsules = append(in.Capsules, backupstatus.Capsule{ID: c.ID, Instance: c.PairedAppID, Digest: c.Digest, Status: c.Status,
+		in.Capsules = append(in.Capsules, backupstatus.Capsule{ID: c.ID, Instance: c.PairedAppID, Service: c.ServiceName, Digest: c.Digest, Status: c.Status,
 			CreatedAt: c.CreatedAt, DepositedAt: c.DepositedAt, VerifiedAt: c.VerifiedAt})
 	}
 	if in.Repos, err = s.db.ListResticRepos(ctx); err != nil {
@@ -166,6 +166,13 @@ func (s *Server) handleRestorePlan(w http.ResponseWriter, r *http.Request) {
 	ofService := map[string]bool{}
 	for _, i := range all.Instances {
 		ofService[i.ID] = i.Service == service
+	}
+	// Clearing a revoked registration keeps its capsules; they name their own service.
+	for _, c := range all.Capsules {
+		if _, known := ofService[c.Instance]; !known && c.Instance != "" && c.Service == service {
+			ofService[c.Instance] = true
+			all.Instances = append(all.Instances, backupstatus.Instance{ID: c.Instance, Service: service, Status: "revoked"})
+		}
 	}
 	for _, c := range all.Capsules {
 		if ofService[c.Instance] {

@@ -361,3 +361,28 @@ func TestRestorePlanReportsMissingRepo(t *testing.T) {
 		t.Fatalf("plan = %s", rr.Body.String())
 	}
 }
+
+// Clearing a revoked pairing keeps its capsules, and they stay restorable.
+func TestClearedPairingCapsuleStaysRestorable(t *testing.T) {
+	f := newBackupFixture(t)
+	ctx := t.Context()
+	if err := f.db.RevokePairedApp(ctx, "app-1"); err != nil {
+		t.Fatal(err)
+	}
+	if ok, err := f.db.ClearRevokedPairedApp(ctx, "app-1"); err != nil || !ok {
+		t.Fatalf("clear = %v, %v", ok, err)
+	}
+	rr := call(t, f.srv, cookieFor(t, f.db, auth.RoleViewer), http.MethodGet, "/api/backups/restore-plan?service=kynotes", nil)
+	var plan struct {
+		Instance string `json:"instance"`
+		Capsule  *struct {
+			ID string `json:"id"`
+		} `json:"capsule"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &plan); err != nil || rr.Code != http.StatusOK {
+		t.Fatalf("plan %d %s", rr.Code, rr.Body.String())
+	}
+	if plan.Instance != "app-1" || plan.Capsule == nil || plan.Capsule.ID != "cap-kynotes-1" {
+		t.Fatalf("plan = %s", rr.Body.String())
+	}
+}
