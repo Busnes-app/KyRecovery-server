@@ -226,11 +226,12 @@ func (s *Server) handleBackupExpectations(w http.ResponseWriter, r *http.Request
 		writeError(w, http.StatusBadRequest, "exactly one of service_name and repo_path is required")
 		return
 	}
-	interval := time.Duration(req.Seconds) * time.Second
-	if interval < backupstatus.MinInterval || interval > maxInterval {
+	// Bound the raw seconds: converting first can overflow into range.
+	if req.Seconds < int64(backupstatus.MinInterval/time.Second) || req.Seconds > int64(maxInterval/time.Second) {
 		writeError(w, http.StatusBadRequest, "expected_interval_seconds must be between 900 and 34560000")
 		return
 	}
+	interval := time.Duration(req.Seconds) * time.Second
 	ctx := r.Context()
 	if req.ServiceName != "" && !validServiceName(req.ServiceName) {
 		writeError(w, http.StatusBadRequest, "invalid service_name")

@@ -323,3 +323,17 @@ func TestScanFailureLogsStructuredError(t *testing.T) {
 	}
 	t.Fatalf("no structured restic_scan error on stderr: %q", stderr.String())
 }
+
+// Seconds that overflow a Duration must be refused, not wrapped into range.
+func TestExpectationRejectsOverflowingSeconds(t *testing.T) {
+	f := newBackupFixture(t)
+	admin := cookieFor(t, f.db, auth.RoleAdmin)
+	rr := call(t, f.srv, admin, http.MethodPost, "/api/backups/expectations",
+		map[string]any{"service_name": "kynotes", "expected_interval_seconds": int64(18446747674)})
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("POST = %d %s, want 400", rr.Code, rr.Body.String())
+	}
+	if exp, err := f.db.BackupExpectations(t.Context()); err != nil || len(exp) != 0 {
+		t.Fatalf("expectations = %v, %v", exp, err)
+	}
+}
