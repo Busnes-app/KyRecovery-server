@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -295,4 +296,30 @@ func TestFreshPairingDoesNotDegradeHealth(t *testing.T) {
 	if reason(h) != "ok/" {
 		t.Fatalf("backups check = %s; body %s", reason(h), body)
 	}
+}
+
+// The audit logger binds stderr at init, so the failing scan runs in a child process.
+func TestScanFailureLogsStructuredError(t *testing.T) {
+	if os.Getenv("KY_SCAN_LOG_CHILD") == "1" {
+		database, err := db.Open(":memory:")
+		if err != nil {
+			t.Fatal(err)
+		}
+		fixtureServer(t, database, filepath.Join(t.TempDir(), "absent")).scanRestic(t.Context())
+		return
+	}
+	cmd := exec.Command(os.Args[0], "-test.run=^TestScanFailureLogsStructuredError$")
+	cmd.Env = append(os.Environ(), "KY_SCAN_LOG_CHILD=1")
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("child: %v; stderr %s", err, stderr.String())
+	}
+	for _, line := range strings.Split(stderr.String(), "\n") {
+		var e audit.LogEntry
+		if json.Unmarshal([]byte(line), &e) == nil && e.Level == "ERROR" && e.Action == "restic_scan" && e.Error != "" {
+			return
+		}
+	}
+	t.Fatalf("no structured restic_scan error on stderr: %q", stderr.String())
 }

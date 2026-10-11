@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/Busnes-app/ky-primitives/health"
+	"github.com/Busnes-app/kyrecovery-server/internal/audit"
 	"github.com/Busnes-app/kyrecovery-server/internal/backupstatus"
 	"github.com/Busnes-app/kyrecovery-server/internal/resticscan"
 )
@@ -108,9 +108,9 @@ func (s *Server) scanRestic(ctx context.Context) {
 		err = s.db.ApplyResticScan(ctx, now, repos)
 	}
 	if err != nil {
-		log.Printf("restic scan: %v", err)
+		audit.Log().Error("restic_scan", "restic-scanner", "", "restic scan failed", err)
 		if err := s.db.RecordResticScanFailure(context.WithoutCancel(ctx), now, err.Error()); err != nil {
-			log.Printf("restic scan: recording failure: %v", err)
+			audit.Log().Error("restic_scan", "restic-scanner", "", "recording scan failure failed", err)
 		}
 	}
 }
