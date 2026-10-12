@@ -13,6 +13,7 @@ const escJs = v => esc(String(v ?? '').replace(/[\\'"\r\n]/g, c =>
 
 document.addEventListener('DOMContentLoaded', () => {
   initTabs();
+  document.getElementById('tab-backups').addEventListener('click', onBackupsClick);
   loadAuthUser();
   loadReadiness();
   loadCapsules();
@@ -423,6 +424,7 @@ async function loadAuthUser() {
 
       // Load protected dashboard data
       loadReadiness();
+      loadBackups();
       loadCapsules();
       loadRetention();
       loadPairing();
@@ -1044,5 +1046,273 @@ async function purgeExpiredBackups() {
     document.getElementById('retention-status').textContent += ` Purged ${data.purged_count} backups.`;
   } catch (err) {
     document.getElementById('retention-status').textContent = err.message;
+  }
+}
+
+// 11. Backups: capsule and restic status from metadata, and the guided restore plan.
+let backupsData = null;
+const backupsOpen = new Set();
+const backupsWarn = ' <span class="backups-warn" title="Observed cadence differs from the expected interval by more than 2×">⚠</span>';
+
+const fmtTime = t => t ? new Date(t).toLocaleString() : '—';
+const fmtDuration = s => {
+  s = Math.abs(Number(s) || 0);
+  return s < 3600 ? Math.round(s / 60) + ' min' : s < 172800 ? Math.round(s / 3600) + ' h' : Math.round(s / 86400) + ' d';
+};
+const fmtAgo = t => fmtDuration((Date.now() - new Date(t)) / 1000) + ' ago';
+const fmtBytes = n => {
+  n = Number(n) || 0;
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let i = 0;
+  for (; n >= 1024 && i < units.length - 1; i++) n /= 1024;
+  return (i ? n.toFixed(1) : n) + ' ' + units[i];
+};
+const newestTime = times => times.filter(Boolean).sort((a, b) => new Date(a) - new Date(b)).pop();
+const capsuleState = c => c.status === 'corrupt' ? 'corrupt' : c.verified_at ? 'verified ' + fmtTime(c.verified_at) : 'stored';
+const backupPill = state => ['corrupt', 'scan_error', 'missing'].includes(state) ? 'danger' : ['ok', 'pending'].includes(state) ? 'ready' : 'warning';
+const stateLabel = state => String(state).replace('_', ' ');
+
+function stateHtml(state, flags) {
+  return `<span class="status-pill ${esc(backupPill(state))}"><span class="dot"></span> ${esc(stateLabel(state))}</span>` +
+    (flags || []).filter(f => f !== state).map(f => ` <span class="pill-badge">${esc(stateLabel(f))}</span>`).join('');
+}
+
+async function loadBackups() {
+  const status = document.getElementById('backups-status');
+  try {
+    const res = await fetch('/api/backups/status');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed loading backup status');
+    backupsData = data;
+    renderBackups(data);
+    status.textContent = `Updated ${new Date().toLocaleTimeString()}.`;
+  } catch (err) {
+    status.textContent = err.message;
+  }
+}
+
+function renderBackups({ report, scan, samples }) {
+  const services = report.services || [];
+  const unassigned = report.unassigned || [];
+  const count = state => Number((report.counts || {})[state]) || 0;
+  const repos = services.flatMap(s => s.repos || []).concat(unassigned);
+  const samplesFor = path => (samples || []).filter(x => x.path === path).sort((a, b) => a.day < b.day ? -1 : 1);
+
+  document.getElementById('backups-healthy').textContent = count('ok');
+  document.getElementById('backups-stale').textContent = count('stale') + count('never');
+  document.getElementById('backups-corrupt').textContent = count('corrupt');
+  document.getElementById('backups-scan').textContent = count('scan_error') + count('missing');
+  document.getElementById('backups-storage').textContent = scan.enabled ? fmtBytes(repos.reduce((sum, r) => sum + (Number(r.size_bytes) || 0), 0)) : '--';
+
+  const banner = document.getElementById('backups-banner');
+  banner.hidden = !scan.enabled || report.scan_fresh;
+  banner.textContent = `Restic results as of ${scan.last_success_at ? fmtTime(scan.last_success_at) : 'no successful scan yet'}.` +
+    (scan.last_error ? ` Last scan error: ${scan.last_error}` : '');
+  document.querySelectorAll('.restic-off-note').forEach(el => { el.hidden = scan.enabled; });
+
+  document.getElementById('backups-table-body').innerHTML = services.length === 0
+    ? '<tr><td colspan="6">No services yet. Pair a product or link a restic repository.</td></tr>'
+    : services.map(s => serviceRows(s, samplesFor)).join('');
+
+  document.getElementById('backups-unassigned').innerHTML = unassigned.length === 0
+    ? '<p class="backups-dim">No unassigned repositories.</p>'
+    : unassigned.map(r => repoHtml(r, samplesFor(r.path))).join('');
+
+  document.getElementById('backups-service-names').innerHTML = services.map(s => `<option value="${esc(s.service_name)}">`).join('');
+  const select = document.getElementById('restore-service');
+  const previous = select.value;
+  select.innerHTML = services.map(s => `<option value="${esc(s.service_name)}">${esc(s.service_name)}</option>`).join('');
+  if (services.some(s => s.service_name === previous)) select.value = previous;
+}
+
+function serviceRows(s, samplesFor) {
+  const newest = (s.instances || []).map(i => i.newest).filter(Boolean)
+    .sort((a, b) => new Date(b.deposited_at) - new Date(a.deposited_at))[0];
+  const written = newestTime((s.repos || []).map(r => r.last_snapshot_at));
+  const cadences = [...(s.instances || []), ...(s.repos || [])].map(x => x.cadence).filter(Boolean);
+  const cadence = cadences.find(c => c.mismatch) || cadences[0];
+  const channels = [s.expects_capsule && 'capsule', s.expects_restic && 'restic'].filter(Boolean).join(' + ') || 'none';
+  const open = backupsOpen.has(s.service_name);
+  const row = `<tr>
+      <td><button class="btn btn-secondary btn-sm" data-action="toggle" data-service="${esc(s.service_name)}" aria-expanded="${open ? 'true' : 'false'}" aria-label="Details for ${esc(s.service_name)}">${open ? '▾' : '▸'}</button> <strong>${esc(s.service_name)}</strong></td>
+      <td>${esc(channels)}</td>
+      <td>${newest ? `${esc(fmtAgo(newest.deposited_at))}<div class="backups-dim">${esc(capsuleState(newest))}</div>` : `<span class="backups-dim">${s.expects_capsule ? 'never' : '—'}</span>`}</td>
+      <td>${written ? esc('written ' + fmtAgo(written)) : `<span class="backups-dim">${s.expects_restic ? 'never' : '—'}</span>`}</td>
+      <td>${isAdminUser
+        ? `<input class="form-input backups-interval" type="number" min="0.25" step="any" required value="${Number(s.expected_seconds) / 3600}" aria-label="Expected interval for ${esc(s.service_name)}, hours"> h <button class="btn btn-secondary btn-sm" data-action="set-interval" data-service="${esc(s.service_name)}">Save</button>`
+        : esc(fmtDuration(s.expected_seconds))}${cadence ? `<div class="backups-dim">observed ~${esc(fmtDuration(cadence.median_seconds))}</div>` : ''}</td>
+      <td>` + stateHtml(s.state, s.flags) + (cadence && cadence.mismatch ? backupsWarn : '') + '</td></tr>';
+  if (!open) return row;
+  return row + '<tr class="backups-detail"><td colspan="6">' + instancesHtml(s.instances) +
+    ((s.repos || []).length ? '<h4 class="form-label">Repositories</h4>' : '') +
+    (s.repos || []).map(r => repoHtml(r, samplesFor(r.path))).join('') + '</td></tr>';
+}
+
+function instancesHtml(instances) {
+  if (!instances || instances.length === 0) return '';
+  return '<h4 class="form-label">Instances</h4><table class="data-table backups-sub"><thead><tr><th>Instance</th><th>Pairing</th><th>Capsules</th><th>Newest capsule</th><th>Cadence</th><th>Status</th></tr></thead><tbody>' +
+    instances.map(i => `<tr>
+      <td><strong>${esc(i.app_name)}</strong><div><code>${esc(i.id)}</code></div></td>
+      <td>${esc(i.status)}</td>
+      <td>${Number(i.capsule_count) || 0}</td>
+      <td>${i.newest ? `<code>${esc(i.newest.id)}</code><div class="backups-dim">deposited ${esc(fmtAgo(i.newest.deposited_at))}, ${esc(capsuleState(i.newest))}</div>` : '<span class="backups-dim">none</span>'}</td>
+      <td>${i.cadence ? esc('~' + fmtDuration(i.cadence.median_seconds)) + (i.cadence.mismatch ? backupsWarn : '') : '—'}</td>
+      <td>` + stateHtml(i.state) + '</td></tr>').join('') + '</tbody></table>';
+}
+
+function repoHtml(r, samples) {
+  const flags = r.flags || [];
+  const newKeys = (Number(r.key_count) || 0) - (Number(r.acked_key_count) || 0);
+  return `<div class="backups-repo">
+      <div><code>${esc(r.path)}</code> ` + stateHtml(r.state, flags) + `</div>
+      <div class="backups-facts">
+        <span>${Number(r.snapshot_count) || 0} snapshots</span>
+        <span>${r.last_snapshot_at ? esc('last written ' + fmtAgo(r.last_snapshot_at)) : 'nothing written yet'}</span>
+        <span>${esc(fmtBytes(r.size_bytes))}</span>
+        <span>${Number(r.key_count) || 0} keys</span>
+        <span>${r.expected_seconds ? esc('expected every ' + fmtDuration(r.expected_seconds)) : 'no expected interval'}${r.cadence ? esc(', observed ~' + fmtDuration(r.cadence.median_seconds)) + (r.cadence.mismatch ? backupsWarn : '') : ''}</span>
+        <span>${r.measured_at ? esc('measured ' + fmtTime(r.measured_at)) : 'not measured yet'}</span>
+      </div>` +
+    sparklines(samples) +
+    (r.activity ? '<p class="backups-dim">Repository activity: a recent lock is present.</p>' : '') +
+    (flags.includes('old_lock') ? `<p class="backups-alert">Old lock seen since ${esc(fmtTime(r.lock_seen_at))}. If no backup is running, clear it with <code>restic unlock</code>.</p>` : '') +
+    (newKeys > 0 ? `<p class="backups-alert">${Number(newKeys)} key(s) added since the last acknowledgement. Check that you added them.` +
+      (isAdminUser ? ` <button class="btn btn-secondary btn-sm" data-action="ack-key" data-repo="${esc(r.path)}" data-count="${Number(newKeys)}">Acknowledge</button>` : '') + '</p>' : '') +
+    (r.missing_since ? `<p class="backups-alert">Missing from the restic directory since ${esc(fmtTime(r.missing_since))}.</p>` : '') +
+    (r.scan_error ? `<p class="backups-alert">Scan error: ${esc(r.scan_error)}</p>` : '') +
+    (isAdminUser ? `<div class="backups-link">
+        <input class="form-input" list="backups-service-names" value="${esc(r.service_name)}" placeholder="service name" aria-label="Service for ${esc(r.path)}">
+        <button class="btn btn-secondary btn-sm" data-action="link" data-repo="${esc(r.path)}">${r.service_name ? 'Save link' : 'Link'}</button>
+        ${r.service_name ? '<span class="backups-dim">Clear the name to unlink.</span>' : ''}
+      </div>` : '') +
+    '</div>';
+}
+
+// One polyline per series, scaled to its own range: shape only, the caption carries the number.
+function sparkline(values, label) {
+  const min = Math.min(...values), range = Math.max(...values) - min || 1;
+  const points = values.map((v, i) => (i * 100 / (values.length - 1)).toFixed(1) + ',' + (22 - (v - min) / range * 20).toFixed(1)).join(' ');
+  return `<figure class="backups-spark"><svg viewBox="0 0 100 24" preserveAspectRatio="none" role="img" aria-label="${esc(label)}"><polyline points="${esc(points)}" vector-effect="non-scaling-stroke"/></svg><figcaption>${esc(label)}</figcaption></figure>`;
+}
+
+function sparklines(samples) {
+  if (samples.length < 2) return '';
+  const last = samples[samples.length - 1];
+  return '<div class="backups-sparks">' +
+    sparkline(samples.map(x => Number(x.size_bytes) || 0), `Size, 90 days: now ${fmtBytes(last.size_bytes)}`) +
+    sparkline(samples.map(x => Number(x.snapshot_count) || 0), `Snapshots, 90 days: now ${Number(last.snapshot_count) || 0}`) +
+    '</div>';
+}
+
+async function backupsPost(path, body) {
+  const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Request failed (HTTP ${res.status})`);
+}
+
+async function onBackupsClick(e) {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const { action, service, repo } = btn.dataset;
+  if (action === 'toggle') {
+    if (!backupsOpen.delete(service)) backupsOpen.add(service);
+    renderBackups(backupsData);
+    return;
+  }
+  const input = btn.parentElement.querySelector('input');
+  try {
+    if (action === 'set-interval') {
+      if (!input.reportValidity()) return;
+      await backupsPost('/api/backups/expectations', { service_name: service, expected_interval_seconds: Math.round(Number(input.value) * 3600) });
+    } else if (action === 'link') {
+      await backupsPost('/api/backups/repos/link', { repo_path: repo, service_name: input.value.trim() });
+    } else if (action === 'ack-key') {
+      if (!confirm(`Acknowledge ${btn.dataset.count} new key(s) on ${repo}?\n\nA key you did not add can read and write this repository. Acknowledge only keys you added.`)) return;
+      await backupsPost('/api/backups/repos/ack-key', { repo_path: repo });
+    }
+    await loadBackups();
+    loadAudit();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+function resetRestorePickers() {
+  for (const field of ['instance', 'repo']) {
+    document.getElementById(`restore-${field}-field`).hidden = true;
+    document.getElementById(`restore-${field}`).innerHTML = '';
+  }
+  document.getElementById('restore-plan').innerHTML = '';
+  document.getElementById('restore-status').textContent = '';
+}
+
+async function planRestore() {
+  const status = document.getElementById('restore-status');
+  const out = document.getElementById('restore-plan');
+  const q = new URLSearchParams({ service: document.getElementById('restore-service').value });
+  for (const field of ['instance', 'repo']) {
+    const v = document.getElementById(`restore-${field}`).value;
+    if (v) q.set(field, v);
+  }
+  const at = document.getElementById('restore-at').value;
+  if (at) q.set('at', new Date(at).toISOString());
+  status.textContent = 'Finding restore point…';
+  out.innerHTML = '';
+  try {
+    const res = await fetch(`/api/backups/restore-plan?${q}`);
+    const data = await res.json();
+    if (res.status === 400 && ['instance', 'repo'].includes(data.field) && Array.isArray(data.choices)) {
+      const select = document.getElementById(`restore-${data.field}`);
+      select.innerHTML = '<option value="">Choose…</option>' +
+        data.choices.map(c => `<option value="${esc(c)}">${esc(choiceLabel(data.field, c))}</option>`).join('');
+      document.getElementById(`restore-${data.field}-field`).hidden = false;
+      select.focus();
+      status.textContent = data.error;
+      return;
+    }
+    if (!res.ok) throw new Error(data.error || 'Failed planning restore');
+    status.textContent = '';
+    out.innerHTML = restorePlanHtml(data);
+  } catch (err) {
+    status.textContent = err.message;
+  }
+}
+
+function choiceLabel(field, id) {
+  const inst = field === 'instance' && (backupsData ? backupsData.report.services || [] : [])
+    .flatMap(s => s.instances || []).find(i => i.id === id);
+  return inst ? `${inst.app_name} (${id})` : id;
+}
+
+function restorePlanHtml(p) {
+  const canDownload = !!currentUser && (currentUser.role === 'admin' || currentUser.role === 'operator');
+  const c = p.capsule, snap = p.snapshot, gap = Number(p.gap_seconds);
+  return (p.skipped || []).map(k => `<p class="backups-alert danger"><strong>Skipped corrupt capsule</strong> <code>${esc(k.id)}</code>, deposited ${esc(fmtTime(k.deposited_at))}. Its stored bytes failed verification; the next older capsule is shown instead.</p>`).join('') +
+    `<dl class="backups-plan">
+      <dt>Service</dt><dd>${esc(p.service_name)}${p.instance ? esc(' / ' + choiceLabel('instance', p.instance)) : ''}, as of ${esc(fmtTime(p.at))}</dd>
+      ${c ? `<dt>Capsule</dt><dd><code>${esc(c.id)}</code>${canDownload ? ` <a class="btn btn-secondary btn-sm" href="/api/capsules/${encodeURIComponent(c.id)}/download" download>Download</a>` : ''}</dd>
+      <dt>Digest</dt><dd><code>${esc(c.digest)}</code></dd>
+      <dt>Deposited</dt><dd>${esc(fmtTime(c.deposited_at))}</dd>
+      <dt>Created</dt><dd>${esc(fmtTime(c.created_at))} (product-reported)</dd>
+      <dt>Integrity</dt><dd>${esc(capsuleState(c))}</dd>` : '<dt>Capsule</dt><dd>No capsule deposited at or before this time.</dd>'}
+      ${p.repo ? `<dt>Repository</dt><dd><code>${esc(p.repo)}</code></dd>` : ''}
+      ${snap ? `<dt>Snapshot</dt><dd><code>${esc(snap.id)}</code></dd>
+      <dt>Written at</dt><dd>${esc(fmtTime(snap.written_at))}${p.gap_seconds !== undefined ? esc(`, ${fmtDuration(gap)} ${gap < 0 ? 'before' : 'after'} the capsule was deposited`) : ''}</dd>` : (p.repo ? `<dt>Snapshot</dt><dd>${p.repo_missing ? 'Repository not found by the last scan.' : 'No snapshot written in this repository.'}</dd>` : '')}
+    </dl>` +
+    (p.warnings || []).map(w => `<p class="backups-alert">${esc(w)}</p>`).join('') +
+    (p.command ? `<pre class="backups-command"><code id="restore-command">${esc(p.command)}</code></pre>
+      <button class="btn btn-secondary btn-sm" onclick="copyRestoreCommand()">Copy</button>
+      <p class="form-hint">Custodian shares are typed into this command on your workstation, never into this page. Requires KyQuickStart with restore support.</p>` : '');
+}
+
+async function copyRestoreCommand() {
+  const code = document.getElementById('restore-command');
+  const status = document.getElementById('restore-status');
+  try {
+    await navigator.clipboard.writeText(code.textContent);
+    status.textContent = 'Command copied.';
+  } catch {
+    getSelection().selectAllChildren(code);
+    status.textContent = 'Clipboard unavailable here. The command is selected; press Ctrl+C.';
   }
 }

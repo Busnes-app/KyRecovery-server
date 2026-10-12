@@ -41,7 +41,7 @@ func TestHealthzPublicBeforeCeremonyAndCached(t *testing.T) {
 	if w.Code != http.StatusOK || got.Schema != "ky.health/1" || got.Service != "kyrecovery" || got.Status != "ok" || got.Time == "" {
 		t.Fatalf("health=%d %+v", w.Code, got)
 	}
-	if len(got.Checks) != 2 || got.Checks[0].Name != "database" || got.Checks[0].Status != "ok" || got.Checks[1].Name != "audit" || got.Checks[1].Status != "ok" {
+	if len(got.Checks) != 3 || got.Checks[0].Name != "database" || got.Checks[0].Status != "ok" || got.Checks[1].Name != "audit" || got.Checks[1].Status != "ok" || got.Checks[2].Name != "backups" || got.Checks[2].Status != "ok" {
 		t.Fatalf("checks=%+v", got.Checks)
 	}
 	if w.Header().Get("Cache-Control") != "no-store" {

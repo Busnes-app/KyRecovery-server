@@ -19,5 +19,6 @@ func healthHandler(s *Server, lg *logging.Logger) http.Handler {
 			}
 			return nil
 		}},
+		health.Check{Name: "backups", Run: s.backupHealth},
 	)
 }

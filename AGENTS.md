@@ -13,7 +13,8 @@ KyRecovery Server is the self-hosted **blind store** for the KySecurity Suite (K
 7. **Capsule diff & timeline inspector**: `internal/diff` computes drift across deposits from `capsules` rows — the recorded manifest fields — never by opening a container.
 8. **Hash-chained audit ledger**: `ky-primitives/auditchain`, keyed from the keyring, with the anchor (count, last hash) kept outside the log. `POST /api/audit/verify` returns `{valid, count, last_hash}` and `append_disabled` + `error` when the ledger is poisoned. A poisoned ledger refuses deposits with `503` until an operator repairs the log and restarts.
 9. **Privacy-safe structured logging**: `LOGGING.md` — structured JSON/logfmt to stdout/stderr, never secrets, keys or capsule contents.
-10. **Public service health**: `GET /healthz` serves `ky.health/1` for `kyrecovery`. It checks database reachability and the audit ledger's append latch, caches one bounded result for five seconds, and exposes fixed status codes only. A poisoned ledger is degraded; an unavailable database is down. The authenticated `/api/readiness` retains its capsule, custodian and audit fields.
+10. **Public service health**: `GET /healthz` serves `ky.health/1` for `kyrecovery`. It checks database reachability, the audit ledger's append latch and stored backup status, caches one bounded result for five seconds, and exposes fixed status codes only. A poisoned ledger is degraded; an unavailable database is down; a backup finding degrades with one reason from `backupstatus.Reasons`. The authenticated `/api/readiness` retains its capsule, custodian and audit fields.
+11. **Backup status and restore planning**: `/api/backups/*` and the Backups tab. With `--restic-dir`/`KYRECOVERY_RESTIC_DIR` set, a scanner reads rest-server's data directory (names, sizes, mtimes only) on start and every 15 minutes. `restore-plan` returns the pinned `kyquickstart restore` command. Design: `docs/superpowers/specs/2026-10-07-backup-status-restore-ui-design.md`.
 
 ## Package index
 
@@ -30,8 +31,10 @@ KyRecovery Server is the self-hosted **blind store** for the KySecurity Suite (K
 | `internal/secrets` | The keyring: master key from `KYRECOVERY_SECRET_KEY` or `<data-dir>/secret.key` via `ky-primitives/keyfile`. |
 | `internal/crypto` | AES-256-GCM envelope used by the keyring, and nothing else. |
 | `internal/diff` | The capsule diff and timeline inspector. |
+| `internal/resticscan` | Reads restic repository metadata through an `os.Root`; never file contents. |
+| `internal/backupstatus` | Pure classification of capsule and restic evidence, health reasons, and the restore plan. |
 | `pkg/client` | The product-side SDK: `ClaimPairing`, `Client.Deposit`. |
-| `scripts` | `build-wasm.sh` rebuilds the committed module byte-for-byte; `test-wasm.mjs` runs it under Node. |
+| `scripts` | `build-wasm.sh` rebuilds the committed module byte-for-byte; `test-wasm.mjs` runs it under Node; `verify-restic-overlay.sh` proves `docker-compose.restic.yml` with Docker. |
 
 Absolute-SFTP compatibility uploads reconcile regular `.ky-offsite-compat-*` staging files before Put and connection tests, after the greater of the default/current transfer budget plus one minute. Recent files and unrelated names are preserved. Cleanup listing/removal errors are logged and do not block uploads or connection tests; transfer errors still fail the sync. SMB legacy names outside the admitted grammar count as absent, allowing canonical replication of any valid capsule ID.
 
@@ -47,6 +50,8 @@ Absolute-SFTP compatibility uploads reconcile regular `.ky-offsite-compat-*` sta
 - Outbound issuer requests use `auth.httpClient`, whose dialer refuses link-local destinations at connect time (covering redirects and DNS rebinding).
 - A capsule ID becomes a filename, so it is held to `capsuleIDPattern` and published temp-file → fsync → row insert → `capsule_deposited` appended → hard link (never rename: a link refuses an existing target, so a case-variant ID on a case-folding volume cannot overwrite another product's bytes). The database row is the mutual-exclusion primitive and a per-ID lock covers the whole publish, so a retry of an in-flight deposit waits for a whole one; a row whose file is missing outside that window is marked corrupt rather than treated as a successful deposit.
 - Every API request body is bounded (`bodyLimit`): 1 MiB, or `capsule.MaxContainerBytes` for the deposit. Deposits are rate limited per token and capped at 4 in flight.
+- KyRecovery never holds a restic password, never runs restic and never writes the restic directory. The scanner touches it only through `os.Root`, skips symlinks, and fails the whole scan rather than report an unreadable directory as empty; only a successful scan marks a repository missing.
+- Backup admin writes (`/api/backups/expectations`, `repos/link`, `repos/ack-key`) are recorded in the ledger before they are made, and refused with 503 if the record fails.
 - A deposit that cannot be recorded in the ledger is refused. The audit trail is most of a blind store's evidence that a deposit happened.
 - Session cookies are `HttpOnly`, and `Secure` whenever the login arrived over TLS or `--cookie-secure=true` is set. Session tokens are never returned in a response body — `TestSessionTokenNeverAppearsInAResponseBody` checks the bodies, not just the handler that used to leak one. Changing a password ends every other session belonging to that user.
 - SQLite transactions must be atomic and use WAL mode with foreign key constraints.
@@ -88,6 +93,11 @@ go test -race -count=1 ./...
 
 - On a push to `main` that passes every job, `publish` pushes the exact image the Docker check ran against (handed over as an artifact, no rebuild) to `ghcr.io/busnes-app/kyrecovery-server:<commit sha>`, attests it and verifies the attestation pinned to this workflow on `main`; `promote` then moves `:latest` to that digest, only at the tip of `main`, and asserts the tag resolves to the attested digest. `docker-compose.yml` names the published image and never builds; source installs add `docker-compose.build.yml` to the `COMPOSE_FILE` chain in `.env` (overlay tags `kyrecovery-server:local`) so every compose command, recovery docs included, uses the local build.
 
+Prove the restic overlay (Docker; uses its own project, loopback ports and a temp dir):
+```bash
+scripts/verify-restic-overlay.sh
+```
+
 Verify the binary builds and the CLI answers:
 ```bash
 go build -o kyrecovery cmd/kyrecovery/main.go
@@ -107,9 +117,13 @@ node scripts/test-wasm.mjs
 - Verify vendored files with `node internal/server/static/ky-ui/check-vendor.mjs` from this document's directory. Builds/CI run that check. Rendered evidence and capture limitations are recorded in the repository-root `UI-VERIFICATION.md`.
 
 ## Child DOX Index
+- `docs/plans/2026-10-10-release-readiness-handoff.md`: read when resuming the release-readiness and backup/restore work; lists local changes, next steps, and verification limits.
+- `docs/plans/2026-10-08-release-readiness-review.md`: read before planning the backup/restore implementation or assessing its release gates; records spec corrections and verification against current main.
 - `zero_code_pairing_handoff_spec.md`: the wire contract for pairing and deposit that this server exposes (`/api/pairing/generate`, `/api/pairing/claim`, `/api/backup/deposit`). A change here is breaking for every paired product; update their copies in the same change set.
 
 - `docs/plans/2026-09-05-offsite-migration.md`: migration plan and compatibility gates; read before removing the remaining absolute-SFTP, virtual-host-S3 or read-only SMB adapters.
+
+- `docs/superpowers/specs/2026-10-07-backup-status-restore-ui-design.md`: backup status (capsules, read-only restic repositories, `/healthz` for kyPulse) and guided restore; read before touching the Backups tab or `/api/backups/*`. Its input was `docs/plans/2026-10-07-backup-restore-ui-handoff.md`.
 
 ## Theme contract
 
