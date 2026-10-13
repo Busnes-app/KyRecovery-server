@@ -1103,6 +1103,11 @@ func (s *Server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionCookie, err := s.authMgr.CreateSession(r.Context(), userInfo, s.cookieSecure(r))
+	if errors.Is(err, db.ErrSessionRefused) {
+		log.Printf("sso callback: session refused for subject %q: sign-on authority changed", userInfo.Subject)
+		writeError(w, http.StatusUnauthorized, "Sign-in is no longer authorized; sign in again")
+		return
+	}
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "Failed creating session")
 		return

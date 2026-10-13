@@ -3,6 +3,7 @@ package server_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"github.com/Busnes-app/ky-primitives/applysetup"
 	"github.com/Busnes-app/ky-primitives/syncauth"
 	"github.com/Busnes-app/kyrecovery-server/internal/audit"
@@ -237,6 +238,11 @@ func TestInstallerActivationEndsPriorSessions(t *testing.T) {
 	}
 	if code := request("/api/readiness", &http.Cookie{Name: auth.SessionCookieName, Value: late.ID}); code != 401 {
 		t.Fatal("late native session usable", code)
+	}
+	// A provider that returns no ID token yields a userinfo profile without an issuer;
+	// it is still a native login and must be fenced the same way.
+	if _, err = mgr.CreateSession(ctx, &auth.UserInfo{Subject: "former-admin", Role: auth.RoleAdmin}, false); !errors.Is(err, db.ErrSessionRefused) {
+		t.Fatal("issuer-less native session created after managed activation", err)
 	}
 	body, _ := json.Marshal(map[string]string{"username": "admin", "password": adminPass})
 	q := httptest.NewRequest(http.MethodPost, "/api/auth/login/local", strings.NewReader(string(body)))
