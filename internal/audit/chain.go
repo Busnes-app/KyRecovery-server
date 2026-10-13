@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Busnes-app/ky-primitives/applysetup"
 	"github.com/Busnes-app/ky-primitives/auditchain"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
 )
@@ -92,6 +93,27 @@ func (l *Ledger) Healthy() error { return l.err }
 
 // Record appends a new event to the chain and emits a structured log line.
 func (l *Ledger) Record(ctx context.Context, action, actor, targetID string, details map[string]interface{}) (*db.AuditRecord, error) {
+	return l.record(ctx, action, actor, targetID, details, func(ar db.AuditRecord, a auditchain.Anchor) error {
+		return l.db.InsertAuditEventAndAnchor(ctx, ar, a.Count, a.Hash)
+	})
+}
+
+// ApplyInstaller retains the native keyed chain and commits setup in its same SQL transaction.
+func (l *Ledger) ApplyInstaller(ctx context.Context, b applysetup.Common) error {
+	_, err := l.record(ctx, "installer.setup_applied", "installer-local", b.SetupID, map[string]interface{}{"service": b.Service}, func(ar db.AuditRecord, a auditchain.Anchor) error {
+		return l.db.ApplyInstallerAudit(ctx, b, ar, a.Count, a.Hash)
+	})
+	return err
+}
+
+func (l *Ledger) ApplyInstallerDirectory(ctx context.Context, event db.InstallerDirectory) error {
+	_, err := l.record(ctx, "installer.directory_applied", "kyidentity-directory", db.InstallerIdentityID(event.Issuer, event.Subject), map[string]interface{}{"event": event.Event, "revision": event.Version, "digest": event.Digest}, func(ar db.AuditRecord, a auditchain.Anchor) error {
+		return l.db.ApplyInstallerDirectoryAudit(ctx, event, ar, a.Count, a.Hash)
+	})
+	return err
+}
+
+func (l *Ledger) record(ctx context.Context, action, actor, targetID string, details map[string]interface{}, persist func(db.AuditRecord, auditchain.Anchor) error) (*db.AuditRecord, error) {
 	if l.db == nil {
 		return nil, nil
 	}
@@ -120,7 +142,7 @@ func (l *Ledger) Record(ctx context.Context, action, actor, targetID string, det
 	if _, err := l.chain.Append(ctx, func(r auditchain.Record, a auditchain.Anchor) error {
 		out = db.AuditRecord{Seq: r.Seq, PrevHash: r.Prev, EventHash: r.Hash, Action: action, Actor: actor,
 			TargetID: targetID, DetailsJSON: string(dj), CreatedAt: created}
-		return l.db.InsertAuditEventAndAnchor(ctx, out, a.Count, a.Hash)
+		return persist(out, a)
 	}, action, actor, targetID, string(dj), created); err != nil {
 		defaultLogger.Error(action, actor, targetID, "failed to append the audit event", err)
 		return nil, fmt.Errorf("audit append: %w", err)

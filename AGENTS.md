@@ -110,6 +110,22 @@ scripts/build-wasm.sh && git diff --exit-code -- internal/server/static/wasm
 node scripts/test-wasm.mjs
 ```
 
+## Installer setup
+
+- `docs/INSTALLER_SETUP.md` owns common bundles, private live IPC, read-only checks,
+  runtime inputs and remaining ceremony/composition gates.
+- Exact managed administrator subjects, configuration, authority and native keyed
+  audit/anchor commit in one SQLite transaction. Matching reruns do not write;
+  revoked or missing retained authority is never repaired automatically.
+- Managed OIDC requires verified issuer/subject bindings; no userinfo-only fallback,
+  global-role grant or email promotion. Owned session bindings are checked live.
+- Signed directory revisions/digests fence grant updates and session revocation in
+  the same keyed audit transaction; capsules and paired products are retained.
+- `KYRECOVERY_DATA_DIR` must match the serve data directory; setup runs as `kyrecovery`.
+- `KYRECOVERY_TRUSTED_PROXIES` owns forwarding trust for limits, G11 and cookie TLS;
+  default empty, `/0` refused. Explicit secure-cookie configuration still wins.
+- Installer setup never conducts the custodian ceremony or imports a recovery key.
+
 ## Shared browser UI
 
 - `internal/server/static/ky-ui/` is generated from Busnes-app/ky-ui, pinned by `VERSION` file hashes. Change shared colors, navigation states and storage helpers upstream, then run its consumer sync with an explicit worktree map; do not hand-edit vendored files.
@@ -117,6 +133,7 @@ node scripts/test-wasm.mjs
 - Verify vendored files with `node internal/server/static/ky-ui/check-vendor.mjs` from this document's directory. Builds/CI run that check. Rendered evidence and capture limitations are recorded in the repository-root `UI-VERIFICATION.md`.
 
 ## Child DOX Index
+- `docs/INSTALLER_SETUP.md`: installer setup and runtime security contracts; read before changing setup, identity grants, signed directory or forwarded-header handling.
 - `docs/plans/2026-10-10-release-readiness-handoff.md`: read when resuming the release-readiness and backup/restore work; lists local changes, next steps, and verification limits.
 - `docs/plans/2026-10-08-release-readiness-review.md`: read before planning the backup/restore implementation or assessing its release gates; records spec corrections and verification against current main.
 - `zero_code_pairing_handoff_spec.md`: the wire contract for pairing and deposit that this server exposes (`/api/pairing/generate`, `/api/pairing/claim`, `/api/backup/deposit`). A change here is breaking for every paired product; update their copies in the same change set.

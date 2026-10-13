@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net/netip"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -11,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Busnes-app/ky-primitives/applysetup"
 	"github.com/Busnes-app/kyrecovery-server/internal/audit"
 	"github.com/Busnes-app/kyrecovery-server/internal/auth"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
@@ -27,6 +29,11 @@ func Run(args []string) {
 
 	command := args[1]
 	switch command {
+	case "apply-setup":
+		if err := runInstaller(args[2:]); err != nil {
+			fmt.Fprintln(os.Stderr, "Product setup refused:", err)
+			os.Exit(1)
+		}
 	case "serve":
 		cmdServe(args[2:])
 	case "audit":
@@ -59,7 +66,11 @@ Run 'kyrecovery <command> --help' for details on each command.`)
 func cmdServe(args []string) {
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
 	port := fs.Int("port", 8095, "HTTP server listener port")
-	dataDir := fs.String("data-dir", "./data", "Directory for SQLite database and capsule storage")
+	defaultDataDir := os.Getenv("KYRECOVERY_DATA_DIR")
+	if defaultDataDir == "" {
+		defaultDataDir = "./data"
+	}
+	dataDir := fs.String("data-dir", defaultDataDir, "Directory for SQLite database and capsule storage")
 	ssoIssuer := fs.String("sso-issuer", os.Getenv("KY_SSO_ISSUER"), "KySignOn OIDC Issuer URL (e.g. http://localhost:8080)")
 	ssoClientID := fs.String("sso-client-id", os.Getenv("KY_SSO_CLIENT_ID"), "KySignOn OAuth Client ID")
 	ssoClientSecret := fs.String("sso-client-secret", os.Getenv("KY_SSO_CLIENT_SECRET"), "KySignOn OAuth Client Secret")
@@ -125,13 +136,34 @@ func cmdServe(args []string) {
 	}
 
 	ledger := audit.NewLedger(database)
+	var trusted []netip.Prefix
+	for _, value := range strings.Split(os.Getenv("KYRECOVERY_TRUSTED_PROXIES"), ",") {
+		value = strings.TrimSpace(value)
+		if value == "" {
+			continue
+		}
+		prefix, e := netip.ParsePrefix(value)
+		if e != nil {
+			addr, ae := netip.ParseAddr(value)
+			if ae == nil {
+				prefix = netip.PrefixFrom(addr.Unmap(), addr.Unmap().BitLen())
+				e = nil
+			}
+		}
+		if e != nil || prefix.Bits() == 0 {
+			fmt.Fprintln(os.Stderr, "Invalid trusted proxy")
+			os.Exit(1)
+		}
+		trusted = append(trusted, prefix.Masked())
+	}
 	srv, err := server.New(server.Config{
-		Port:         *port,
-		DataDir:      *dataDir,
-		DatabasePath: dbPath,
-		Auth:         authCfg,
-		CookieSecure: cookieSecureFlag,
-		ResticDir:    *resticDir,
+		TrustedProxies: trusted,
+		Port:           *port,
+		DataDir:        *dataDir,
+		DatabasePath:   dbPath,
+		Auth:           authCfg,
+		CookieSecure:   cookieSecureFlag,
+		ResticDir:      *resticDir,
 	}, database, ledger)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Server initialization error: %v\n", err)
@@ -140,6 +172,17 @@ func cmdServe(args []string) {
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
+	socket, err := server.InstallerSocket(*dataDir)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Installer socket unavailable")
+		os.Exit(1)
+	}
+	closeSetup, err := applysetup.StartLocal(ctx, socket, srv.ApplyInstaller, nil)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Installer listener unavailable")
+		os.Exit(1)
+	}
+	defer closeSetup()
 
 	fmt.Printf("⚡ KyRecovery Server listening on http://0.0.0.0:%d (data: %s)\n", *port, *dataDir)
 	if cookieSecureFlag == nil {

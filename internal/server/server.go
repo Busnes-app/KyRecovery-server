@@ -12,6 +12,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"net/netip"
 	"os"
 	"path"
 	"path/filepath"
@@ -34,10 +35,11 @@ var staticFS embed.FS
 
 // Config contains server options.
 type Config struct {
-	Port         int
-	DataDir      string
-	DatabasePath string
-	Auth         auth.OIDCConfig
+	TrustedProxies []netip.Prefix
+	Port           int
+	DataDir        string
+	DatabasePath   string
+	Auth           auth.OIDCConfig
 	// ResticDir is rest-server's data directory, mounted read-only. Empty disables the scanner.
 	ResticDir string
 
@@ -48,6 +50,7 @@ type Config struct {
 
 // Server provides the HTTP router, REST API, and static assets for KyRecovery.
 type Server struct {
+	installerMu sync.Mutex
 	cfg         Config
 	db          *db.DB
 	ledger      *audit.Ledger
@@ -103,6 +106,8 @@ func New(cfg Config, database *db.DB, ledger *audit.Ledger) (*Server, error) {
 }
 
 func (s *Server) routes() {
+	s.mux.HandleFunc("GET /api/installer/network", s.handleInstallerNetwork)
+	s.mux.Handle("POST /api/installer/directory", s.installerDirectory())
 	s.mux.Handle("/healthz", s.health)
 	// Static files
 	staticSub, _ := fs.Sub(staticFS, "static")
@@ -234,18 +239,20 @@ const rolePublic = ""
 // with "*" matching any method. Everything not listed defaults to admin, so a new
 // route is closed until it is deliberately opened here.
 var apiPolicy = map[string]string{
-	"GET /api/retention":        auth.RoleViewer,
-	"POST /api/retention":       auth.RoleAdmin,
-	"POST /api/retention/purge": auth.RoleAdmin,
-	"* /api/auth/config":        rolePublic,
-	"* /api/auth/me":            rolePublic,
-	"* /api/auth/login":         rolePublic,
-	"* /api/auth/login/local":   rolePublic,
-	"* /api/auth/callback":      rolePublic,
-	"* /api/auth/logout":        rolePublic,
-	"GET /api/auth/sso/config":  rolePublic, // the sign-in page must know whether SSO is offered
-	"* /api/pairing/claim":      rolePublic, // one-time pairing code
-	"* /api/backup/deposit":     rolePublic, // product API token
+	"GET /api/installer/network":    rolePublic,
+	"POST /api/installer/directory": rolePublic, // verified signed-directory credential
+	"GET /api/retention":            auth.RoleViewer,
+	"POST /api/retention":           auth.RoleAdmin,
+	"POST /api/retention/purge":     auth.RoleAdmin,
+	"* /api/auth/config":            rolePublic,
+	"* /api/auth/me":                rolePublic,
+	"* /api/auth/login":             rolePublic,
+	"* /api/auth/login/local":       rolePublic,
+	"* /api/auth/callback":          rolePublic,
+	"* /api/auth/logout":            rolePublic,
+	"GET /api/auth/sso/config":      rolePublic, // the sign-in page must know whether SSO is offered
+	"* /api/pairing/claim":          rolePublic, // one-time pairing code
+	"* /api/backup/deposit":         rolePublic, // product API token
 
 	"* /api/auth/password":          auth.RoleViewer,
 	"GET /api/readiness":            auth.RoleViewer,
@@ -372,7 +379,8 @@ func (s *Server) cookieSecure(r *http.Request) bool {
 	if r.TLS != nil {
 		return true
 	}
-	return strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https")
+	_, _, scheme := RequestNetwork(r, s.cfg.TrustedProxies)
+	return scheme == "https"
 }
 
 // actor names the authenticated identity behind a request for the audit ledger.
@@ -722,7 +730,7 @@ func (s *Server) handlePairingClaim(w http.ResponseWriter, r *http.Request) {
 	}
 
 	now := time.Now()
-	ipKey := "ip:" + clientIP(r)
+	ipKey := "ip:" + s.clientIP(r)
 	if s.claimLimit.exceeded(ipKey, claimAttemptsPerIP, now) {
 		writeError(w, http.StatusTooManyRequests, "Too many pairing attempts from this address")
 		return
@@ -773,7 +781,7 @@ func (s *Server) handlePairingClaim(w http.ResponseWriter, r *http.Request) {
 	_, _ = s.ledger.Record(r.Context(), "product_paired", "pairing-code:"+app.ID, app.ID, map[string]interface{}{
 		"service_name":     app.ServiceName,
 		"claimed_app_name": app.AppName,
-		"source_address":   clientIP(r),
+		"source_address":   s.clientIP(r),
 		"recovery_key_id":  key.KeyID,
 	})
 
@@ -875,7 +883,7 @@ func (s *Server) handleAuthLoginLocal(w http.ResponseWriter, r *http.Request) {
 	// Argon2id makes each guess expensive for the server as well as the attacker,
 	// so unauthenticated login attempts are capped per source address and per account.
 	now := time.Now()
-	ipKey := "login-ip:" + clientIP(r)
+	ipKey := "login-ip:" + s.clientIP(r)
 	accKey := "login-user:" + strings.ToLower(strings.TrimSpace(req.Username))
 	if s.loginLimit.exceeded(ipKey, loginAttemptsPerIP, now) || s.loginLimit.exceeded(accKey, loginAttemptsPerAcc, now) {
 		writeError(w, http.StatusTooManyRequests, "Too many failed sign-in attempts; try again later")
@@ -886,7 +894,7 @@ func (s *Server) handleAuthLoginLocal(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.loginLimit.record(ipKey, now)
 		s.loginLimit.record(accKey, now)
-		_, _ = s.ledger.Record(r.Context(), "user_login_failed", "anonymous", clientIP(r),
+		_, _ = s.ledger.Record(r.Context(), "user_login_failed", "anonymous", s.clientIP(r),
 			map[string]interface{}{"claimed_username": req.Username})
 		writeError(w, http.StatusUnauthorized, err.Error())
 		return

@@ -303,3 +303,12 @@ go test ./...
 ## Upgrading from ghcr.io/busness-app
 
 The GitHub organisation was renamed on 2026-09-16 and the image now lives at `ghcr.io/busnes-app/kyrecovery-server`. The project no longer controls `ghcr.io/busness-app`; GHCR does not redirect it, and anything served under that name must be treated as untrusted. If `KYRECOVERY_IMAGE` in `.env` still names the old namespace, re-pinning is required, not optional: run the verify-then-pin block at the top of `docker-compose.yml`, which resolves the commit you choose to a digest, verifies its attestation and writes the pin, then `docker compose pull`.
+
+## Installer setup
+
+KyQuickStart configures exact administrator subjects through container-local
+`apply-setup` as the `kyrecovery` runtime user. See [INSTALLER_SETUP.md](docs/INSTALLER_SETUP.md)
+for protected bundles, live read-only inspection, signed offboarding and remaining gates.
+`KYRECOVERY_DATA_DIR` must match `serve --data-dir` (image default `/app/data`).
+`KYRECOVERY_TRUSTED_PROXIES` accepts comma-separated peer IPs or narrow CIDRs, defaults
+to empty and refuses `/0`. The browser custodian ceremony remains an administrator step.

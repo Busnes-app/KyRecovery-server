@@ -21,6 +21,8 @@ func TestRequiredRolePolicy(t *testing.T) {
 		want         string
 	}{
 		// Reachable without a session.
+		{http.MethodGet, "/api/installer/network", rolePublic},
+		{http.MethodPost, "/api/installer/directory", rolePublic},
 		{http.MethodGet, "/api/auth/config", rolePublic},
 		{http.MethodGet, "/api/auth/me", rolePublic},
 		{http.MethodGet, "/api/auth/login", rolePublic},

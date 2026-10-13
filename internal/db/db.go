@@ -114,13 +114,17 @@ type UserRecord struct {
 // SessionRecord represents an authenticated user session. ID is the bearer
 // credential the session cookie carries, so it is never serialised into a response.
 type SessionRecord struct {
-	ID        string    `json:"-"`
-	UserID    string    `json:"user_id"`
-	Email     string    `json:"email"`
-	Name      string    `json:"name"`
-	Role      string    `json:"role"`
-	ExpiresAt time.Time `json:"expires_at"`
-	CreatedAt time.Time `json:"created_at"`
+	// NativeSSO marks a built-in OIDC login; it is refused once managed setup exists.
+	NativeSSO       bool      `json:"-"`
+	IdentityIssuer  string    `json:"-"`
+	IdentitySubject string    `json:"-"`
+	ID              string    `json:"-"`
+	UserID          string    `json:"user_id"`
+	Email           string    `json:"email"`
+	Name            string    `json:"name"`
+	Role            string    `json:"role"`
+	ExpiresAt       time.Time `json:"expires_at"`
+	CreatedAt       time.Time `json:"created_at"`
 }
 
 // ReplicationTargetRecord defines an offsite backup target (S3, Cloudflare R2, MinIO, Local).
@@ -389,6 +393,11 @@ func (d *DB) migrate() error {
 	if err := d.addColumn("replication_targets", "host_key", "TEXT NOT NULL DEFAULT ''"); err != nil {
 		return err
 	}
+	for _, column := range []string{"identity_issuer", "identity_subject"} {
+		if err := d.addColumn("sessions", column, "TEXT NOT NULL DEFAULT ''"); err != nil {
+			return err
+		}
+	}
 	return d.addColumn("capsules", "verified_at", "DATETIME")
 }
 
@@ -537,12 +546,7 @@ func (d *DB) InsertAuditEventAndAnchor(ctx context.Context, ar AuditRecord, coun
 	}
 	defer tx.Rollback()
 
-	if _, err := tx.ExecContext(ctx, `INSERT INTO audit_events (`+auditCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		ar.Seq, ar.PrevHash, ar.EventHash, ar.Action, ar.Actor, ar.TargetID, ar.DetailsJSON, ar.CreatedAt); err != nil {
-		return err
-	}
-	if _, err := tx.ExecContext(ctx, `INSERT INTO audit_anchor (singleton, count, hash) VALUES (1, ?, ?)
-	      ON CONFLICT(singleton) DO UPDATE SET count = excluded.count, hash = excluded.hash`, count, hash); err != nil {
+	if err := insertAuditAndAnchor(ctx, tx, ar, count, hash); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -773,18 +777,41 @@ func (d *DB) GetRecoveryKey(ctx context.Context) (*RecoveryKeyRecord, error) {
 
 // InsertSession stores a new user session.
 func (d *DB) InsertSession(ctx context.Context, s SessionRecord) error {
-	q := `INSERT INTO sessions (id, user_id, email, name, role, expires_at, created_at)
-	      VALUES (?, ?, ?, ?, ?, ?, ?)`
-	_, err := d.conn.ExecContext(ctx, q, s.ID, s.UserID, s.Email, s.Name, s.Role, s.ExpiresAt.UTC(), s.CreatedAt.UTC())
-	return err
+	q := `INSERT INTO sessions (id, user_id, email, name, role, expires_at, created_at,identity_issuer,identity_subject)
+	      SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?`
+	args := []any{s.ID, s.UserID, s.Email, s.Name, s.Role, s.ExpiresAt.UTC(), s.CreatedAt.UTC(), s.IdentityIssuer, s.IdentitySubject}
+	if strings.HasPrefix(s.UserID, "installer-") || s.IdentityIssuer != "" {
+		if s.UserID != InstallerIdentityID(s.IdentityIssuer, s.IdentitySubject) || s.Role != "admin" {
+			return errors.New("invalid managed session binding")
+		}
+		q += ` WHERE EXISTS (SELECT 1 FROM system_settings WHERE key=? AND json_extract(value,'$.Active')=1 AND json_extract(value,'$.Issuer')=? AND json_extract(value,'$.Subject')=?)`
+		args = append(args, "installer.identity."+s.UserID, s.IdentityIssuer, s.IdentitySubject)
+	}
+	if s.NativeSSO {
+		// Same statement as the insert, so activation cannot land between check and write.
+		q += ` WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE key=?)`
+		args = append(args, InstallerConfigKey)
+	}
+	result, err := d.conn.ExecContext(ctx, q, args...)
+	if err != nil {
+		return err
+	}
+	n, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n != 1 {
+		return errors.New("managed session authority unavailable")
+	}
+	return nil
 }
 
 // GetSession retrieves an active session by session ID.
 func (d *DB) GetSession(ctx context.Context, id string) (*SessionRecord, error) {
-	q := `SELECT id, user_id, email, name, role, expires_at, created_at FROM sessions WHERE id = ?`
+	q := `SELECT id, user_id, email, name, role, expires_at, created_at,identity_issuer,identity_subject FROM sessions WHERE id = ?`
 	row := d.conn.QueryRowContext(ctx, q, id)
 	var s SessionRecord
-	if err := row.Scan(&s.ID, &s.UserID, &s.Email, &s.Name, &s.Role, &s.ExpiresAt, &s.CreatedAt); err != nil {
+	if err := row.Scan(&s.ID, &s.UserID, &s.Email, &s.Name, &s.Role, &s.ExpiresAt, &s.CreatedAt, &s.IdentityIssuer, &s.IdentitySubject); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
@@ -995,10 +1022,28 @@ func (d *DB) GetSetting(ctx context.Context, key string) (string, error) {
 
 // SetSetting saves or updates a system setting value.
 func (d *DB) SetSetting(ctx context.Context, key, value string) error {
+	if strings.HasPrefix(key, "installer.") {
+		return errors.New("installer settings require owned audited mutation")
+	}
 	q := `INSERT INTO system_settings (key, value, updated_at) VALUES (?, ?, ?)
 	      ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at`
-	_, err := d.conn.ExecContext(ctx, q, key, value, time.Now().UTC())
-	return err
+	args := []any{key, value, time.Now().UTC()}
+	if strings.HasPrefix(key, "sso.") {
+		q = `INSERT INTO system_settings (key,value,updated_at) SELECT ?,?,? WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE key=?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at`
+		args = append(args, InstallerConfigKey)
+	}
+	result, err := d.conn.ExecContext(ctx, q, args...)
+	if err != nil {
+		return err
+	}
+	n, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n != 1 {
+		return errors.New("owned settings conflict")
+	}
+	return nil
 }
 
 // GetAllSettings returns all key-value pairs from system_settings.
