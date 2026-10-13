@@ -100,6 +100,9 @@ var ErrRecoveryKeyExists = errors.New("a recovery key is already imported")
 // mutual-exclusion primitive for a deposit: whoever inserts it owns the file path.
 var ErrCapsuleExists = errors.New("a capsule with this ID is already stored")
 
+// ErrSessionRefused means the session lost its authority before it could be stored.
+var ErrSessionRefused = errors.New("session authority unavailable")
+
 // UserRecord represents a local user account.
 type UserRecord struct {
 	ID           string    `json:"id"`
@@ -801,7 +804,7 @@ func (d *DB) InsertSession(ctx context.Context, s SessionRecord) error {
 		return err
 	}
 	if n != 1 {
-		return errors.New("managed session authority unavailable")
+		return ErrSessionRefused
 	}
 	return nil
 }

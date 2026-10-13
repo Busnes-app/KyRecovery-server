@@ -57,6 +57,8 @@ type UserInfo struct {
 	Email   string `json:"email"`
 	Name    string `json:"name"`
 	Role    string `json:"role"` // "admin", "operator", "viewer"
+	// Local is set only by password login; every other login is fenced as native SSO.
+	Local bool `json:"-"`
 }
 
 // Manager handles OIDC login flows, PKCE challenges, local admin auth, and sessions.
@@ -285,6 +287,7 @@ func (m *Manager) AuthenticateLocal(ctx context.Context, username, password stri
 		Email:   user.Email,
 		Name:    user.Name,
 		Role:    user.Role,
+		Local:   true,
 	}, nil
 }
 
@@ -623,6 +626,9 @@ func (m *Manager) CreateSession(ctx context.Context, u *UserInfo, secure bool) (
 		} else {
 			rec.NativeSSO = true
 		}
+	} else if !u.Local {
+		// A userinfo-only profile has no issuer but is still an OIDC login.
+		rec.NativeSSO = true
 	}
 
 	if err := m.db.InsertSession(ctx, rec); err != nil {
