@@ -51,6 +51,9 @@ func TestRequiredRolePolicy(t *testing.T) {
 		{http.MethodGet, "/api/pairing/list", auth.RoleViewer},
 		{http.MethodGet, "/api/replication/targets", auth.RoleViewer},
 		{http.MethodGet, "/api/replication/logs", auth.RoleViewer},
+		{http.MethodGet, "/api/backups/status", auth.RoleViewer},
+		{http.MethodGet, "/api/backups/restore-plan", auth.RoleViewer},
+		{http.MethodPost, "/api/backups/status", auth.RoleAdmin},
 
 		// Recovery work.
 		{http.MethodGet, "/api/capsules/cap-abc/download", auth.RoleOperator},
@@ -59,6 +62,9 @@ func TestRequiredRolePolicy(t *testing.T) {
 		{http.MethodPost, "/api/replication/sync", auth.RoleOperator},
 
 		// Trust configuration.
+		{http.MethodPost, "/api/backups/expectations", auth.RoleAdmin},
+		{http.MethodPost, "/api/backups/repos/link", auth.RoleAdmin},
+		{http.MethodPost, "/api/backups/repos/ack-key", auth.RoleAdmin},
 		{http.MethodPost, "/api/auth/sso/config", auth.RoleAdmin},
 		{http.MethodPost, "/api/auth/sso/test", auth.RoleAdmin},
 		{http.MethodPost, "/api/recovery-key", auth.RoleAdmin}, // pinning what the store trusts

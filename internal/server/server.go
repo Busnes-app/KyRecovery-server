@@ -40,6 +40,8 @@ type Config struct {
 	DataDir        string
 	DatabasePath   string
 	Auth           auth.OIDCConfig
+	// ResticDir is rest-server's data directory, mounted read-only. Empty disables the scanner.
+	ResticDir string
 
 	// CookieSecure forces the Secure attribute on session cookies. When nil the
 	// server follows the transport the request actually arrived on.
@@ -203,6 +205,13 @@ func (s *Server) routes() {
 	// Snapshot Diff & Rollback Inspector Routes
 	s.mux.HandleFunc("/api/capsules/diff", s.handleCapsuleDiff)
 	s.mux.HandleFunc("/api/capsules/timeline", s.handleCapsuleTimeline)
+
+	// Backup status and restore planning
+	s.mux.HandleFunc("/api/backups/status", s.handleBackupStatus)
+	s.mux.HandleFunc("/api/backups/restore-plan", s.handleRestorePlan)
+	s.mux.Handle("/api/backups/expectations", http.NewCrossOriginProtection().Handler(http.HandlerFunc(s.handleBackupExpectations)))
+	s.mux.Handle("/api/backups/repos/link", http.NewCrossOriginProtection().Handler(http.HandlerFunc(s.handleResticLink)))
+	s.mux.Handle("/api/backups/repos/ack-key", http.NewCrossOriginProtection().Handler(http.HandlerFunc(s.handleResticAckKey)))
 }
 
 // contentSecurityPolicy is the second line of defence behind escaping in the
@@ -245,17 +254,19 @@ var apiPolicy = map[string]string{
 	"* /api/pairing/claim":          rolePublic, // one-time pairing code
 	"* /api/backup/deposit":         rolePublic, // product API token
 
-	"* /api/auth/password":         auth.RoleViewer,
-	"GET /api/readiness":           auth.RoleViewer,
-	"GET /api/capsules":            auth.RoleViewer,
-	"GET /api/capsules/diff":       auth.RoleViewer,
-	"GET /api/capsules/timeline":   auth.RoleViewer,
-	"GET /api/custodians":          auth.RoleViewer,
-	"GET /api/audit":               auth.RoleViewer,
-	"GET /api/recovery-key":        auth.RoleViewer,
-	"GET /api/pairing/list":        auth.RoleViewer,
-	"GET /api/replication/targets": auth.RoleViewer,
-	"GET /api/replication/logs":    auth.RoleViewer,
+	"* /api/auth/password":          auth.RoleViewer,
+	"GET /api/readiness":            auth.RoleViewer,
+	"GET /api/capsules":             auth.RoleViewer,
+	"GET /api/capsules/diff":        auth.RoleViewer,
+	"GET /api/capsules/timeline":    auth.RoleViewer,
+	"GET /api/custodians":           auth.RoleViewer,
+	"GET /api/audit":                auth.RoleViewer,
+	"GET /api/recovery-key":         auth.RoleViewer,
+	"GET /api/pairing/list":         auth.RoleViewer,
+	"GET /api/replication/targets":  auth.RoleViewer,
+	"GET /api/replication/logs":     auth.RoleViewer,
+	"GET /api/backups/status":       auth.RoleViewer,
+	"GET /api/backups/restore-plan": auth.RoleViewer,
 
 	"POST /api/custodians":       auth.RoleOperator,
 	"POST /api/audit/verify":     auth.RoleOperator,
@@ -269,6 +280,9 @@ var apiPolicy = map[string]string{
 	"POST /api/pairing/clear":            auth.RoleAdmin,
 	"POST /api/replication/targets":      auth.RoleAdmin,
 	"POST /api/replication/targets/test": auth.RoleAdmin,
+	"POST /api/backups/expectations":     auth.RoleAdmin,
+	"POST /api/backups/repos/link":       auth.RoleAdmin,
+	"POST /api/backups/repos/ack-key":    auth.RoleAdmin,
 }
 
 // parseCapsulePath is the single interpretation of an "/api/capsules/<id>/<action>"
@@ -1369,6 +1383,7 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 
 	go s.runIntegritySweep(ctx)
+	go s.runResticScanner(ctx)
 
 	errChan := make(chan error, 1)
 	go func() {

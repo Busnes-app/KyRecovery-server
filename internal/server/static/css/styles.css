@@ -286,3 +286,29 @@ footer { padding: 16px 32px; border-top: 1px solid var(--rule); font-size: 13px;
   .header-meta, #user-auth-area { flex-wrap: wrap; }
   .header-meta { min-width: 0; }
 }
+
+/* Backups tab */
+.backups-metrics { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 28px 32px; }
+.backups-metrics .metric-value { font-size: 44px; }
+.backups-banner, .backups-alert { padding: 10px 14px; border-radius: var(--radius); font-size: 13.5px; color: var(--warn); background: var(--warn-wash); margin: 8px 0; }
+.backups-banner { margin: 0 0 20px; }
+.backups-alert.danger { color: var(--bad); background: var(--bad-wash); font-size: 14px; }
+.backups-dim { color: var(--paper-dim); font-size: 12.5px; }
+.backups-warn { color: var(--warn); }
+.backups-interval { width: 90px; display: inline-block; padding: 4px 8px; }
+table.data-table tr.backups-detail td[colspan] { text-align: left; color: var(--paper); padding: 16px 20px; background: var(--ink-well); }
+.backups-detail h4 { margin: 4px 0 8px; }
+.backups-sub { margin-bottom: 16px; }
+table.data-table.backups-sub th, table.data-table.backups-sub td { padding: 8px 10px; }
+.backups-repo { border: 1px solid var(--rule); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 12px; }
+.backups-facts { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 8px; font-size: 13px; color: var(--paper-muted); }
+.backups-sparks { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 10px; }
+.backups-spark svg { display: block; width: 160px; height: 28px; }
+.backups-spark polyline { fill: none; stroke: var(--paper-muted); stroke-width: 1.5; }
+.backups-spark figcaption { font-size: 12px; color: var(--paper-dim); margin-top: 2px; }
+.backups-link { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.backups-link .form-input { width: auto; flex: 0 1 240px; }
+.backups-plan { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; margin: 16px 0; font-size: 14px; }
+.backups-plan dt { color: var(--paper-muted); }
+.backups-plan dd { overflow-wrap: anywhere; }
+.backups-command { background: var(--ink-well); border: 1px solid var(--rule); border-radius: var(--radius); padding: 12px 14px; margin: 12px 0 8px; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; }

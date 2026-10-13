@@ -69,7 +69,8 @@ jobs:
           (grep -ohE 'docs/[A-Za-z0-9._/-]+\.md' README.md || true) | sort -u | xargs -r -I{} test -f {}
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: go.mod
+          go-version: stable
+          check-latest: true
       - run: test -z "$(gofmt -l $(git ls-files '*.go'))"
       - run: go mod tidy && git diff --exit-code go.mod go.sum && go mod verify
       - run: go vet ./...
@@ -77,7 +78,7 @@ jobs:
       - run: go test -race -count=1 ./...
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 26
       - run: scripts/build-wasm.sh && git diff --exit-code -- internal/server/static/wasm
       - run: node scripts/test-wasm.mjs
       - run: node internal/server/static/ky-ui/check-vendor.mjs
@@ -90,7 +91,8 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: go.mod
+          go-version: stable
+          check-latest: true
       - run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
   docker:
     runs-on: ubuntu-latest

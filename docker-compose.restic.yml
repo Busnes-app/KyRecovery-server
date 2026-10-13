@@ -1,0 +1,35 @@
+# Opt-in restic backup status: an append-only rest-server, and a read-only view of its data
+# for KyRecovery's scanner. Without this overlay KyRecovery runs exactly as before.
+# Enable it by appending `:docker-compose.restic.yml` to COMPOSE_FILE in .env (see
+# docker-compose.build.yml for the pattern) and setting, in the same .env:
+#   RESTIC_DATA_DIR         rest-server's repositories. Must be on storage independent of what
+#                           it backs up: never the NAS (catalog spec, Independence).
+#   REST_SERVER_CONFIG_DIR  holds htpasswd, tls/cert.pem and tls/key.pem. KyQuickStart issues
+#                           the per-app credentials; KyRecovery never sees this directory.
+# Prepare the data directory once so rest-server (uid 10002) owns it and KyRecovery's group
+# (gid 10001) can read it but never write it:
+#   sudo install -d -o 10002 -g 10001 -m 0750 "$RESTIC_DATA_DIR"
+# scripts/verify-restic-overlay.sh proves this arrangement end to end.
+services:
+  rest-server:
+    image: restic/rest-server:0.14.0@sha256:d2aff06f47eb38637dff580c3e6bce4af98f386c396a25d32eb6727ec96214a5
+    container_name: kyrecovery-rest-server
+    restart: unless-stopped
+    # --group-accessible-repos writes repository files group-readable; the group is KyRecovery's.
+    user: "10002:10001"
+    ports:
+      - "8000:8000"
+    environment:
+      PASSWORD_FILE: /etc/rest-server/htpasswd
+      OPTIONS: >-
+        --private-repos --append-only --group-accessible-repos
+        --tls --tls-cert /etc/rest-server/tls/cert.pem --tls-key /etc/rest-server/tls/key.pem
+    volumes:
+      - ${RESTIC_DATA_DIR:?set RESTIC_DATA_DIR to rest-server's data directory, off the NAS}:/data
+      - ${REST_SERVER_CONFIG_DIR:?set REST_SERVER_CONFIG_DIR to the htpasswd and TLS directory}:/etc/rest-server:ro
+
+  kyrecovery:
+    environment:
+      - KYRECOVERY_RESTIC_DIR=/app/restic
+    volumes:
+      - ${RESTIC_DATA_DIR:?set RESTIC_DATA_DIR}:/app/restic:ro
