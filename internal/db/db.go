@@ -114,6 +114,8 @@ type UserRecord struct {
 // SessionRecord represents an authenticated user session. ID is the bearer
 // credential the session cookie carries, so it is never serialised into a response.
 type SessionRecord struct {
+	// NativeSSO marks a built-in OIDC login; it is refused once managed setup exists.
+	NativeSSO       bool      `json:"-"`
 	IdentityIssuer  string    `json:"-"`
 	IdentitySubject string    `json:"-"`
 	ID              string    `json:"-"`
@@ -784,6 +786,11 @@ func (d *DB) InsertSession(ctx context.Context, s SessionRecord) error {
 		}
 		q += ` WHERE EXISTS (SELECT 1 FROM system_settings WHERE key=? AND json_extract(value,'$.Active')=1 AND json_extract(value,'$.Issuer')=? AND json_extract(value,'$.Subject')=?)`
 		args = append(args, "installer.identity."+s.UserID, s.IdentityIssuer, s.IdentitySubject)
+	}
+	if s.NativeSSO {
+		// Same statement as the insert, so activation cannot land between check and write.
+		q += ` WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE key=?)`
+		args = append(args, InstallerConfigKey)
 	}
 	result, err := d.conn.ExecContext(ctx, q, args...)
 	if err != nil {

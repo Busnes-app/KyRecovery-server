@@ -229,6 +229,15 @@ func TestInstallerActivationEndsPriorSessions(t *testing.T) {
 	if code := request("/api/readiness", prior); code != 401 {
 		t.Fatal("pre-setup SSO session survived managed activation", code)
 	}
+	// A native callback that read "unmanaged" before activation inserts afterwards.
+	now := time.Now().UTC()
+	late := db.SessionRecord{ID: "late-native-callback", UserID: "owner", Role: auth.RoleAdmin, NativeSSO: true, ExpiresAt: now.Add(time.Hour), CreatedAt: now}
+	if err = d.InsertSession(ctx, late); err == nil {
+		t.Fatal("native SSO session inserted after managed activation")
+	}
+	if code := request("/api/readiness", &http.Cookie{Name: auth.SessionCookieName, Value: late.ID}); code != 401 {
+		t.Fatal("late native session usable", code)
+	}
 	body, _ := json.Marshal(map[string]string{"username": "admin", "password": adminPass})
 	q := httptest.NewRequest(http.MethodPost, "/api/auth/login/local", strings.NewReader(string(body)))
 	w := httptest.NewRecorder()

@@ -24,7 +24,8 @@ token from the configured issuer, an assigned active subject and correct nonce;
 provider-wide roles and email matches cannot grant access. Sessions retain issuer
 and subject bindings and are checked against current authority. Activation deletes
 every existing session in the same transaction, because earlier native SSO sessions
-carry no binding; local recovery credentials remain independent and sign in again.
+carry no binding, and a native SSO session insert is refused in the same statement
+once managed setup exists; local recovery credentials remain independent and sign in again.
 
 `POST /api/installer/directory` uses `ky-primitives/syncauth` over a bounded bare
 SCIM body and signed event type. Positive canonical `meta.version` (`W/"2"`) and

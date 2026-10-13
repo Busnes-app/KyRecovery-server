@@ -620,6 +620,8 @@ func (m *Manager) CreateSession(ctx context.Context, u *UserInfo, secure bool) (
 			rec.IdentityIssuer = u.Issuer
 			rec.IdentitySubject = u.Subject
 			rec.Role = RoleAdmin
+		} else {
+			rec.NativeSSO = true
 		}
 	}
 
