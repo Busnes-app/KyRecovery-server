@@ -21,6 +21,7 @@ RUN addgroup -g 10001 -S kyrecovery && \
     adduser -u 10001 -S -G kyrecovery -H -h /nonexistent kyrecovery
 
 WORKDIR /app
+ENV KYRECOVERY_DATA_DIR=/app/data
 COPY --from=builder /app/kyrecovery /app/kyrecovery
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod 0755 /app/docker-entrypoint.sh /app/kyrecovery && \

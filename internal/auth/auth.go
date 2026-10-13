@@ -22,6 +22,7 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
 
+	"github.com/Busnes-app/ky-primitives/applysetup"
 	"github.com/Busnes-app/ky-primitives/password"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
 	"github.com/Busnes-app/kyrecovery-server/internal/secrets"
@@ -51,6 +52,7 @@ type OIDCConfig struct {
 
 // UserInfo represents an authenticated user profile.
 type UserInfo struct {
+	Issuer  string `json:"-"`
 	Subject string `json:"sub"`
 	Email   string `json:"email"`
 	Name    string `json:"name"`
@@ -116,14 +118,35 @@ func (m *Manager) loadSettingsFromDB(ctx context.Context) {
 // GetConfig returns the current OIDC SSO configuration.
 func (m *Manager) GetConfig() OIDCConfig {
 	m.mu.RLock()
-	defer m.mu.RUnlock()
-	return m.cfg
+	cfg := m.cfg
+	m.mu.RUnlock()
+	if m.db == nil {
+		return cfg
+	}
+	b, managed, err := m.db.InstallerConfiguration(context.Background())
+	if err != nil {
+		return OIDCConfig{}
+	}
+	if !managed {
+		return cfg
+	}
+	if b.SSO == nil {
+		return OIDCConfig{}
+	}
+	secret, err := applysetup.Secret(b.SSO.ClientSecretFile)
+	if err != nil {
+		return OIDCConfig{}
+	}
+	return OIDCConfig{Enabled: true, IssuerURL: b.SSO.IssuerURL, ClientID: b.SSO.ClientID, ClientSecret: secret, RedirectURL: b.SSO.RedirectURI}
 }
 
 // SaveConfig persists updated SSO configuration to SQLite and updates manager memory.
 func (m *Manager) SaveConfig(ctx context.Context, cfg OIDCConfig) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if _, managed, err := m.db.InstallerConfiguration(ctx); err != nil || managed {
+		return errors.New("installer-owned SSO configuration is immutable")
+	}
 
 	enabledStr := "false"
 	if cfg.Enabled {
@@ -166,9 +189,8 @@ func (m *Manager) SaveConfig(ctx context.Context, cfg OIDCConfig) error {
 
 // IsEnabled returns true if SSO authentication is enabled and configured.
 func (m *Manager) IsEnabled() bool {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-	return m.cfg.Enabled && m.cfg.IssuerURL != "" && m.cfg.ClientID != ""
+	cfg := m.GetConfig()
+	return cfg.Enabled && cfg.IssuerURL != "" && cfg.ClientID != ""
 }
 
 // HashPassword generates a PHC-encoded Argon2id hash for a password.
@@ -468,13 +490,35 @@ func (m *Manager) ExchangeCode(ctx context.Context, code, verifier, nonce string
 			return nil, err
 		}
 	} else {
+		if m.db != nil {
+			if _, managed, e := m.db.InstallerConfiguration(ctx); e != nil || managed {
+				return nil, errors.New("managed login requires a verified ID token")
+			}
+		}
 		userInfo, err = m.fetchUserInfo(ctx, provider, tokResp.AccessToken)
 		if err != nil {
 			return nil, fmt.Errorf("issuer returned no id_token and userinfo failed: %w", err)
 		}
 	}
 
-	// Assign role
+	if m.db != nil {
+		b, managed, err := m.db.InstallerConfiguration(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if managed {
+			if b.SSO == nil || userInfo.Issuer != b.SSO.IssuerURL {
+				return nil, errors.New("verified issuer not assigned")
+			}
+			g, assigned, err := m.db.InstallerGrant(ctx, db.InstallerIdentityID(userInfo.Issuer, userInfo.Subject))
+			if err != nil || !assigned || !g.Active || g.SetupID != b.SetupID {
+				return nil, errors.New("administrator subject not assigned or active")
+			}
+			userInfo.Role = RoleAdmin
+			return userInfo, nil
+		}
+	}
+	// Assign native role only outside installer-owned mode.
 	if cfg.AdminEmail != "" && strings.EqualFold(userInfo.Email, cfg.AdminEmail) {
 		userInfo.Role = "admin"
 	} else {
@@ -511,6 +555,7 @@ func (m *Manager) verifyIDToken(ctx context.Context, provider *oidc.Provider, ra
 	}
 
 	return &UserInfo{
+		Issuer:  idToken.Issuer,
 		Subject: idToken.Subject,
 		Email:   claims.Email,
 		Name:    claims.Name,
@@ -562,6 +607,21 @@ func (m *Manager) CreateSession(ctx context.Context, u *UserInfo, secure bool) (
 		ExpiresAt: now.Add(SessionDuration),
 		CreatedAt: now,
 	}
+	if u.Issuer != "" {
+		b, managed, err := m.db.InstallerConfiguration(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if managed {
+			if b.SSO == nil || u.Issuer != b.SSO.IssuerURL {
+				return nil, errors.New("session issuer differs")
+			}
+			rec.UserID = db.InstallerIdentityID(u.Issuer, u.Subject)
+			rec.IdentityIssuer = u.Issuer
+			rec.IdentitySubject = u.Subject
+			rec.Role = RoleAdmin
+		}
+	}
 
 	if err := m.db.InsertSession(ctx, rec); err != nil {
 		return nil, fmt.Errorf("failed storing session: %w", err)
@@ -591,7 +651,24 @@ func (m *Manager) GetSession(ctx context.Context, r *http.Request) (*db.SessionR
 	if sessionID == "" {
 		return nil, nil
 	}
-	return m.db.GetSession(ctx, sessionID)
+	session, err := m.db.GetSession(ctx, sessionID)
+	if err != nil || session == nil {
+		return session, err
+	}
+	if session.IdentityIssuer != "" || strings.HasPrefix(session.UserID, "installer-") {
+		b, managed, err := m.db.InstallerConfiguration(ctx)
+		if err != nil {
+			return nil, err
+		}
+		g, assigned, err := m.db.InstallerGrant(ctx, session.UserID)
+		if err != nil {
+			return nil, err
+		}
+		if !managed || b.SSO == nil || !assigned || !g.Active || g.SetupID != b.SetupID || g.Issuer != b.SSO.IssuerURL || session.IdentityIssuer != g.Issuer || session.IdentitySubject != g.Subject || session.Role != RoleAdmin {
+			return nil, nil
+		}
+	}
+	return session, nil
 }
 
 // InvalidateSession deletes the current session and clears the cookie.

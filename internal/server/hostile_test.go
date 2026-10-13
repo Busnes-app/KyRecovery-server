@@ -231,8 +231,7 @@ func TestSessionCookieIsSecureOverTLS(t *testing.T) {
 	}
 
 	body, _ := json.Marshal(map[string]string{"username": "admin", "password": adminPass})
-	req := httptest.NewRequest(http.MethodPost, "/api/auth/login/local", bytes.NewReader(body))
-	req.Header.Set("X-Forwarded-Proto", "https")
+	req := httptest.NewRequest(http.MethodPost, "https://recovery.example/api/auth/login/local", bytes.NewReader(body))
 	rec := httptest.NewRecorder()
 	srv.ServeHTTP(rec, req)
 
