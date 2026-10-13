@@ -197,3 +197,46 @@ func TestInstallerNetworkTrust(t *testing.T) {
 		}
 	}
 }
+
+// A built-in SSO session from before managed setup carries no issuer binding, so the
+// managed grant checks would skip it. Activation must end it; local login still works.
+func TestInstallerActivationEndsPriorSessions(t *testing.T) {
+	s, d := newTestServer(t)
+	ctx := context.Background()
+	mgr := auth.NewManager(auth.OIDCConfig{}, d)
+	adminPass, _, err := mgr.EnsureAdminUser(ctx, "CorrectHorseBatteryStaple1!")
+	if err != nil {
+		t.Fatal(err)
+	}
+	prior, err := mgr.CreateSession(ctx, &auth.UserInfo{Issuer: "https://identity.example", Subject: "owner", Role: auth.RoleAdmin}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request := func(path string, c *http.Cookie) int {
+		q := httptest.NewRequest(http.MethodGet, path, nil)
+		q.AddCookie(c)
+		w := httptest.NewRecorder()
+		s.ServeHTTP(w, q)
+		return w.Code
+	}
+	if code := request("/api/readiness", prior); code != 200 {
+		t.Fatal("fixture session unusable before setup", code)
+	}
+	raw, _ := json.Marshal(recoveryInstallerBundle(t))
+	if _, err = s.ApplyInstaller(ctx, raw, false); err != nil {
+		t.Fatal(err)
+	}
+	if code := request("/api/readiness", prior); code != 401 {
+		t.Fatal("pre-setup SSO session survived managed activation", code)
+	}
+	body, _ := json.Marshal(map[string]string{"username": "admin", "password": adminPass})
+	q := httptest.NewRequest(http.MethodPost, "/api/auth/login/local", strings.NewReader(string(body)))
+	w := httptest.NewRecorder()
+	s.ServeHTTP(w, q)
+	if w.Code != 200 || len(w.Result().Cookies()) == 0 {
+		t.Fatal("local login after setup", w.Code, w.Body.String())
+	}
+	if code := request("/api/readiness", w.Result().Cookies()[0]); code != 200 {
+		t.Fatal("fresh local session refused", code)
+	}
+}

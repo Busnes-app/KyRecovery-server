@@ -149,6 +149,11 @@ func (d *DB) ApplyInstallerAudit(ctx context.Context, b applysetup.Common, ar Au
 			return err
 		}
 	}
+	// Sessions from before activation carry no issuer binding, so the managed grant
+	// checks would skip them. End them all; local credentials sign in again.
+	if _, err = tx.ExecContext(ctx, "DELETE FROM sessions"); err != nil {
+		return err
+	}
 	if err = insertAuditAndAnchor(ctx, tx, ar, count, hash); err != nil {
 		return err
 	}
