@@ -46,7 +46,17 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
           persist-credentials: false
 
-      # No version-agreement step: nothing in this repository records a version.
+      # The compiled-in version is what `kyrecovery version` reports.
+      - name: Require the tag and the version constant to agree
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          set -euo pipefail
+          src="$(sed -n 's/^const version = "\(.*\)"$/\1/p' cmd/kyrecovery/app/app.go)"
+          if [ "$src" != "$VERSION" ]; then
+            echo "::error::release $VERSION disagrees with cmd/kyrecovery/app/app.go(${src:-unparsed})" >&2
+            exit 1
+          fi
 
       # Provenance says where an image came from, not that it works. Check the
       # commit actually checked out (for an annotated tag GITHUB_SHA can name the
