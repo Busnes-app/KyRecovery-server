@@ -21,6 +21,9 @@ import (
 	"github.com/Busnes-app/kyrecovery-server/pkg/client"
 )
 
+// version is this KyRecovery release; release-image.yml refuses a tag that disagrees.
+const version = "0.4.0"
+
 func Run(args []string) {
 	if len(args) < 2 {
 		printUsage()
@@ -40,6 +43,8 @@ func Run(args []string) {
 		cmdAudit(args[2:])
 	case "pair":
 		cmdPair(args[2:])
+	case "version", "--version":
+		fmt.Println(version)
 	case "help", "--help", "-h":
 		printUsage()
 	default:
@@ -58,6 +63,7 @@ Commands:
   serve           Start KyRecovery web dashboard and REST API daemon
   audit           Inspect or verify cryptographic audit log chain
   pair            Manage paired product connectors and ephemeral 6-digit codes
+  version         Print the KyRecovery version
 
 Run 'kyrecovery <command> --help' for details on each command.`)
 }
