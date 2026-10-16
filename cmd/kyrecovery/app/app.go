@@ -22,7 +22,7 @@ import (
 )
 
 // version is this KyRecovery release; release-image.yml refuses a tag that disagrees.
-const version = "0.4.0"
+const version = "0.4.2"
 
 func Run(args []string) {
 	if len(args) < 2 {
