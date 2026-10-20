@@ -44,7 +44,7 @@ Read `docker compose logs kyrecovery` in a private terminal for the one-time gen
 Open `http://localhost:8095` on the host for a trial; use HTTPS and the exact trusted-proxy
 setting for remote users. Follow the [README](README.md) for transport and account setup.
 
-Run the [ceremony](README.md#ceremony-creating-the-suite-recovery-keypair) in a fresh private
+Run the [ceremony](docs/CEREMONY.md#ceremony-creating-the-suite-recovery-keypair) in a fresh private
 browser window at `/admin/ceremony`: print-preview throwaway cards first, then generate the
 real k-of-n set, print/distribute it, import only the public key and close the tab. Import
 is one-shot; key rotation is not implemented. Treat real cards as secrets, not screenshots
