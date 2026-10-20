@@ -6,6 +6,58 @@ here. KyRecovery holds no recovery private key, no Shamir share and no plaintext
 and there is no code path in the server that decrypts a capsule — a test,
 `TestNothingInTheServerDecrypts`, fails the build if one appears.
 
+## Quick start
+
+`docker-compose.yml` passes no environment to the container (`environment: []`)
+and publishes 8095 on every host interface. Supply both through an override file;
+the stock file stays untouched so upgrades replace it cleanly. The `!override` tag
+needs Docker Compose 2.24.4 or later.
+
+```bash
+v=<release version you intend to run, e.g. 0.4.2>
+mkdir kyrecovery && cd kyrecovery
+curl -fsSLO "https://raw.githubusercontent.com/Busnes-app/KyRecovery-server/v$v/docker-compose.yml"
+```
+
+Pin the image: run the release verify-then-pin block at the top of that
+`docker-compose.yml` in this directory. It writes `KYRECOVERY_IMAGE` into `.env`.
+
+Write the settings file (mode 0600, it can hold secrets) and the override, and
+chain both compose files in `.env`:
+
+```bash
+umask 077
+cat > kyrecovery.env <<'EOF'
+# Variables are listed under Configuration below. Uncomment what you use.
+# KYRECOVERY_TRUSTED_PROXIES=<reverse proxy IP>
+# KYRECOVERY_COOKIE_SECURE=true
+# KY_ADMIN_INITIAL_PASSWORD=
+EOF
+cat > docker-compose.override.yml <<'EOF'
+services:
+  kyrecovery:
+    ports: !override
+      - "127.0.0.1:8095:8095"
+    env_file: kyrecovery.env
+EOF
+echo 'COMPOSE_FILE=docker-compose.yml:docker-compose.override.yml' >> .env
+docker compose up -d
+curl -fsS --retry 10 --retry-all-errors --retry-delay 1 http://127.0.0.1:8095/healthz
+```
+
+Other overlays (`docker-compose.build.yml`, `docker-compose.restic.yml`) join the
+same `COMPOSE_FILE` chain. Put a TLS reverse proxy on the same host in front of
+the loopback port, or change the binding to the address your proxy reaches.
+
+The first start prints the local `admin` credentials to the container log
+(`docker compose logs kyrecovery`), **including a password you supplied** in
+`KY_ADMIN_INITIAL_PASSWORD`. Treat that log as secret. Sign in, run the
+[ceremony](#ceremony-creating-the-suite-recovery-keypair), then pair products.
+
+The entrypoint runs as root only to `chown` `./data` to uid 10001 on each start,
+then drops to that user, so `./data` ends up owned by uid 10001, not your host
+account.
+
 ## What it holds
 
 - kycap/3 containers exactly as deposited, plus the SHA-256 KyRecovery computed
@@ -240,6 +292,19 @@ kyrecovery help
 `--sso-client-id`, `--sso-client-secret`, `--sso-redirect-url`,
 `--sso-admin-email`, `--cookie-secure`, `--restic-dir`.
 
+In the container, run the CLI as the runtime user so anything it writes under
+`/app/data` stays owned by `kyrecovery` (`docker exec` otherwise runs as root).
+`pair` defaults to `--data-dir ./data`, which is `/app/data` from the image's
+working directory:
+
+```bash
+docker exec -u kyrecovery kyrecovery-server /app/kyrecovery pair generate --service kynotes --app "KyNotes"
+```
+
+`pair generate` and `pair list` print pairing codes; `pair list` shows the code
+of every row, claimed or not. Treat their output as secret and keep it out of
+shared logs.
+
 ## Configuration
 
 | Variable | Effect |
@@ -247,9 +312,13 @@ kyrecovery help
 | `KYRECOVERY_SECRET_KEY` | The keyring master key, hex or base64. Falls back to `<data-dir>/secret.key` (0600), created on first start. |
 | `KY_SSO_ISSUER`, `KY_SSO_CLIENT_ID`, `KY_SSO_CLIENT_SECRET`, `KY_SSO_REDIRECT_URL` | KySignOn OIDC defaults for the matching `serve` flags. SSO is enabled when an issuer is set. |
 | `KY_ADMIN_EMAIL` | The SSO identity granted `admin`. |
-| `KY_ADMIN_INITIAL_PASSWORD` | The local `admin` password on first start. Without it one is generated and printed once. |
+| `KY_ADMIN_INITIAL_PASSWORD` | The local `admin` password on first start. Without it one is generated. Either way the first start prints it to stdout (the container log). |
 | `KYRECOVERY_COOKIE_SECURE` | `true`, `false`, or empty to follow the request transport. |
 | `KYRECOVERY_RESTIC_DIR` | rest-server's data directory, mounted read-only, for restic backup status. Empty disables the scanner. |
+| `KYRECOVERY_TRUSTED_PROXIES` | Comma-separated peer IPs or CIDRs whose forwarded client address and scheme are trusted. Empty by default; `/0` is refused. |
+| `KYRECOVERY_DATA_DIR` | Default for `serve --data-dir` and the data directory `apply-setup` uses. The image sets `/app/data`. |
+
+The stock compose file forwards none of these; see [Quick start](#quick-start).
 
 The data directory holds `kyrecovery.db`, `secret.key` and `capsules/`. Back all
 three up together: without `secret.key` the sealed replication credentials, the
@@ -269,7 +338,8 @@ are not readable with it — they need the custodians' shares.
 - **Credentials.** A product API token is shown once, to the product that claims
   the pairing code; a pairing code is shown once, to the administrator who
   generates it. Neither appears in the paired products listing, and no response
-  body contains a session token.
+  body contains a session token. The `pair` CLI reads the database directly and
+  does print codes (see [CLI](#cli)).
 - **Transport.** Session cookies are `HttpOnly`, and `Secure` when the login
   arrived over TLS (directly or via `X-Forwarded-Proto`). Run behind TLS and set
   `--cookie-secure=true` to make that unconditional. Changing a password signs

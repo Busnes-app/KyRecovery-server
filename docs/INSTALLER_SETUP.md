@@ -49,3 +49,49 @@ and ceremony gates. Per-service pairing-code orchestration, central identity cli
 role/directory composition and published image/library provenance remain installer
 acceptance gates. Target credential files must be retained alongside the native
 server configuration; offsite capsule replication is not a backup of these files.
+
+## Example
+
+```json
+{
+  "schema": "ky.product-setup/1",
+  "service": "kyrecovery",
+  "setupId": "6f1c2a9e-3b7d-4e05-9a8c-1d2e3f4a5b6c",
+  "sso": {
+    "issuerUrl": "https://id.example.com",
+    "clientId": "kyrecovery",
+    "clientSecretFile": "/app/data/installer/client-secret",
+    "directorySecretFile": "/app/data/installer/directory-secret",
+    "redirectUri": "https://recovery.example.com/api/auth/callback"
+  },
+  "admins": [
+    {
+      "issuer": "https://id.example.com",
+      "subject": "<the administrator's ID token sub>",
+      "username": "admin-name",
+      "email": "admin@example.com"
+    }
+  ]
+}
+```
+
+- `setupId` is a lowercase UUID; `issuerUrl` has no trailing slash and every
+  admin `issuer` equals it. `email` is optional.
+- `subject` is the `sub` claim the issuer puts in that administrator's ID token,
+  and the SCIM user `id` on directory events. From KyIdentity, take
+  `administrator.subject` from its `apply-setup --export-client <client ID>`
+  output; that output also carries both secrets, so keep it private.
+- The bundle and both secret files must be regular files owned by `kyrecovery`,
+  not readable by group or others, at absolute paths. Each secret is one line.
+  The server reads the secrets at every sign-in and directory event, so keep them
+  in place; under `/app/data` they live in the data volume.
+- Point the issuer's directory webhook at
+  `https://recovery.example.com/api/installer/directory`.
+
+Write each file as `kyrecovery`, then apply and check:
+
+```bash
+docker exec -i -u kyrecovery kyrecovery-server sh -c 'umask 077 && cat > /app/data/installer/setup.json' < setup.json
+docker exec -u kyrecovery kyrecovery-server /app/kyrecovery apply-setup --file /app/data/installer/setup.json
+docker exec -u kyrecovery kyrecovery-server /app/kyrecovery apply-setup --file /app/data/installer/setup.json --check
+```
