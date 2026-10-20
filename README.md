@@ -6,6 +6,47 @@ here. KyRecovery holds no recovery private key, no Shamir share and no plaintext
 and there is no code path in the server that decrypts a capsule — a test,
 `TestNothingInTheServerDecrypts`, fails the build if one appears.
 
+## Quick start
+
+```bash
+v=<release version you intend to run>
+mkdir kyrecovery && cd kyrecovery
+curl -fsSLO "https://raw.githubusercontent.com/Busnes-app/KyRecovery-server/v$v/docker-compose.yml"
+```
+
+Pin the image: run the release verify-then-pin block at the top of that
+`docker-compose.yml` in this directory. It writes `KYRECOVERY_IMAGE` into `.env`.
+Releases up to 0.4.2 ship a compose file that forwards no settings and publishes
+on every interface; see [Upgrading to the secure compose defaults](#upgrading-to-the-secure-compose-defaults).
+
+Settings go in the same `.env`, which can hold secrets, so keep it mode 0600. The
+compose file passes `.env` to the container whole (Docker Compose 2.24 or later);
+an unset variable keeps its default. Single-quote a value that contains `$`.
+
+```bash
+chmod 600 .env
+cat >> .env <<'EOF'
+# KYRECOVERY_TRUSTED_PROXIES=<reverse proxy IP>
+# KYRECOVERY_COOKIE_SECURE=true
+# KY_ADMIN_INITIAL_PASSWORD='<password>'
+EOF
+docker compose up -d
+curl -fsS --retry 10 --retry-all-errors --retry-delay 1 http://127.0.0.1:8095/healthz
+```
+
+The port is published on `127.0.0.1` only. Put a TLS reverse proxy on the same
+host in front of it, or set `KYRECOVERY_BIND` in `.env` to the host address your
+proxy reaches.
+
+On first start, a generated `admin` password is printed once to the container log
+(`docker compose logs kyrecovery`); treat that log as secret. A password you
+supplied in `KY_ADMIN_INITIAL_PASSWORD` is not printed. Sign in, run the
+[ceremony](#ceremony-creating-the-suite-recovery-keypair), then pair products.
+
+The entrypoint runs as root only to `chown` `./data` to uid 10001 on each start,
+then drops to that user, so `./data` ends up owned by uid 10001, not your host
+account.
+
 ## What it holds
 
 - kycap/3 containers exactly as deposited, plus the SHA-256 KyRecovery computed
@@ -240,6 +281,18 @@ kyrecovery help
 `--sso-client-id`, `--sso-client-secret`, `--sso-redirect-url`,
 `--sso-admin-email`, `--cookie-secure`, `--restic-dir`.
 
+In the container, run the CLI as the runtime user so anything it writes under
+`/app/data` stays owned by `kyrecovery` (`docker exec` otherwise runs as root).
+`audit` and `pair` default `--data-dir` to `KYRECOVERY_DATA_DIR`, else `./data`;
+the image sets `/app/data`:
+
+```bash
+docker exec -u kyrecovery kyrecovery-server /app/kyrecovery pair generate --service kynotes --app "KyNotes"
+```
+
+`pair generate` prints the new code, and `pair list` prints the code of each
+pending, unexpired row (`-` for the rest). Treat their output as secret.
+
 ## Configuration
 
 | Variable | Effect |
@@ -247,9 +300,15 @@ kyrecovery help
 | `KYRECOVERY_SECRET_KEY` | The keyring master key, hex or base64. Falls back to `<data-dir>/secret.key` (0600), created on first start. |
 | `KY_SSO_ISSUER`, `KY_SSO_CLIENT_ID`, `KY_SSO_CLIENT_SECRET`, `KY_SSO_REDIRECT_URL` | KySignOn OIDC defaults for the matching `serve` flags. SSO is enabled when an issuer is set. |
 | `KY_ADMIN_EMAIL` | The SSO identity granted `admin`. |
-| `KY_ADMIN_INITIAL_PASSWORD` | The local `admin` password on first start. Without it one is generated and printed once. |
+| `KY_ADMIN_INITIAL_PASSWORD` | The local `admin` password on first start, never printed. Without it one is generated and printed once. |
 | `KYRECOVERY_COOKIE_SECURE` | `true`, `false`, or empty to follow the request transport. |
 | `KYRECOVERY_RESTIC_DIR` | rest-server's data directory, mounted read-only, for restic backup status. Empty disables the scanner. |
+| `KYRECOVERY_TRUSTED_PROXIES` | Comma-separated peer IPs or CIDRs whose forwarded client address and scheme are trusted. Empty by default; `/0` is refused. |
+| `KYRECOVERY_DATA_DIR` | Default `--data-dir` for `serve`, `audit` and `pair`, and the data directory `apply-setup` uses. The image sets `/app/data`, and the compose file pins it there, since it must match `serve --data-dir`. |
+| `KYRECOVERY_BIND` | Compose only: the host address port 8095 is published on. Default `127.0.0.1`. |
+
+`docker-compose.yml` passes `.env` to the container; the restic overlay sets
+`KYRECOVERY_RESTIC_DIR` with its mount.
 
 The data directory holds `kyrecovery.db`, `secret.key` and `capsules/`. Back all
 three up together: without `secret.key` the sealed replication credentials, the
@@ -269,7 +328,8 @@ are not readable with it — they need the custodians' shares.
 - **Credentials.** A product API token is shown once, to the product that claims
   the pairing code; a pairing code is shown once, to the administrator who
   generates it. Neither appears in the paired products listing, and no response
-  body contains a session token.
+  body contains a session token. The `pair` CLI reads the database directly and
+  prints codes that can still be claimed (see [CLI](#cli)).
 - **Transport.** Session cookies are `HttpOnly`, and `Secure` when the login
   arrived over TLS (directly or via `X-Forwarded-Proto`). Run behind TLS and set
   `--cookie-secure=true` to make that unconditional. Changing a password signs
@@ -284,7 +344,9 @@ are not readable with it — they need the custodians' shares.
   retention.
 - **SSO.** The issuer must publish `/.well-known/openid-configuration`; endpoints
   and signing keys come from discovery. Outbound issuer requests refuse
-  link-local destinations at connect time.
+  link-local destinations at connect time. A callback carrying the provider's
+  `error` (for example `access_denied`) is answered 401, naming the code when it is well formed;
+  the provider's `error_description` is never shown.
 
 ## Upgrading from the previous KyRecovery
 
@@ -303,6 +365,22 @@ go test ./...
 ## Upgrading from ghcr.io/busness-app
 
 The GitHub organisation was renamed on 2026-09-16 and the image now lives at `ghcr.io/busnes-app/kyrecovery-server`. The project no longer controls `ghcr.io/busness-app`; GHCR does not redirect it, and anything served under that name must be treated as untrusted. If `KYRECOVERY_IMAGE` in `.env` still names the old namespace, re-pinning is required, not optional: run the verify-then-pin block at the top of `docker-compose.yml`, which resolves the commit you choose to a digest, verifies its attestation and writes the pin, then `docker compose pull`.
+
+## Upgrading to the secure compose defaults
+
+Releases after 0.4.2 change three defaults:
+
+- **Port.** `docker-compose.yml` publishes 8095 on `127.0.0.1` instead of every
+  interface. If something on another host reaches KyRecovery directly, set
+  `KYRECOVERY_BIND=0.0.0.0` in `.env` to restore the old behaviour, or the one
+  address it should listen on.
+- **Settings.** The compose file now passes `.env` to the container; it used to
+  pass nothing. A value left in `.env` that did nothing before takes effect on the
+  next `docker compose up -d`, so review `.env` first. An override file that
+  supplied settings (`env_file:` or `environment:`) keeps working and wins over
+  `.env`.
+- **Output.** A supplied `KY_ADMIN_INITIAL_PASSWORD` is no longer printed, and
+  `pair list` no longer prints codes of claimed, revoked or expired pairings.
 
 ## Installer setup
 

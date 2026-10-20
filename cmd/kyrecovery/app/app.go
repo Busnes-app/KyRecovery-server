@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"net/netip"
 	"os"
 	"os/signal"
@@ -72,11 +73,7 @@ Run 'kyrecovery <command> --help' for details on each command.`)
 func cmdServe(args []string) {
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
 	port := fs.Int("port", 8095, "HTTP server listener port")
-	defaultDataDir := os.Getenv("KYRECOVERY_DATA_DIR")
-	if defaultDataDir == "" {
-		defaultDataDir = "./data"
-	}
-	dataDir := fs.String("data-dir", defaultDataDir, "Directory for SQLite database and capsule storage")
+	dataDir := fs.String("data-dir", defaultDataDir(), "Directory for SQLite database and capsule storage")
 	ssoIssuer := fs.String("sso-issuer", os.Getenv("KY_SSO_ISSUER"), "KySignOn OIDC Issuer URL (e.g. http://localhost:8080)")
 	ssoClientID := fs.String("sso-client-id", os.Getenv("KY_SSO_CLIENT_ID"), "KySignOn OAuth Client ID")
 	ssoClientSecret := fs.String("sso-client-secret", os.Getenv("KY_SSO_CLIENT_SECRET"), "KySignOn OAuth Client Secret")
@@ -132,13 +129,7 @@ func cmdServe(args []string) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: failed ensuring admin user: %v\n", err)
 	} else if isNew {
-		fmt.Println("================================================================================")
-		fmt.Println("🚀 KyRecovery Server First-Time Startup Initialized")
-		fmt.Println("   Local Administrator Credentials:")
-		fmt.Println("     Username: admin")
-		fmt.Printf("     Password: %s\n", adminPass)
-		fmt.Println("   Save this password securely or pair KySignOn SSO in the dashboard.")
-		fmt.Println("================================================================================")
+		announceAdmin(os.Stdout, adminPass, initPass != "")
 	}
 
 	ledger := audit.NewLedger(database)
@@ -204,12 +195,12 @@ func cmdServe(args []string) {
 // 2. Audit
 func cmdAudit(args []string) {
 	if len(args) == 0 || args[0] != "verify" {
-		fmt.Println("Usage: kyrecovery audit verify [--data-dir ./data]")
+		fmt.Println("Usage: kyrecovery audit verify [--data-dir DIR]")
 		return
 	}
 
 	fs := flag.NewFlagSet("audit verify", flag.ExitOnError)
-	dataDir := fs.String("data-dir", "./data", "Data directory containing SQLite database")
+	dataDir := fs.String("data-dir", defaultDataDir(), "Data directory containing SQLite database")
 	fs.Parse(args[1:])
 
 	dbPath := filepath.Join(*dataDir, "kyrecovery.db")
@@ -235,8 +226,8 @@ func cmdAudit(args []string) {
 func cmdPair(args []string) {
 	if len(args) == 0 {
 		fmt.Println(`Usage:
-  kyrecovery pair generate [--ttl 15] [--service <name>] [--app <name>] [--data-dir ./data]
-  kyrecovery pair list [--data-dir ./data]
+  kyrecovery pair generate [--ttl 15] [--service <name>] [--app <name>] [--data-dir DIR]
+  kyrecovery pair list [--data-dir DIR]
   kyrecovery pair claim --server <url> --code <6-digit-code> --service <service> --app <app-name>`)
 		return
 	}
@@ -248,7 +239,7 @@ func cmdPair(args []string) {
 		ttl := fs.Int("ttl", 15, "Pairing code expiration in minutes")
 		service := fs.String("service", "auto-declare", "Expected service name")
 		app := fs.String("app", "Connected App", "Expected app name")
-		dataDir := fs.String("data-dir", "./data", "Data directory")
+		dataDir := fs.String("data-dir", defaultDataDir(), "Data directory")
 		fs.Parse(args[1:])
 
 		dbPath := filepath.Join(*dataDir, "kyrecovery.db")
@@ -272,7 +263,7 @@ func cmdPair(args []string) {
 
 	case "list":
 		fs := flag.NewFlagSet("pair list", flag.ExitOnError)
-		dataDir := fs.String("data-dir", "./data", "Data directory")
+		dataDir := fs.String("data-dir", defaultDataDir(), "Data directory")
 		fs.Parse(args[1:])
 
 		dbPath := filepath.Join(*dataDir, "kyrecovery.db")
@@ -295,8 +286,14 @@ func cmdPair(args []string) {
 		}
 
 		fmt.Println("=== PAIRED APPLICATIONS & CONNECTORS ===")
+		now := time.Now()
 		for _, a := range list {
-			fmt.Printf("- [%s] %s (%s) — Code: %s, Status: %s\n", a.ID, a.AppName, a.ServiceName, a.PairingCode, a.Status)
+			// A code is a credential only while it can still be claimed; show no other.
+			code := "-"
+			if a.Status == "pending" && now.Before(a.ExpiresAt) {
+				code = a.PairingCode
+			}
+			fmt.Printf("- [%s] %s (%s) — Code: %s, Status: %s\n", a.ID, a.AppName, a.ServiceName, code, a.Status)
 		}
 
 	case "claim":
@@ -327,4 +324,29 @@ func cmdPair(args []string) {
 		fmt.Fprintf(os.Stderr, "Unknown pairing sub-action %q (valid: generate, list, claim)\n", action)
 		os.Exit(1)
 	}
+}
+
+// announceAdmin prints first-start credentials. A password the operator supplied is
+// already known to them and is never echoed into logs.
+func announceAdmin(w io.Writer, password string, supplied bool) {
+	fmt.Fprintln(w, "================================================================================")
+	fmt.Fprintln(w, "🚀 KyRecovery Server First-Time Startup Initialized")
+	if supplied {
+		fmt.Fprintln(w, "   Local administrator 'admin' created with KY_ADMIN_INITIAL_PASSWORD.")
+	} else {
+		fmt.Fprintln(w, "   Local Administrator Credentials:")
+		fmt.Fprintln(w, "     Username: admin")
+		fmt.Fprintf(w, "     Password: %s\n", password)
+		fmt.Fprintln(w, "   Save this password securely or pair KySignOn SSO in the dashboard.")
+	}
+	fmt.Fprintln(w, "================================================================================")
+}
+
+// defaultDataDir is KYRECOVERY_DATA_DIR, else ./data, so every subcommand opens the
+// store serve and apply-setup use.
+func defaultDataDir() string {
+	if dir := os.Getenv("KYRECOVERY_DATA_DIR"); dir != "" {
+		return dir
+	}
+	return "./data"
 }

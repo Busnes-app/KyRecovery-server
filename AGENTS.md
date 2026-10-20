@@ -46,7 +46,8 @@ Absolute-SFTP compatibility uploads reconcile regular `.ky-offsite-compat-*` sta
 - Every `/api/` route has an entry in `apiPolicy`; anything unlisted defaults to `admin`. New routes must be added to the table and to `TestRequiredRolePolicy`.
 - An `/api/` path is rejected unless it equals `path.Clean` of itself, and both the capsule policy and the capsule handler read the URL through `parseCapsulePath`. Authorization and dispatch must never parse a URL twice.
 - Credentials are never serialised by default. `PairedAppRecord.APIToken`, `PairedAppRecord.PairingCode`, `SessionRecord.ID` and `CapsuleRecord.FilePath` are `json:"-"`; the pairing code is returned only by `POST /api/pairing/generate` and the token only by `POST /api/pairing/claim`, each building its response explicitly.
-- An OIDC identity is only trusted after `verifier.Verify` accepts the ID token's signature, issuer, audience and expiry, and the login nonce matches. A failed ID token is never retried against `userinfo`; unknown role claims become `viewer`.
+- An OIDC identity is only trusted after `verifier.Verify` accepts the ID token's signature, issuer, audience and expiry, and the login nonce matches. A failed ID token is never retried against `userinfo`; unknown role claims become `viewer`. A callback carrying an IdP `error` is refused before any exchange; only a code matching `oauthErrorCode` is echoed, never `error_description`.
+- Console output is a log. `serve` prints only a generated admin password, never a supplied `KY_ADMIN_INITIAL_PASSWORD`; `pair list` prints a code only for a pending, unexpired row.
 - Outbound issuer requests use `auth.httpClient`, whose dialer refuses link-local destinations at connect time (covering redirects and DNS rebinding).
 - A capsule ID becomes a filename, so it is held to `capsuleIDPattern` and published temp-file → fsync → row insert → `capsule_deposited` appended → hard link (never rename: a link refuses an existing target, so a case-variant ID on a case-folding volume cannot overwrite another product's bytes). The database row is the mutual-exclusion primitive and a per-ID lock covers the whole publish, so a retry of an in-flight deposit waits for a whole one; a row whose file is missing outside that window is marked corrupt rather than treated as a successful deposit.
 - Every API request body is bounded (`bodyLimit`): 1 MiB, or `capsule.MaxContainerBytes` for the deposit. Deposits are rate limited per token and capped at 4 in flight.
@@ -124,7 +125,7 @@ node scripts/test-wasm.mjs
   global-role grant or email promotion. Owned session bindings are checked live.
 - Signed directory revisions/digests fence grant updates and session revocation in
   the same keyed audit transaction; capsules and paired products are retained.
-- `KYRECOVERY_DATA_DIR` must match the serve data directory; setup runs as `kyrecovery`.
+- `KYRECOVERY_DATA_DIR` must match the serve data directory; setup runs as `kyrecovery`. `defaultDataDir` gives every subcommand the same default, and `docker-compose.yml` pins it while passing `.env` through as an `env_file` (never `${VAR:-}` entries, which would blank an override's `env_file`). `TestComposeForwardsSettingsFromDotEnv` and `TestComposePublishesOnLoopbackByDefault` hold the compose contract; the port defaults to `${KYRECOVERY_BIND:-127.0.0.1}`.
 - `KYRECOVERY_TRUSTED_PROXIES` owns forwarding trust for limits, G11 and cookie TLS;
   default empty, `/0` refused. Explicit secure-cookie configuration still wins.
 - Installer setup never conducts the custodian ceremony or imports a recovery key.

@@ -43,8 +43,10 @@ services:
     pull_policy: missing
     container_name: kyrecovery-server
     restart: unless-stopped
+    # Loopback by default: put a TLS reverse proxy in front. KYRECOVERY_BIND in .env
+    # names another host address; 0.0.0.0 restores publishing on every interface.
     ports:
-      - "8095:8095"
+      - "${KYRECOVERY_BIND:-127.0.0.1}:8095:8095"
     volumes:
       # kyrecovery.db, secret.key (the keyring master key) and capsules/.
       # Back all three up together: without secret.key the sealed replication
@@ -52,10 +54,11 @@ services:
       # The capsules themselves need the custodians' shares, not this key.
       - ./data:/app/data
     # The port and data directory are entrypoint flags, not environment variables;
-    # override the entrypoint to change them. What is read from the environment:
-    #   KYRECOVERY_SECRET_KEY      keyring master key (hex or base64); else data/secret.key
-    #   KY_SSO_ISSUER, KY_SSO_CLIENT_ID, KY_SSO_CLIENT_SECRET, KY_SSO_REDIRECT_URL
-    #   KY_ADMIN_EMAIL             the SSO identity granted admin
-    #   KY_ADMIN_INITIAL_PASSWORD  local admin password on first start
-    #   KYRECOVERY_COOKIE_SECURE   set true behind TLS
-    environment: []
+    # override the entrypoint to change them. Settings (README "Configuration") come from
+    # .env, mode 0600, passed whole; unset keeps the default. Not ${VAR:-} entries:
+    # environment outranks an override's env_file and would blank it.
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      KYRECOVERY_DATA_DIR: /app/data # must match the image's serve --data-dir
