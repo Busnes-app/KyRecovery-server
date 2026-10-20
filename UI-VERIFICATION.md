@@ -1,5 +1,7 @@
 # Shared UI verification
 
+> Evidence scope: this document records the revision, environment and capture conditions below. Screenshots and generated fixtures demonstrate appearance; they do not qualify live email delivery, push delivery, recovery custody or every product feature. Test counts describe that recorded run, not the current suite.
+
 ## Change
 
 Fix Recovery-specific background/text aliases and stylesheet precedence; contrast checks now inspect the active palette. Shared assets are pinned to ky-ui 0.2.0 with content hashes. Product layouts, saved theme keys and named presets remain local.

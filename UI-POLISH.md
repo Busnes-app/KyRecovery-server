@@ -1,5 +1,7 @@
 # KyRecovery interface polish
 
+> Evidence scope: this document records the revision, environment and capture conditions below. Screenshots and generated fixtures demonstrate appearance; they do not qualify live email delivery, push delivery, recovery custody or every product feature. Test counts describe that recorded run, not the current suite.
+
 KyRecovery now has an evidence-led recovery overview with direct next-step links. This implements the approved visual direction against the existing product; no mockup data or replacement application shell is shipped.
 
 ## Preserved

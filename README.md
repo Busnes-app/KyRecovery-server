@@ -1,5 +1,7 @@
 # KyRecovery
 
+**Start here:** [Standalone installation](INSTALL.md). Local operator sign-in works without KyIdentity. The browser ceremony creates the recovery key and custodian cards; the server stores sealed capsules, public-key metadata and audit evidence. Stored capsules alone do not prove that a restore or off-site custody has been tested.
+
 KyRecovery is a self-hosted **blind store** for the KySecurity suite's encrypted
 backups. Products seal their own `.kycap` containers and deposit the ciphertext
 here. KyRecovery holds no recovery private key, no Shamir share and no plaintext,
@@ -350,17 +352,34 @@ are not readable with it — they need the custodians' shares.
 
 ## Upgrading from the previous KyRecovery
 
-The previous version pushed plaintext to the server, packed and encrypted it
-there, and returned the Shamir shares in the HTTP response. Nothing it produced
-is readable now and nothing was in the wild: **delete `data/`** — the database,
-`capsules/` and `secret.key` — and start fresh with a ceremony. There is no
-migration.
+The obsolete prototype accepted plaintext and encrypted it on the server, unlike the
+current blind-store design. Its format has no supported migration to the current capsule
+format. Preserve an offline copy of any old database, capsules and keys before evaluating
+an upgrade; do not delete an existing `data/` directory as an installation step. Use a
+separate empty directory for the new blind store and ceremony. If the old instance has
+valuable backups, retain its matching software and prove recovery before retiring it.
+Only intentionally disposable prototype data may be removed after that decision.
 
 ## Verify
 
+Use the Go version in `go.mod`. These are source checks, separate from installed-service
+acceptance and real custodian-card recovery:
+
 ```bash
-go test ./...
+go build -o kyrecovery cmd/kyrecovery/main.go
+go vet ./...
+go test -race -count=1 ./...
+./kyrecovery help
+scripts/build-wasm.sh
+git diff --exit-code -- internal/server/static/wasm
+node scripts/test-wasm.mjs
+node scripts/test-overview.mjs
 ```
+
+The WASM check needs the build prerequisites in `scripts/build-wasm.sh`; Node runs the
+ceremony module vectors. Run `scripts/verify-restic-overlay.sh` separately with Docker for
+the optional restic overlay. Successful vectors and synthetic drills do not prove printed
+cards, off-site replication or an operator-observed restore.
 
 ## Upgrading from ghcr.io/busness-app
 
