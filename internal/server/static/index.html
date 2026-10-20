@@ -88,18 +88,30 @@
 
     <!-- Tab 1: Overview -->
     <div id="tab-overview" class="tab-content active">
-      <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-label">capsules held, sealed to the suite recovery key</div>
-          <div id="metric-capsules" class="metric-value">--</div>
-          <div class="metric-sub">Stored bytes are attested by the verify sweep. Nothing here can read a capsule.</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">custodians of record</div>
-          <div id="metric-custodians" class="metric-value">--</div>
-          <div id="metric-custodians-sub" class="metric-sub">Named on the custodian list. The quorum that can reconstruct the key is set by the ceremony.</div>
-        </div>
+      <div class="overview-heading">
+        <h1>Recovery overview</h1>
+        <p>Review the evidence held by this vault, then check backup health and your recovery plan.</p>
       </div>
+      <dl class="overview-facts">
+        <div>
+          <dt>Sealed capsules stored</dt><dd id="metric-capsules">--</dd>
+          <p>Stored bytes are attested by the verify sweep. Nothing here can read a capsule.</p>
+        </div>
+        <div>
+          <dt>Custodians of record</dt><dd id="metric-custodians">--</dd>
+          <p id="metric-custodians-sub">Named on the custodian list. The quorum that can reconstruct the key is set by the ceremony.</p>
+        </div>
+        <div>
+          <dt>Audit ledger</dt><dd id="overview-audit-status" class="overview-text-value">Loading…</dd>
+          <p>Append availability is separate from verification of the complete audit chain.</p>
+        </div>
+      </dl>
+      <section class="overview-next" aria-labelledby="overview-next-heading">
+        <h2 id="overview-next-heading">Check your recovery path</h2>
+        <div class="overview-next-row"><div><h3>Backup coverage</h3><p>Review stale or missing backups and open a service's restore plan.</p></div><button type="button" class="btn btn-primary" onclick="document.querySelector('[data-tab=tab-backups]').click()">Review backups</button></div>
+        <div class="overview-next-row"><div><h3>Key and custodians</h3><p>Check the ceremony record and the people holding the recovery cards.</p></div><button type="button" class="btn btn-secondary" onclick="document.querySelector('[data-tab=tab-custodians]').click()">View custodians &amp; quorum</button></div>
+        <div class="overview-next-row"><div><h3>Independent copies</h3><p>Review your offsite destinations and their replication results.</p></div><button type="button" class="btn btn-secondary" onclick="document.querySelector('[data-tab=tab-replication]').click()">View replication</button></div>
+      </section>
 
       <div class="panel">
         <div class="panel-body">

@@ -53,6 +53,7 @@ async function loadReadiness() {
     if (!res.ok) return;
     const data = await res.json();
 
+    document.getElementById('overview-audit-status').textContent = data.audit_append_disabled === true ? 'Appends blocked' : data.audit_append_disabled === false ? 'Accepting entries' : 'Unknown';
     const capsuleCount = Number(data.capsule_count) || 0;
     document.getElementById('metric-capsules').textContent = capsuleCount;
     document.getElementById('metric-custodians').textContent = Number(data.custodian_count) || 0;
