@@ -151,3 +151,7 @@ node scripts/test-wasm.mjs
 - Web themes default to the Busnes.app cream/light and charcoal/dark palettes with orange accents, following the OS until a browser-local choice is saved. Preserve existing named themes and saved choices.
 
 - Routine status pills use neutral theme tokens; reserve green for explicit verification/success feedback. Retention controls live in a padded panel body, with three columns on desktop and stacked fields on mobile.
+
+## Operator documentation
+
+`INSTALL.md` is the root-owned standalone entry point. When installation prerequisites, bootstrap, persistence or verification change, update it together with `README.md` and the linked operator guides.
