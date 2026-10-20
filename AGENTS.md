@@ -155,3 +155,8 @@ node scripts/test-wasm.mjs
 ## Operator documentation
 
 `INSTALL.md` is the root-owned standalone entry point. When installation prerequisites, bootstrap, persistence or verification change, update it together with `README.md` and the linked operator guides.
+
+
+## README and topic guides
+
+Keep `README.md` as the concise product overview and navigation. Detailed procedures live in `docs/CEREMONY.md`, `docs/DEPOSITS.md`, `docs/INTEGRITY-AND-AUDIT.md`, `docs/RETENTION.md`, `docs/RECOVERY-AND-SECURITY.md`, `docs/BACKUP-STATUS.md`, `docs/OPERATIONS.md`. Update the owning topic guide and preserve README links when a procedure changes. Commands in these guides run from the repository root.
