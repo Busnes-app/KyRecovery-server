@@ -22,11 +22,7 @@ func runInstaller(args []string) error {
 	if opts.Restart {
 		return errors.New("KyRecovery setup activates live")
 	}
-	data := os.Getenv("KYRECOVERY_DATA_DIR")
-	if data == "" {
-		data = "./data"
-	}
-	socket, err := server.InstallerSocket(data)
+	socket, err := server.InstallerSocket(defaultDataDir())
 	if err != nil {
 		return err
 	}

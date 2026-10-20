@@ -16,6 +16,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -1073,6 +1074,9 @@ func (s *Server) handleSSOTest(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// oauthErrorCode is the RFC 6749 error grammar, narrowed to what providers send.
+var oauthErrorCode = regexp.MustCompile(`^[a-z_]{1,64}$`)
+
 // 17. Auth Callback (Handles OIDC Authorization Code)
 func (s *Server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
@@ -1081,6 +1085,19 @@ func (s *Server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	stateCookie, err := r.Cookie("kyrec_state")
 	if err != nil || stateCookie.Value != state || state == "" {
 		writeError(w, http.StatusBadRequest, "Invalid or expired OAuth state parameter")
+		return
+	}
+
+	// RFC 6749 4.1.2.1: the IdP answered with an error instead of a code. Its free text
+	// (error_description) is never reflected; a well-formed error code is.
+	if idpErr := r.URL.Query().Get("error"); idpErr != "" {
+		msg := "Sign-in failed: the identity provider returned an error"
+		if idpErr == "access_denied" {
+			msg = "Sign-in refused by the identity provider (access_denied)"
+		} else if oauthErrorCode.MatchString(idpErr) {
+			msg += " (" + idpErr + ")"
+		}
+		writeError(w, http.StatusUnauthorized, msg)
 		return
 	}
 
