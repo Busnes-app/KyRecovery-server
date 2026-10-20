@@ -26,3 +26,8 @@ go test ./internal/server and node scripts/check-contrast.mjs passed in both pal
 ## Reproduce
 
 Run the Go server with isolated preview data following its README; run the checks above from the repository root. Use System theme, emulate OS light/dark, and inspect both viewport sizes. Do not point preview instances at production data. For KyVault, use a configured development KyIdentity or explicitly labeled read-only browser fixtures; never bypass backend authentication.
+
+
+## Approved interface polish — 2026-10-19
+
+See [UI-POLISH.md](UI-POLISH.md) for the implemented changes, preservation scope, checks, actual before/after screenshots and disposable capture conditions. Earlier captures above remain historical evidence.

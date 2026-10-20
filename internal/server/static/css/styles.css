@@ -312,3 +312,22 @@ table.data-table.backups-sub th, table.data-table.backups-sub td { padding: 8px 
 .backups-plan dt { color: var(--paper-muted); }
 .backups-plan dd { overflow-wrap: anywhere; }
 .backups-command { background: var(--ink-well); border: 1px solid var(--rule); border-radius: var(--radius); padding: 12px 14px; margin: 12px 0 8px; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Overview keeps evidence distinct from restore readiness. */
+.overview-heading { margin-bottom: 32px; }
+.overview-heading h1 { font-family: var(--serif); font-size: clamp(26px, 3vw, 34px); font-weight: 500; letter-spacing: -0.02em; }
+.overview-heading > p { margin-top: 10px; max-width: 65ch; color: var(--paper-muted); }
+.overview-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-block: 1px solid var(--rule); margin-bottom: 36px; }
+.overview-facts > div { padding: 24px 24px 24px 0; min-width: 0; }
+.overview-facts > div + div { padding-left: 24px; border-left: 1px solid var(--rule); }
+.overview-facts dt { color: var(--paper-muted); font-size: 13px; }
+.overview-facts dd { margin: 12px 0; font-size: 36px; font-family: var(--serif); font-variant-numeric: tabular-nums; line-height: 1.2; }
+.overview-facts dd.overview-text-value { font-family: var(--sans); font-size: 19px; font-weight: 600; margin-top: 18px; }
+.overview-facts p { color: var(--paper-muted); font-size: 13px; }
+.overview-next { margin-bottom: 32px; }
+.overview-next h2 { font-size: 19px; margin-bottom: 12px; }
+.overview-next-row { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 22px 0; border-bottom: 1px solid var(--rule); }
+.overview-next-row h3 { font-size: 15px; font-weight: 600; }
+.overview-next-row p { font-size: 13.5px; color: var(--paper-muted); margin-top: 5px; max-width: 55ch; }
+.overview-next-row button { flex-shrink: 0; min-height: 40px; }
+@media (max-width: 720px) { .overview-facts { grid-template-columns: 1fr; } .overview-facts > div, .overview-facts > div + div { padding: 20px 0; border-left: 0; } .overview-facts > div + div { border-top: 1px solid var(--rule); } .overview-facts dd { font-size: 30px; } .overview-next-row { flex-direction: column; align-items: flex-start; gap: 14px; } }

@@ -86,6 +86,8 @@ Non-trivial logic must include one runnable check (unit test or minimal self-che
 - Update nearest owning AGENTS.md when behavior, responsibilities, or verification changes.
 ## Verification
 
+- `node scripts/test-overview.mjs` checks the overview audit-evidence labels. The overview must distinguish stored capsule counts, custodian directory size and audit append availability from a verified restore.
+
 Run all unit and integration tests across the repository:
 ```bash
 go test -race -count=1 ./...
