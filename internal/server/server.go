@@ -185,6 +185,9 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("/api/audit", s.handleAudit)
 	s.mux.HandleFunc("/api/audit/verify", s.handleAuditVerify)
 	s.mux.HandleFunc("/api/recovery-key", s.handleRecoveryKey)
+	s.mux.HandleFunc("/api/recovery-keys", s.handleRecoveryKeys)
+	s.mux.Handle("/api/recovery-key/rotate", http.NewCrossOriginProtection().Handler(http.HandlerFunc(s.handleRecoveryKeyRotate)))
+	s.mux.Handle("/api/recovery-key/retire", http.NewCrossOriginProtection().Handler(http.HandlerFunc(s.handleRecoveryKeyRetire)))
 
 	// Pairing Routes
 	s.mux.HandleFunc("/api/pairing/generate", s.handlePairingGenerate)
@@ -263,6 +266,7 @@ var apiPolicy = map[string]string{
 	"GET /api/custodians":           auth.RoleViewer,
 	"GET /api/audit":                auth.RoleViewer,
 	"GET /api/recovery-key":         auth.RoleViewer,
+	"GET /api/recovery-keys":        auth.RoleViewer,
 	"GET /api/pairing/list":         auth.RoleViewer,
 	"GET /api/replication/targets":  auth.RoleViewer,
 	"GET /api/replication/logs":     auth.RoleViewer,
@@ -276,6 +280,8 @@ var apiPolicy = map[string]string{
 	"POST /api/auth/sso/config":          auth.RoleAdmin,
 	"POST /api/auth/sso/test":            auth.RoleAdmin,
 	"POST /api/recovery-key":             auth.RoleAdmin,
+	"POST /api/recovery-key/rotate":      auth.RoleAdmin,
+	"POST /api/recovery-key/retire":      auth.RoleAdmin,
 	"POST /api/pairing/generate":         auth.RoleAdmin,
 	"POST /api/pairing/revoke":           auth.RoleAdmin,
 	"POST /api/pairing/clear":            auth.RoleAdmin,

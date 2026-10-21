@@ -47,6 +47,7 @@ func TestRequiredRolePolicy(t *testing.T) {
 		{http.MethodGet, "/api/custodians", auth.RoleViewer},
 		{http.MethodGet, "/api/audit", auth.RoleViewer},
 		{http.MethodGet, "/api/recovery-key", auth.RoleViewer}, // the public half and the topology
+		{http.MethodGet, "/api/recovery-keys", auth.RoleViewer},
 
 		{http.MethodGet, "/api/pairing/list", auth.RoleViewer},
 		{http.MethodGet, "/api/replication/targets", auth.RoleViewer},
@@ -68,6 +69,8 @@ func TestRequiredRolePolicy(t *testing.T) {
 		{http.MethodPost, "/api/auth/sso/config", auth.RoleAdmin},
 		{http.MethodPost, "/api/auth/sso/test", auth.RoleAdmin},
 		{http.MethodPost, "/api/recovery-key", auth.RoleAdmin}, // pinning what the store trusts
+		{http.MethodPost, "/api/recovery-key/rotate", auth.RoleAdmin},
+		{http.MethodPost, "/api/recovery-key/retire", auth.RoleAdmin},
 
 		{http.MethodPost, "/api/pairing/generate", auth.RoleAdmin},
 		{http.MethodPost, "/api/pairing/revoke", auth.RoleAdmin},

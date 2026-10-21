@@ -13,12 +13,26 @@ the bytes are the sealed ones and were sealed to the pinned key; comparing the
 capsule ID and creation time against KyRecovery's deposit record is where
 freshness comes from.
 
+### Which cards a capsule needs
+
+Every capsule is recorded against the recovery key it was sealed to. After a
+[rotation](CEREMONY.md#rotating-the-recovery-key) the store holds several keys, and a
+capsule opens only with the cards of **its** key. The restore plan (Backups tab, or
+`GET /api/backups/restore-plan`) returns `recovery_key` with that key's ID, threshold,
+card count and status. If the key is not the current one, the plan warns that the
+capsule needs k of the cards printed with the old key ID, not the current cards.
+
+Rotation does not touch existing backups. Capsules sealed to the old key stay sealed to
+it until retention purges them; the server cannot re-seal them to the new key, because
+that would mean decrypting them. Keep the old cards until the dashboard lets you retire
+the old key, and until no offsite copy of its capsules remains.
+
 ## Security model
 
 - **Roles.** Every `/api/` route is authorized against `viewer` < `operator` <
   `admin` by the `apiPolicy` table; anything unlisted defaults to `admin`.
   Viewers read; operators verify the chain, sync replication and download
-  capsules; admins import the recovery key, pair products, and change
+  capsules; admins import, rotate and retire recovery keys, pair products, and change
   replication and SSO. An unrecognised role claim from an identity provider is
   treated as `viewer`. An API path is rejected unless it equals `path.Clean` of
   itself, so a URL cannot mean one thing to the policy and another to the

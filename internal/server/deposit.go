@@ -83,8 +83,14 @@ func (s *Server) handleDeposit(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusConflict, "No recovery key imported")
 		return
 	}
+	// Only the current key is accepted. A product still sealing to a rotated-out key is
+	// refused loudly rather than kept quietly sealing new backups to cards being replaced.
 	if m.RecoveryKeyID != key.KeyID {
-		writeError(w, http.StatusConflict, fmt.Sprintf("capsule is sealed to recovery key %s; this store pins %s", m.RecoveryKeyID, key.KeyID))
+		msg := fmt.Sprintf("capsule is sealed to recovery key %s; this store pins %s", m.RecoveryKeyID, key.KeyID)
+		if old, _ := s.db.GetRecoveryKeyByID(ctx, m.RecoveryKeyID); old != nil {
+			msg = fmt.Sprintf("capsule is sealed to recovery key %s, which was rotated out; re-pair this product to pin the current key %s", m.RecoveryKeyID, key.KeyID)
+		}
+		writeError(w, http.StatusConflict, msg)
 		return
 	}
 	if m.ServiceName != app.ServiceName {

@@ -132,8 +132,9 @@ async function loadCustodians() {
   }
 }
 
-// The public half of the ceremony's keypair, if it has been imported yet. The server
-// never has more than this, so this is the whole status the dashboard can show.
+// The public halves of every ceremony's keypair. The server never has more than these, so
+// this is the whole status the dashboard can show. The current key is what products pin and
+// deposits must be sealed to; a previous key still opens the capsules sealed to it.
 async function loadRecoveryKey() {
   const el = document.getElementById('recovery-key-status');
   // The overview caption states the real quorum, which the ceremony fixes; the
@@ -141,18 +142,45 @@ async function loadRecoveryKey() {
   const quorum = document.getElementById('metric-custodians-sub');
   if (!el) return;
   try {
-    const res = await fetch('/api/recovery-key');
-    if (res.status === 404) {
+    const res = await fetch('/api/recovery-keys');
+    if (!res.ok) return;
+    const keys = await res.json() || [];
+    const k = keys.find(x => x.status === 'current');
+    if (!k) {
       el.textContent = 'No recovery key \u2014 run the ceremony';
       if (quorum) quorum.textContent = 'No ceremony run yet, so the recovery key cannot be reconstructed.';
       return;
     }
-    if (!res.ok) return;
-    const k = await res.json();
     if (quorum) quorum.textContent = `${k.threshold} of ${k.total_shares} custodian cards reconstruct the recovery key.`;
-    el.innerHTML = `Key ID <code>${esc(k.key_id)}</code> &mdash; ${esc(k.threshold)} of ${esc(k.total_shares)} custodian cards, imported by ${esc(k.imported_by)} on ${esc(new Date(k.imported_at).toLocaleString())}`;
+    el.innerHTML = '<div style="overflow-x: auto;"><table class="data-table"><thead><tr><th>Key ID</th><th>Status</th><th>Cards</th><th>Capsules</th><th></th><th></th></tr></thead><tbody id="recovery-keys-body"></tbody></table></div>';
+    document.getElementById('recovery-keys-body').innerHTML = keys.map(x => `<tr>
+      <td><code>${esc(x.key_id)}</code>${x.status === 'previous' && (x.pinned_products || []).length ? `<br><small>Still pinned by ${esc(x.pinned_products.map(p => `${p.service_name} (${p.app_name})`).join(', '))}; re-pair them.</small>` : ''}</td>
+      <td>${esc(x.status)}</td><td>${esc(x.threshold)} of ${esc(x.total_shares)}</td><td>${esc(x.capsule_count)}</td>
+      <td>${x.status === 'retired' ? `retired by ${esc(x.retired_by)} on ${esc(new Date(x.retired_at).toLocaleString())}` : `imported by ${esc(x.imported_by)} on ${esc(new Date(x.imported_at).toLocaleString())}`}</td>
+      <td>${x.status === 'previous' && isAdminUser ? `<button class="btn btn-secondary btn-sm" onclick="retireRecoveryKey('${escJs(x.key_id)}')">Retire</button>` : ''}</td>
+    </tr>`).join('');
   } catch (err) {
-    console.error('Error fetching recovery key:', err);
+    console.error('Error fetching recovery keys:', err);
+  }
+}
+
+// Retiring says the key's cards are no longer needed. The server refuses while any retained
+// capsule is sealed to the key and names them; this shows that list rather than guessing.
+async function retireRecoveryKey(keyId) {
+  if (!confirm(`Retire recovery key ${keyId}?\n\nRetire only once no backup you might restore is sealed to it, including offsite copies that local retention no longer lists. Its cards cannot open anything sealed to the current key.`)) return;
+  try {
+    const res = await fetch('/api/recovery-key/retire', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key_id: keyId }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const caps = (body.capsules || []).map(c => `${c.id} (${c.service_name}, ${new Date(c.deposited_at).toLocaleString()})`);
+      alert(`Not retired: ${body.error || res.status}${caps.length ? '\n\nCapsules still sealed to this key:\n' + caps.join('\n') : ''}`);
+      return;
+    }
+    loadRecoveryKey();
+  } catch (err) {
+    alert(`Retire failed: ${err.message}`);
   }
 }
 
@@ -1295,7 +1323,8 @@ function restorePlanHtml(p) {
       <dt>Digest</dt><dd><code>${esc(c.digest)}</code></dd>
       <dt>Deposited</dt><dd>${esc(fmtTime(c.deposited_at))}</dd>
       <dt>Created</dt><dd>${esc(fmtTime(c.created_at))} (product-reported)</dd>
-      <dt>Integrity</dt><dd>${esc(capsuleState(c))}</dd>` : '<dt>Capsule</dt><dd>No capsule deposited at or before this time.</dd>'}
+      <dt>Integrity</dt><dd>${esc(capsuleState(c))}</dd>
+      <dt>Custodian cards</dt><dd>${p.recovery_key ? `${esc(p.recovery_key.threshold)} of the ${esc(p.recovery_key.total_shares)} cards printed with recovery key <code>${esc(p.recovery_key.key_id)}</code> (${esc(p.recovery_key.status)})` : `Cards printed with recovery key <code>${esc(c.recovery_key_id)}</code>`}</dd>` : '<dt>Capsule</dt><dd>No capsule deposited at or before this time.</dd>'}
       ${p.repo ? `<dt>Repository</dt><dd><code>${esc(p.repo)}</code></dd>` : ''}
       ${snap ? `<dt>Snapshot</dt><dd><code>${esc(snap.id)}</code></dd>
       <dt>Written at</dt><dd>${esc(fmtTime(snap.written_at))}${p.gap_seconds !== undefined ? esc(`, ${fmtDuration(gap)} ${gap < 0 ? 'before' : 'after'} the capsule was deposited`) : ''}</dd>` : (p.repo ? `<dt>Snapshot</dt><dd>${p.repo_missing ? 'Repository not found by the last scan.' : 'No snapshot written in this repository.'}</dd>` : '')}

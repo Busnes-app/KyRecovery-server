@@ -34,7 +34,7 @@ body = a kycap/3 container sealed to the pinned public key.
 | `400 Bad Request` | Not a kycap/3 container, or its `capsule_id`/`service_name` is not a usable name. |
 | `401 Unauthorized` | Missing, invalid or revoked bearer token. |
 | `403 Forbidden` | The manifest names a service this token is not paired for. |
-| `409 Conflict` | Sealed to a different recovery key (both IDs are named), or this capsule ID is stored with different bytes, or no key has been imported. |
+| `409 Conflict` | Sealed to a key other than the current recovery key (both IDs are named; a key [rotated out](CEREMONY.md#rotating-the-recovery-key) says so and asks for a re-pair), or this capsule ID is stored with different bytes, or no key has been imported. |
 | `413 Content Too Large` | Body over the container ceiling `capsule.MaxContainerBytes` (384 MiB). Larger data needs the streaming container, which does not exist yet. |
 | `429 Too Many Requests` | More than 60 deposits from this product in 15 minutes. |
 | `503 Service Unavailable` | The audit ledger cannot append, or all 4 deposit slots are busy and the client went away. |
