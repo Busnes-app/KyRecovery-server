@@ -239,9 +239,16 @@ func TestRestorePlan(t *testing.T) {
 	if p.Capsule.ID != "cap-new" || p.Snapshot.ID != hexB || *p.GapSeconds != 600 {
 		t.Fatalf("plan = %+v", p)
 	}
-	want := "kyquickstart restore 'kynotes' --capsule 'cap-new' --snapshot 'u/kynotes:" + hexB + "'"
-	if p.Command != want {
-		t.Fatalf("command = %q", p.Command)
+	// The steps name only what works today: no KyQuickStart command, and the shares go to
+	// the product's own restore, never to a tool that cannot read them.
+	if len(p.Steps) != 4 || !strings.Contains(p.Steps[0], "cap-new") || !strings.Contains(p.Steps[1], "kynotes's own restore command") ||
+		!strings.Contains(p.Steps[3], hexB) || !strings.Contains(p.Steps[3], "u/kynotes") {
+		t.Fatalf("steps = %q", p.Steps)
+	}
+	for _, step := range p.Steps {
+		if strings.Contains(step, "kyquickstart") || strings.Contains(step, "--capsule") {
+			t.Fatalf("step promises a command that does not exist: %q", step)
+		}
 	}
 	if !slices.Contains(p.Warnings, WarnPairing) || slices.Contains(p.Warnings, WarnMismatch) {
 		t.Fatalf("warnings = %v", p.Warnings)
@@ -310,7 +317,7 @@ func TestRestorePlan(t *testing.T) {
 		in := base
 		in.At = ago(100 * time.Hour)
 		p, err := RestorePlan(in)
-		if err != nil || p.Capsule != nil || p.Command != "" {
+		if err != nil || p.Capsule != nil || len(p.Steps) != 0 {
 			t.Fatalf("plan = %+v, err = %v", p, err)
 		}
 	})
@@ -346,16 +353,8 @@ func TestRestorePlan(t *testing.T) {
 		if p.Snapshot == nil || p.Snapshot.ID != hexA || p.GapSeconds != nil {
 			t.Fatalf("plan = %+v", p)
 		}
-		if p.Command != "kyquickstart restore 'kynotes' --snapshot 'u/kynotes:"+hexA+"'" {
-			t.Fatalf("command = %q", p.Command)
-		}
-	})
-	t.Run("unsafe name gets no command", func(t *testing.T) {
-		in := base
-		in.Snapshots = map[string][]Snapshot{"u/it's": {snap(hexA, 24*time.Hour)}}
-		p, _ := RestorePlan(in)
-		if p.Command != "" || len(p.Warnings) == 0 {
-			t.Fatalf("plan = %+v", p)
+		if len(p.Steps) != 1 || !strings.Contains(p.Steps[0], hexA) || strings.Contains(p.Steps[0], "custodian") {
+			t.Fatalf("steps = %q", p.Steps)
 		}
 	})
 }

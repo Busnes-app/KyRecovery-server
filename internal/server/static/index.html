@@ -49,7 +49,7 @@
       <form onsubmit="submitLocalLogin(event)">
         <div class="form-group">
           <label class="form-label">Username</label>
-          <input id="login-username" class="form-input" type="text" placeholder="admin" value="admin" required autocomplete="username">
+          <input id="login-username" class="form-input" type="text" placeholder="admin" required autocomplete="username">
         </div>
         <div class="form-group">
           <label class="form-label">Password</label>
@@ -260,7 +260,7 @@
           <button class="btn btn-primary btn-sm" onclick="openPairingGenModal()">New pairing code</button>
         </div>
         <div class="panel-note">
-          <strong>Pairing.</strong> Enter a pairing code into any KySecurity product or Business.app service. The product seals each backup to the suite recovery public key and deposits the sealed capsule here; this server never sees the contents.
+          <strong>Pairing.</strong> Enter a pairing code into any Ky Suite app or busnes.app service. The product seals each backup to the suite recovery public key and deposits the sealed capsule here; this server never sees the contents.
         </div>
         <div style="overflow-x: auto;">
           <table class="data-table">
@@ -288,7 +288,7 @@
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title">Recovery key</div>
-          <a class="btn btn-primary btn-sm" href="/admin/ceremony" target="_blank" rel="noopener">Run recovery key ceremony</a>
+          <a id="ceremony-link" class="btn btn-primary btn-sm" href="/admin/ceremony" target="_blank" rel="noopener">Run recovery key ceremony</a>
         </div>
         <div class="panel-body" id="recovery-key-status">Loading...</div>
       </div>
@@ -303,7 +303,7 @@
               <tr>
                 <th>Name</th>
                 <th>Email</th>
-                <th>Public Key Fingerprint</th>
+                <th>Record ID</th>
                 <th>Registered At</th>
               </tr>
             </thead>
@@ -323,8 +323,9 @@
           <button class="btn btn-primary btn-sm" onclick="openReplicationModal()">Add target</button>
         </div>
         <div class="panel-note">
-          <strong>Content-blind vaulting.</strong> Streams encrypted <code>.kycap</code> archives directly to AWS S3, Cloudflare R2, MinIO, or local offsite mounts. The remote destination only receives pre-encrypted ciphertext and never sees decryption keys or unencrypted master data.
+          <strong>Content-blind vaulting.</strong> Streams encrypted <code>.kycap</code> archives directly to AWS S3, Cloudflare R2, MinIO, SFTP servers, SMB shares or local offsite mounts. The remote destination only receives pre-encrypted ciphertext and never sees decryption keys or unencrypted master data.
         </div>
+        <p id="replication-status" class="panel-note" role="status" aria-live="polite" hidden></p>
         <div style="overflow-x: auto;">
           <table class="data-table">
             <thead>
@@ -412,7 +413,7 @@
       <form onsubmit="submitGeneratePairing(event)">
         <div class="modal-body">
           <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-            Generates a temporary pairing code. Enter this code into any KySecurity product or Business.app system to link it for automated, self-declaring backups.
+            Generates a temporary pairing code. Enter this code into any Ky Suite app or busnes.app service to link it for automated, self-declaring backups.
           </p>
           <div class="form-group">
             <label class="form-label">Expected Product / Service Name</label>
@@ -443,7 +444,7 @@
         <button class="btn btn-secondary btn-sm" onclick="closePairingDisplayModal()">✕</button>
       </div>
       <div class="modal-body" style="text-align: center;">
-        <div style="font-size: 12px;  color: var(--text-muted); margin-bottom: 8px;">Enter This Code in Target KySecurity / Business.app</div>
+        <div style="font-size: 12px;  color: var(--text-muted); margin-bottom: 8px;">Enter this code in the Ky Suite app or busnes.app service to pair</div>
         <div id="display-pairing-code" style="font-size: 42px; font-weight: 800; letter-spacing: 8px; color: var(--accent-cyan); font-family: var(--font-mono); margin: 16px 0; background: var(--bg-card); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
           ------
         </div>
@@ -477,7 +478,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">Custodian Email Address</label>
-            <input id="custodian-email" class="form-input" type="email" placeholder="alice@kysecurity.local" required>
+            <input id="custodian-email" class="form-input" type="email" placeholder="alice@example.com" required>
           </div>
         </div>
         <div class="modal-footer">
@@ -632,8 +633,8 @@
 
           <div class="form-group">
             <label class="form-label">KySignOn Issuer URL</label>
-            <input id="sso-issuer-input" class="form-input" type="url" placeholder="https://auth.kysecurity.local" required>
-            <div class="metric-sub">Base URL of your KySignOn instance (e.g. http://localhost:8080 or https://auth.kysecurity.org)</div>
+            <input id="sso-issuer-input" class="form-input" type="url" placeholder="https://auth.example.com" required>
+            <div class="metric-sub">Base URL of your KySignOn instance (e.g. http://localhost:8080 or https://auth.example.com)</div>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
@@ -655,7 +656,7 @@
 
           <div class="form-group">
             <label class="form-label">Administrator Email (Grants ADMIN role)</label>
-            <input id="sso-admin-email-input" class="form-input" type="email" placeholder="admin@kysecurity.local">
+            <input id="sso-admin-email-input" class="form-input" type="email" placeholder="admin@example.com">
           </div>
 
           <div id="sso-test-status" style="display: none; font-size: 13px; padding: 10px 14px; border-radius: 6px; margin-top: 12px;"></div>

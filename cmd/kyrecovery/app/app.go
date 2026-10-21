@@ -55,7 +55,7 @@ func Run(args []string) {
 }
 
 func printUsage() {
-	fmt.Println(`KyRecovery — Disaster Recovery & Verification Service for KySecurity
+	fmt.Println(`KyRecovery — Disaster Recovery & Verification Service for the Ky Suite
 
 Usage:
   kyrecovery <command> [options]
@@ -259,7 +259,7 @@ func cmdPair(args []string) {
 		fmt.Println("=== PAIRING CODE GENERATED ===")
 		fmt.Printf("Pairing Code: %s\n", rec.PairingCode)
 		fmt.Printf("Expires In:   %d minutes (%s)\n", *ttl, rec.ExpiresAt.Format("15:04:05 UTC"))
-		fmt.Println("\nEnter this 6-digit code in your KySecurity / Business.app settings to establish automated backup sync.")
+		fmt.Println("\nEnter this 6-digit code in the Ky Suite app or busnes.app service to establish automated backup sync.")
 
 	case "list":
 		fs := flag.NewFlagSet("pair list", flag.ExitOnError)
@@ -300,7 +300,7 @@ func cmdPair(args []string) {
 		fs := flag.NewFlagSet("pair claim", flag.ExitOnError)
 		serverURL := fs.String("server", "http://localhost:8080", "KyRecovery server URL")
 		code := fs.String("code", "", "6-digit pairing code")
-		appName := fs.String("app", "KySecurity Client", "Client application name")
+		appName := fs.String("app", "Ky Suite client", "Client application name")
 		fs.Parse(args[1:])
 
 		if *code == "" {

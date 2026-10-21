@@ -64,7 +64,7 @@ type AuditRecord struct {
 	CreatedAt   string `json:"created_at"`
 }
 
-// PairedAppRecord represents a connected KySecurity or Business.app service.
+// PairedAppRecord represents a connected Ky Suite app or busnes.app service.
 // APIToken and PairingCode are credentials, so they never serialise by default:
 // the pairing code is returned only by the admin route that generates it, and the
 // token only by the claim that mints it.

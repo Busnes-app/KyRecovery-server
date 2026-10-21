@@ -157,6 +157,13 @@ func TestRecoveryKeyRotation(t *testing.T) {
 	if rec.Code != http.StatusConflict || !strings.Contains(rec.Body.String(), "rotated out") {
 		t.Fatalf("deposit to the rotated-out key: %d %s", rec.Code, rec.Body.String())
 	}
+	// Products act on the code, not the wording: it names both keys so the operator can
+	// compare the new ID with the cards before re-pairing.
+	var refused map[string]string
+	if err := json.Unmarshal(rec.Body.Bytes(), &refused); err != nil || refused["code"] != "recovery_key_rotated" ||
+		refused["sealed_key_id"] != idA || refused["current_key_id"] != idB {
+		t.Fatalf("rotated-out refusal body: %s", rec.Body.String())
+	}
 	// Re-pairing hands out the new key, and its deposits are recorded against it.
 	newToken, claim := pairProduct(t, srv, cookie, "kynotes")
 	if claim["recovery_public_key"] != base64.StdEncoding.EncodeToString(b.Public().Bytes()) || claim["threshold"] != float64(2) {

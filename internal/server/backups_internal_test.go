@@ -170,14 +170,15 @@ func TestBackupStatusPlanAndHealth(t *testing.T) {
 
 	rr = call(t, f.srv, viewer, http.MethodGet, "/api/backups/restore-plan?service=kynotes", nil)
 	var plan struct {
-		Command    string `json:"command"`
-		GapSeconds int64  `json:"gap_seconds"`
+		Command    *string  `json:"command"`
+		Steps      []string `json:"steps"`
+		GapSeconds int64    `json:"gap_seconds"`
 	}
 	if err := json.Unmarshal(rr.Body.Bytes(), &plan); err != nil || rr.Code != http.StatusOK {
 		t.Fatalf("plan %d %s", rr.Code, rr.Body.String())
 	}
-	want := "kyquickstart restore 'kynotes' --capsule 'cap-kynotes-1' --snapshot 'kynotes/main:" + f.snapshot + "'"
-	if plan.Command != want || plan.GapSeconds != 600 {
+	if plan.Command != nil || len(plan.Steps) != 4 || !strings.Contains(plan.Steps[0], "cap-kynotes-1") ||
+		!strings.Contains(plan.Steps[3], f.snapshot) || plan.GapSeconds != 600 {
 		t.Fatalf("plan = %s", rr.Body.String())
 	}
 
@@ -352,12 +353,12 @@ func TestRestorePlanReportsMissingRepo(t *testing.T) {
 		Repo        string          `json:"repo"`
 		RepoMissing bool            `json:"repo_missing"`
 		Snapshot    json.RawMessage `json:"snapshot"`
-		Command     string          `json:"command"`
+		Steps       []string        `json:"steps"`
 	}
 	if err := json.Unmarshal(rr.Body.Bytes(), &plan); err != nil || rr.Code != http.StatusOK {
 		t.Fatalf("plan %d %s", rr.Code, rr.Body.String())
 	}
-	if plan.Repo != "kynotes/main" || !plan.RepoMissing || plan.Snapshot != nil || strings.Contains(plan.Command, "--snapshot") {
+	if plan.Repo != "kynotes/main" || !plan.RepoMissing || plan.Snapshot != nil || strings.Contains(strings.Join(plan.Steps, " "), "snapshot") {
 		t.Fatalf("plan = %s", rr.Body.String())
 	}
 }

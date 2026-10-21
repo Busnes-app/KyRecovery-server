@@ -88,7 +88,15 @@ func (s *Server) handleDeposit(w http.ResponseWriter, r *http.Request) {
 	if m.RecoveryKeyID != key.KeyID {
 		msg := fmt.Sprintf("capsule is sealed to recovery key %s; this store pins %s", m.RecoveryKeyID, key.KeyID)
 		if old, _ := s.db.GetRecoveryKeyByID(ctx, m.RecoveryKeyID); old != nil {
-			msg = fmt.Sprintf("capsule is sealed to recovery key %s, which was rotated out; re-pair this product to pin the current key %s", m.RecoveryKeyID, key.KeyID)
+			// code lets a product show "re-pair" without parsing the message. The new key
+			// itself is never sent here: the product learns it only by re-pairing.
+			writeJSON(w, http.StatusConflict, map[string]string{
+				"error":          fmt.Sprintf("capsule is sealed to recovery key %s, which was rotated out; re-pair this product to pin the current key %s", m.RecoveryKeyID, key.KeyID),
+				"code":           "recovery_key_rotated",
+				"sealed_key_id":  m.RecoveryKeyID,
+				"current_key_id": key.KeyID,
+			})
+			return
 		}
 		writeError(w, http.StatusConflict, msg)
 		return

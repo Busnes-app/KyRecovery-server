@@ -86,7 +86,9 @@ KyPost) needs, through `ky-primitives/recoveryclient`:
 
 - a re-pair that replaces the pinned key only after the operator confirms the new key ID
   (today `StoreRecoveryKey` refuses any different key);
-- on a deposit 409 that says "rotated out", a clear "KyRecovery's key was rotated:
-  re-pair" status instead of a generic failure;
+- on a deposit 409 whose body carries `"code": "recovery_key_rotated"`, a clear
+  "KyRecovery's key was rotated: re-pair" status instead of a generic failure. The body
+  also names `sealed_key_id` and `current_key_id`, so the product can show the ID the
+  operator should expect on re-pair; the new key itself arrives only through pairing;
 - its restore screen to say which key ID a capsule is sealed to (the manifest's
   `recovery_key_id`), so the operator fetches the matching cards.

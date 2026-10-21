@@ -146,6 +146,9 @@ async function loadRecoveryKey() {
     if (!res.ok) return;
     const keys = await res.json() || [];
     const k = keys.find(x => x.status === 'current');
+    // After the first import the ceremony page rotates the key; say so on the way in.
+    const link = document.getElementById('ceremony-link');
+    if (link) link.textContent = k ? 'Rotate recovery key' : 'Run recovery key ceremony';
     if (!k) {
       el.textContent = 'No recovery key \u2014 run the ceremony';
       if (quorum) quorum.textContent = 'No ceremony run yet, so the recovery key cannot be reconstructed.';
@@ -275,7 +278,7 @@ async function loadPairing() {
     const list = await res.json() || [];
 
     if (list.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-dim);">No paired products yet. Create a pairing code and enter it in a KySecurity product.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-dim);">No paired products yet. Create a pairing code and enter it in a Ky Suite app.</td></tr>';
       return;
     }
 
@@ -918,28 +921,36 @@ async function deleteReplicationTarget(id) {
   }
 }
 
+// The result is page content in a live region, so it is announced and stays readable.
 async function syncAllToTarget(targetId) {
+  const status = document.getElementById('replication-status');
+  const say = msg => { status.textContent = msg; status.hidden = false; };
   try {
     const res = await fetch('/api/capsules');
     const capsules = await res.json() || [];
     if (capsules.length === 0) {
-      alert('No capsules available to sync.');
+      say('No capsules available to sync.');
       return;
     }
 
+    say(`Syncing ${capsules.length} capsules…`);
+    let failed = 0;
     for (const c of capsules) {
-      await fetch('/api/replication/sync', {
+      const r = await fetch('/api/replication/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ capsule_id: c.id, target_id: targetId })
       });
+      if (!r.ok) failed++;
     }
 
-    alert(`✓ Replicated ${capsules.length} capsules to offsite vault.`);
+    say(failed
+      ? `Replicated ${capsules.length - failed} of ${capsules.length} capsules; ${failed} failed. The replication log lists each result.`
+      : `Replicated ${capsules.length} capsules to the offsite target.`);
     loadReplication();
     loadAudit();
   } catch (err) {
-    alert('Sync error: ' + err.message);
+    say('Sync error: ' + err.message);
   }
 }
 
@@ -1330,19 +1341,6 @@ function restorePlanHtml(p) {
       <dt>Written at</dt><dd>${esc(fmtTime(snap.written_at))}${p.gap_seconds !== undefined ? esc(`, ${fmtDuration(gap)} ${gap < 0 ? 'before' : 'after'} the capsule was deposited`) : ''}</dd>` : (p.repo ? `<dt>Snapshot</dt><dd>${p.repo_missing ? 'Repository not found by the last scan.' : 'No snapshot written in this repository.'}</dd>` : '')}
     </dl>` +
     (p.warnings || []).map(w => `<p class="backups-alert">${esc(w)}</p>`).join('') +
-    (p.command ? `<pre class="backups-command"><code id="restore-command">${esc(p.command)}</code></pre>
-      <button class="btn btn-secondary btn-sm" onclick="copyRestoreCommand()">Copy</button>
-      <p class="form-hint">Custodian shares are typed into this command on your workstation, never into this page. Requires KyQuickStart with restore support.</p>` : '');
+    ((p.steps || []).length ? '<ol class="backups-steps">' + p.steps.map(st => `<li>${esc(st)}</li>`).join('') + '</ol>' : '');
 }
 
-async function copyRestoreCommand() {
-  const code = document.getElementById('restore-command');
-  const status = document.getElementById('restore-status');
-  try {
-    await navigator.clipboard.writeText(code.textContent);
-    status.textContent = 'Command copied.';
-  } catch {
-    getSelection().selectAllChildren(code);
-    status.textContent = 'Clipboard unavailable here. The command is selected; press Ctrl+C.';
-  }
-}
