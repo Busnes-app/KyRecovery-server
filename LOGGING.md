@@ -1,7 +1,7 @@
 # Logging
 
 KyRecovery must emit structured, privacy-safe application logs to standard
-output and standard error. It must not build or require a KySecurity-specific
+output and standard error. It must not build or require a Ky Suite-specific
 log database, log search system, or long-term retention service.
 
 Operators may route container logs to an existing platform such as Loki,

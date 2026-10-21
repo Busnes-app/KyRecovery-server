@@ -311,7 +311,7 @@ table.data-table.backups-sub th, table.data-table.backups-sub td { padding: 8px 
 .backups-plan { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; margin: 16px 0; font-size: 14px; }
 .backups-plan dt { color: var(--paper-muted); }
 .backups-plan dd { overflow-wrap: anywhere; }
-.backups-command { background: var(--ink-well); border: 1px solid var(--rule); border-radius: var(--radius); padding: 12px 14px; margin: 12px 0 8px; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.backups-steps { margin: 12px 0 8px; padding-left: 20px; line-height: 1.6; overflow-wrap: anywhere; }
 
 /* Overview keeps evidence distinct from restore readiness. */
 .overview-heading { margin-bottom: 32px; }

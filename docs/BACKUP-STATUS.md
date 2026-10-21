@@ -18,13 +18,16 @@ repository activity, and a capsule and snapshot written close together are not
 thereby consistent. KyRecovery never holds a restic password and never runs
 restic.
 
-The restore wizard picks the capsule and snapshot for a point in time and shows
-the `kyquickstart restore` command to run on your workstation, naming the
-service and passing the capsule ID, repository path and snapshot ID as flags
-(the exact contract is in the design spec's Restore plan section).
-
-That command needs KyQuickStart with restore support; custodian shares are typed
-into it, never into the dashboard.
+The restore wizard picks the capsule and snapshot for a point in time and lists
+the restore steps that work today, following
+[Recovery and security](RECOVERY-AND-SECURITY.md#restore): download the capsule
+and check its SHA-256 against the digest shown, run the **product's own**
+`restore` command against it on your workstation with k custodian shares on
+standard input, and check the capsule ID and creation time it prints. Shares are
+never typed into the dashboard. A paired restic snapshot is named with its
+repository; KyRecovery holds no restic password, so restore it with the tool
+that made the backup. The wizard prints no single command: no suite-wide tool
+takes a capsule yet.
 
 To enable restic status, add `docker-compose.restic.yml` to `COMPOSE_FILE` and
 follow the setup at its top. `scripts/verify-restic-overlay.sh` proves the

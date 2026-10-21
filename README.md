@@ -2,7 +2,7 @@
 
 **Start here:** [Standalone installation](INSTALL.md). Local operator sign-in works without KyIdentity. The browser ceremony creates the recovery key and custodian cards; the server stores sealed capsules, public-key metadata and audit evidence. Stored capsules alone do not prove that a restore or off-site custody has been tested.
 
-KyRecovery is a self-hosted **blind store** for the KySecurity suite's encrypted
+KyRecovery is a self-hosted **blind store** for the Ky Suite's encrypted
 backups. Products seal their own `.kycap` containers and deposit the ciphertext
 here. KyRecovery holds no recovery private key, no Shamir share and no plaintext,
 and there is no code path in the server that decrypts a capsule — a test,

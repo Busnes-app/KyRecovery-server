@@ -1,14 +1,14 @@
 # KyRecovery Server: Zero-Code Product Pairing & Sealed-Capsule Deposit Specification
 
 **Document Version**: 2.0.0
-**Target Audience**: KySecurity Suite Engineers, Business.app Ecosystem Developers, DevOps / Site Reliability Engineers
+**Target Audience**: Ky Suite Engineers, busnes.app Ecosystem Developers, DevOps / Site Reliability Engineers
 **Status**: This is the wire contract as of this commit. It has no deployments behind it and no compatibility guarantee yet; both sides move together.
 
 ---
 
 ## 1. Architecture Overview
 
-Any KySecurity or Business.app service pairs with a KyRecovery server using an ephemeral
+Any Ky Suite app or busnes.app service pairs with a KyRecovery server using an ephemeral
 six-digit PIN and receives, in the same response, the **suite recovery public key** the
 server pins. From then on the product seals its own backups into `.kycap` (kycap/3)
 containers with `ky-primitives/capsule` and deposits the ciphertext.
@@ -193,7 +193,7 @@ offsite replication.
 | `400 Bad Request` | The body is not a kycap/3 container, or its `capsule_id` / `service_name` is not a usable name. |
 | `401 Unauthorized` | Missing, invalid or revoked bearer token. |
 | `403 Forbidden` | The manifest names a service this token is not paired for. Both names are in the message. |
-| `409 Conflict` | Sealed to a key other than the current recovery key (both key IDs are in the message; after a rotation the message says the key was rotated out and the product must re-pair); or this capsule ID is stored with different bytes; or its row exists but the file is missing (the row is flagged corrupt — retry with a new capsule ID); or no recovery key is imported. |
+| `409 Conflict` | Sealed to a key other than the current recovery key (both key IDs are in the message; after a rotation the message says the key was rotated out and the product must re-pair, and the body adds `"code": "recovery_key_rotated"`, `sealed_key_id` and `current_key_id`; act on `code`, not the wording, and learn the new key only by re-pairing); or this capsule ID is stored with different bytes; or its row exists but the file is missing (the row is flagged corrupt — retry with a new capsule ID); or no recovery key is imported. |
 | `413 Content Too Large` | Body over `capsule.MaxContainerBytes`. |
 | `429 Too Many Requests` | Deposit rate limit exceeded for this paired product. |
 | `503 Service Unavailable` | The audit ledger is not writable — deposits are refused until an operator repairs the log and restarts — or the request was abandoned while waiting for a deposit slot. |

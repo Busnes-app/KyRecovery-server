@@ -1,6 +1,6 @@
 # KyRecovery Server
 
-KyRecovery Server is the self-hosted **blind store** for the KySecurity Suite (KySignOn, KyPassword, KyBookmarks, KyNotes, KyPost) and the Business.app ecosystem. Products seal their own `.kycap` containers with `ky-primitives/capsule` and deposit the ciphertext here. The server holds no recovery private key, no Shamir share and no plaintext, and no code path in it decrypts a capsule.
+KyRecovery Server is the self-hosted **blind store** for the Ky Suite (KySignOn, KyPassword, KyBookmarks, KyNotes, KyPost) and the busnes.app ecosystem. Products seal their own `.kycap` containers with `ky-primitives/capsule` and deposit the ciphertext here. The server holds no recovery private key, no Shamir share and no plaintext, and no code path in it decrypts a capsule.
 
 ## Core Capabilities & Responsibilities
 
@@ -14,7 +14,7 @@ KyRecovery Server is the self-hosted **blind store** for the KySecurity Suite (K
 8. **Hash-chained audit ledger**: `ky-primitives/auditchain`, keyed from the keyring, with the anchor (count, last hash) kept outside the log. `POST /api/audit/verify` returns `{valid, count, last_hash}` and `append_disabled` + `error` when the ledger is poisoned. A poisoned ledger refuses deposits with `503` until an operator repairs the log and restarts.
 9. **Privacy-safe structured logging**: `LOGGING.md` — structured JSON/logfmt to stdout/stderr, never secrets, keys or capsule contents.
 10. **Public service health**: `GET /healthz` serves `ky.health/1` for `kyrecovery`. It checks database reachability, the audit ledger's append latch and stored backup status, caches one bounded result for five seconds, and exposes fixed status codes only. A poisoned ledger is degraded; an unavailable database is down; a backup finding degrades with one reason from `backupstatus.Reasons`. The authenticated `/api/readiness` retains its capsule, custodian and audit fields.
-11. **Backup status and restore planning**: `/api/backups/*` and the Backups tab. With `--restic-dir`/`KYRECOVERY_RESTIC_DIR` set, a scanner reads rest-server's data directory (names, sizes, mtimes only) on start and every 15 minutes. `restore-plan` returns the pinned `kyquickstart restore` command. Design: `docs/superpowers/specs/2026-10-07-backup-status-restore-ui-design.md`.
+11. **Backup status and restore planning**: `/api/backups/*` and the Backups tab. With `--restic-dir`/`KYRECOVERY_RESTIC_DIR` set, a scanner reads rest-server's data directory (names, sizes, mtimes only) on start and every 15 minutes. `restore-plan` returns `steps`: the documented offline restore (download, check the digest, the product's own `restore` with k shares). It prints no command until a suite-wide restore tool that takes a capsule exists. Design: `docs/superpowers/specs/2026-10-07-backup-status-restore-ui-design.md`.
 
 ## Package index
 

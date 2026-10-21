@@ -9,7 +9,7 @@ Answers `docs/plans/2026-10-07-backup-restore-ui-handoff.md` and KyQuickStart ro
 One place to see whether every suite backup is current and to start a restore. KyRecovery shows
 health for sealed capsules and restic repositories and plans a restore; it never decrypts,
 never holds a restic password and never runs restic. Restores execute on the operator's
-workstation through `kyquickstart restore` and each product's `restore` command.
+workstation through each product's `restore` command, and the tool that made a restic backup.
 
 ## Decisions
 
@@ -192,21 +192,17 @@ Inputs are rows plus `now`; no filesystem access.
   not established" warning. A gap over 1 h adds a mismatch warning.
 - A missing capsule, snapshot or repository is reported in the plan, not as an error.
 
-**Command contract** (pinned; KyQuickStart implements it):
+**Restore steps** (superseded the pinned command contract, 2026-10-21):
 
-```
-kyquickstart restore <service> --capsule <capsule-id> --snapshot <repo-path>:<snapshot-id>
-```
-
-Every interpolated value is validated against its own grammar before display:
-
-- each value, and each `/`-separated segment of the repository path, matches
-  `[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}` without `..`
-
-Each value is single-quoted. A value that fails gets no command and a warning instead. The executor must decrypt the snapshot, show its real time, host
-and paths, and require confirmation before writing. Custodian shares go into that command's
-stdin, never into this page. Until KyQuickStart ships the executor, the UI labels the command
-"requires KyQuickStart restore support".
+The plan once printed `kyquickstart restore <service> --capsule <capsule-id> --snapshot
+<repo-path>:<snapshot-id>`. KyQuickStart never shipped that contract: its `restore APP
+[--snapshot ID]` restores restic snapshots only, takes no capsule and reads no custodian
+shares. The plan now returns `steps`, plain-text instructions for the restore that works
+today (`docs/RECOVERY-AND-SECURITY.md`): download the capsule and check its digest, run the
+product's own `restore` command with k shares on stdin, compare the printed capsule ID and
+creation time, and, for a paired snapshot, restore it with the tool that made the backup.
+Values are shown as text and escaped, never as a command to paste. When a suite-wide
+executor exists, print its exact command and test it against that CLI.
 
 ### Configuration and deployment
 

@@ -3,7 +3,6 @@ package backupstatus
 import (
 	"errors"
 	"fmt"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -50,7 +49,9 @@ type Plan struct {
 	Snapshot   *Snapshot `json:"snapshot,omitempty"`
 	GapSeconds *int64    `json:"gap_seconds,omitempty"` // snapshot written minus capsule deposited
 	Warnings   []string  `json:"warnings"`
-	Command    string    `json:"command,omitempty"`
+	// Steps are the restore instructions, in order, as plain text. They describe the
+	// documented offline restore (docs/RECOVERY-AND-SECURITY.md), not a command to paste.
+	Steps []string `json:"steps"`
 }
 
 // AmbiguousError asks the caller to choose rather than have the plan pick arbitrarily.
@@ -76,26 +77,13 @@ const (
 	WarnUnknownKey = "This capsule is sealed to recovery key %s, which this store has no record of. Find the custodian cards printed with that key ID."
 )
 
-// shellSafe admits the characters a quoted command argument may hold. Every segment of a
-// repository path must pass separately.
-var shellSafe = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}$`)
-
-func safe(s string) bool {
-	for _, seg := range strings.Split(s, "/") {
-		if !shellSafe.MatchString(seg) || strings.Contains(seg, "..") {
-			return false
-		}
-	}
-	return true
-}
-
 // RestorePlan picks the capsule and snapshot to restore Service to as of At.
 func RestorePlan(in PlanInput) (Plan, error) {
 	at := in.At.UTC()
 	if at.After(in.Now.Add(futureSlack)) {
 		return Plan{}, ErrFutureAt
 	}
-	p := Plan{Service: in.Service, At: at, Skipped: []Capsule{}, Warnings: []string{}}
+	p := Plan{Service: in.Service, At: at, Skipped: []Capsule{}, Warnings: []string{}, Steps: []string{}}
 
 	inst, err := choose("instance", in.Instance, idsOf(in.Instances))
 	if err != nil {
@@ -157,13 +145,7 @@ func RestorePlan(in PlanInput) (Plan, error) {
 			p.Warnings = append(p.Warnings, WarnMismatch)
 		}
 	}
-	if p.Capsule != nil || p.Snapshot != nil {
-		if commandSafe(p) {
-			p.Command = command(p)
-		} else {
-			p.Warnings = append(p.Warnings, "A name here cannot be passed safely on a command line; no command is shown.")
-		}
-	}
+	p.Steps = steps(p)
 	return p, nil
 }
 
@@ -217,21 +199,25 @@ func nearest(snaps []Snapshot, target time.Time, bound bool) *Snapshot {
 	return best
 }
 
-// command is the pinned KyQuickStart restore contract. Every argument has passed safe.
-func command(p Plan) string {
-	b := "kyquickstart restore '" + p.Service + "'"
-	if p.Capsule != nil {
-		b += " --capsule '" + p.Capsule.ID + "'"
+// steps is the restore that works today: download the capsule, check it, and open it with
+// the product's own restore command and the custodian shares. KyRecovery runs none of it.
+// ponytail: no single command is printed because no suite-wide restore tool takes a capsule
+// yet; when KyQuickStart ships one, print its exact command here and test it against that CLI.
+func steps(p Plan) []string {
+	out := []string{}
+	if c := p.Capsule; c != nil {
+		cards := fmt.Sprintf("the custodian cards printed with recovery key %s", c.RecoveryKeyID)
+		if k := p.RecoveryKey; k != nil {
+			cards = fmt.Sprintf("%d of the %d custodian cards printed with recovery key %s", k.Threshold, k.TotalShares, k.ID)
+		}
+		out = append(out,
+			fmt.Sprintf("Download capsule %s (needs an operator or admin) and check that its SHA-256, from sha256sum, is %s.", c.ID, c.Digest),
+			fmt.Sprintf("On your workstation, run %s's own restore command against the downloaded file, as that product's restore guide describes. Type the shares from %s on its standard input, one per line. Never type shares into this page.", p.Service, cards),
+			fmt.Sprintf("Check that the capsule ID and creation time the restore prints match %s and %s. Decrypting proves the capsule is authentic, not that it is the newest.", c.ID, c.CreatedAt.UTC().Format(time.RFC3339)),
+		)
 	}
-	if p.Snapshot != nil {
-		b += " --snapshot '" + p.Repo + ":" + p.Snapshot.ID + "'"
+	if s := p.Snapshot; s != nil {
+		out = append(out, fmt.Sprintf("Restic snapshot %s in repository %s holds the restic side of this restore point. KyRecovery holds no restic password and cannot restore it: use the tool that made the backup, which holds the repository password.", s.ID, p.Repo))
 	}
-	return b
-}
-
-func commandSafe(p Plan) bool {
-	if !safe(p.Service) || (p.Capsule != nil && !safe(p.Capsule.ID)) {
-		return false
-	}
-	return p.Snapshot == nil || (safe(p.Repo) && safe(p.Snapshot.ID))
+	return out
 }
