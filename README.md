@@ -56,16 +56,17 @@ account.
 - The manifest fields the container declares about itself: capsule ID, service
   name, app version, payload hash, threshold, total shares, recovery key ID and
   encapsulated key. They are recorded and displayed, never acted on — the one
-  decision taken from a manifest is whether its recovery key ID is the one this
-  store pins.
+  decision taken from a manifest is whether its recovery key ID is the current
+  one.
 - A hash-chained audit ledger over deposits, verifications, pairings and the key
-  import, keyed outside the database.
-- The suite recovery **public** key and its ID, custodian names, paired-app API
-  tokens, and the server keyring for its own secrets.
+  import, rotations and retirements, keyed outside the database.
+- The suite recovery **public** keys and their IDs: the current key, and any
+  previous key still needed to open retained capsules. Custodian names, paired-app
+  API tokens, and the server keyring for its own secrets.
 
 ## Documentation
 
-- [Ceremony](docs/CEREMONY.md) — Ceremony: creating the suite recovery keypair. <a id="ceremony-creating-the-suite-recovery-keypair"></a>
+- [Ceremony](docs/CEREMONY.md) — Ceremony: creating the suite recovery keypair, and rotating it. <a id="ceremony-creating-the-suite-recovery-keypair"></a>
 - [Deposits](docs/DEPOSITS.md) — Pairing and deposit. <a id="pairing-and-deposit"></a>
 - [Integrity and audit](docs/INTEGRITY-AND-AUDIT.md) — Integrity, Audit ledger. <a id="integrity"></a><a id="audit-ledger"></a>
 - [Retention](docs/RETENTION.md) — Backup retention. <a id="backup-retention"></a>

@@ -17,6 +17,9 @@
   <div class="panel">
     <p><strong>Read before you begin.</strong> This tab will generate the suite's recovery private key and split it into custodian cards. The key exists only in this tab's memory and cannot be erased before the tab closes. Run this in a <strong>fresh private window</strong>, with <strong>no browser extensions</strong>, on a machine that will <strong>not hibernate</strong> during the ceremony. Print the cards, confirm the import, then <strong>close the tab</strong>. Nothing but the public key leaves this page.</p>
   </div>
+  <div id="rotation-notice" class="panel no-print" hidden>
+    <p><strong>This is a key rotation.</strong> The store already holds recovery key <code id="current-key-id"></code>. Importing this ceremony's key makes it the current key: products must be re-paired and confirm the new key ID before they can deposit again. Backups already sealed to the current key still need its cards &mdash; keep them until the dashboard shows that key can be retired.</p>
+  </div>
   <form id="ceremony-form" class="panel">
     <label class="form-label">Custodians needed to recover (k) <input id="k" class="form-input" type="number" min="2" max="255" value="3" required></label>
     <label class="form-label">Cards to print (n) <input id="n" class="form-input" type="number" min="2" max="255" value="5" required></label>

@@ -11,6 +11,17 @@ const ready = (async () => {
 
 let result = null;
 
+// A store that already holds a key makes this a rotation. The page names the key it will
+// replace, and the import says which key that was, so a tab left open across another
+// rotation is refused rather than replacing a key its operator never saw.
+let replaces = null;
+fetch('/api/recovery-key').then(res => (res.ok ? res.json() : null)).then(k => {
+  if (!k || !k.key_id) return;
+  replaces = k.key_id;
+  document.getElementById('current-key-id').textContent = k.key_id;
+  document.getElementById('rotation-notice').hidden = false;
+}).catch(() => {});
+
 document.getElementById('ceremony-form').addEventListener('submit', async ev => {
   ev.preventDefault();
   await ready;
@@ -37,11 +48,17 @@ document.getElementById('print-btn').addEventListener('click', () => window.prin
 document.getElementById('import-btn').addEventListener('click', async () => {
   if (!result) return;
   const status = document.getElementById('import-status');
-  // Only these three fields are sent. The shares are never in this request.
-  const res = await fetch('/api/recovery-key', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ public_key: result.public_key_b64, threshold: result.threshold, total_shares: result.total_shares }),
+  // Only these fields are sent: the public half, the topology and, for a rotation, the
+  // key being replaced. The shares are never in this request.
+  const fields = { public_key: result.public_key_b64, threshold: result.threshold, total_shares: result.total_shares };
+  if (replaces) fields.replaces_key_id = replaces;
+  const res = await fetch(replaces ? '/api/recovery-key/rotate' : '/api/recovery-key', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields),
   });
   const body = await res.json().catch(() => ({}));
-  status.textContent = res.ok ? `Imported key ${body.key_id}. Print the cards, then close this tab.` : `Import failed: ${body.error || res.status}`;
+  if (!res.ok) { status.textContent = `Import failed: ${body.error || res.status}`; return; }
+  const repair = (body.products_to_repair || []).map(p => `${p.service_name} (${p.app_name})`).join(', ');
+  status.textContent = replaces
+    ? `Rotated to key ${body.key_id}; ${body.replaces_key_id} is now previous. Re-pair ${repair || 'each product'} and confirm this key ID there. Print the cards, then close this tab.`
+    : `Imported key ${body.key_id}. Print the cards, then close this tab.`;
 });

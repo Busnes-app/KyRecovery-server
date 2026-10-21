@@ -24,6 +24,15 @@ type PlanInput struct {
 	Capsules  []Capsule             // extant capsules of Service
 	Snapshots map[string][]Snapshot // per linked repository path
 	Missing   map[string]bool       // linked repositories the last good scan did not find
+	Keys      map[string]Key        // every recovery key the store has held, by key ID
+}
+
+// Key is a recovery key as a restore needs it: which cards, and how many of them.
+type Key struct {
+	ID          string `json:"key_id"`
+	Threshold   int    `json:"threshold"`
+	TotalShares int    `json:"total_shares"`
+	Status      string `json:"status"` // "current" | "previous" | "retired"
 }
 
 type Plan struct {
@@ -33,6 +42,9 @@ type Plan struct {
 	RepoMissing bool      `json:"repo_missing,omitempty"` // Repo not found by the last good scan: no snapshot
 	At          time.Time `json:"at"`
 	Capsule     *Capsule  `json:"capsule,omitempty"`
+	// RecoveryKey is the key Capsule is sealed to: restoring it takes Threshold of the
+	// TotalShares custodian cards printed with this key ID.
+	RecoveryKey *Key `json:"recovery_key,omitempty"`
 	// Skipped are newer corrupt capsules passed over to reach Capsule, newest first.
 	Skipped    []Capsule `json:"skipped"`
 	Snapshot   *Snapshot `json:"snapshot,omitempty"`
@@ -59,6 +71,9 @@ const (
 
 	WarnPairing  = "Capsule and snapshot are paired by write time; that does not establish they are consistent with each other."
 	WarnMismatch = "Capsule and snapshot were written more than an hour apart."
+	// WarnOldKey and WarnUnknownKey are format strings; they name the key ID.
+	WarnOldKey     = "This capsule is sealed to the rotated-out recovery key %s. It opens only with %d of the %d custodian cards printed with that key ID, not the current cards."
+	WarnUnknownKey = "This capsule is sealed to recovery key %s, which this store has no record of. Find the custodian cards printed with that key ID."
 )
 
 // shellSafe admits the characters a quoted command argument may hold. Every segment of a
@@ -111,6 +126,17 @@ func RestorePlan(in PlanInput) (Plan, error) {
 		c := caps[i]
 		p.Capsule = &c
 		break
+	}
+
+	if p.Capsule != nil {
+		if k, ok := in.Keys[p.Capsule.RecoveryKeyID]; ok {
+			p.RecoveryKey = &k
+			if k.Status != "current" {
+				p.Warnings = append(p.Warnings, fmt.Sprintf(WarnOldKey, k.ID, k.Threshold, k.TotalShares))
+			}
+		} else {
+			p.Warnings = append(p.Warnings, fmt.Sprintf(WarnUnknownKey, p.Capsule.RecoveryKeyID))
+		}
 	}
 
 	p.RepoMissing = in.Missing[repo]

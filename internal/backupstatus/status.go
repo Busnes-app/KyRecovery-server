@@ -47,14 +47,16 @@ const (
 
 // Capsule is a stored capsule row. Instance is its paired_app_id.
 type Capsule struct {
-	ID          string     `json:"id"`
-	Instance    string     `json:"instance"`
-	Service     string     `json:"-"`
-	Digest      string     `json:"digest"`
-	Status      string     `json:"status"` // "active" | "corrupt"
-	CreatedAt   time.Time  `json:"created_at"`
-	DepositedAt time.Time  `json:"deposited_at"`
-	VerifiedAt  *time.Time `json:"verified_at,omitempty"`
+	ID       string `json:"id"`
+	Instance string `json:"instance"`
+	Service  string `json:"-"`
+	Digest   string `json:"digest"`
+	Status   string `json:"status"` // "active" | "corrupt"
+	// RecoveryKeyID is the key the capsule is sealed to, as its manifest names it.
+	RecoveryKeyID string     `json:"recovery_key_id"`
+	CreatedAt     time.Time  `json:"created_at"`
+	DepositedAt   time.Time  `json:"deposited_at"`
+	VerifiedAt    *time.Time `json:"verified_at,omitempty"`
 }
 
 // Instance is a paired product. Only status "paired" creates an expectation.

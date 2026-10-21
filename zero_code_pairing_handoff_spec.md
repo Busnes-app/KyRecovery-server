@@ -193,7 +193,7 @@ offsite replication.
 | `400 Bad Request` | The body is not a kycap/3 container, or its `capsule_id` / `service_name` is not a usable name. |
 | `401 Unauthorized` | Missing, invalid or revoked bearer token. |
 | `403 Forbidden` | The manifest names a service this token is not paired for. Both names are in the message. |
-| `409 Conflict` | Sealed to a different recovery key (both key IDs are in the message); or this capsule ID is stored with different bytes; or its row exists but the file is missing (the row is flagged corrupt — retry with a new capsule ID); or no recovery key is imported. |
+| `409 Conflict` | Sealed to a key other than the current recovery key (both key IDs are in the message; after a rotation the message says the key was rotated out and the product must re-pair); or this capsule ID is stored with different bytes; or its row exists but the file is missing (the row is flagged corrupt — retry with a new capsule ID); or no recovery key is imported. |
 | `413 Content Too Large` | Body over `capsule.MaxContainerBytes`. |
 | `429 Too Many Requests` | Deposit rate limit exceeded for this paired product. |
 | `503 Service Unavailable` | The audit ledger is not writable — deposits are refused until an operator repairs the log and restarts — or the request was abandoned while waiting for a deposit slot. |
@@ -218,7 +218,7 @@ which is compared against the key the store pins.
 | `created_at` | Recorded. Compared by the operator against the deposit time during a restore, which is where freshness comes from. |
 | `payload_hash` | Recorded. The product's hash of its own plaintext; KyRecovery cannot check it. |
 | `threshold`, `total_shares` | Recorded. How many custodian cards a restore will need. |
-| `recovery_key_id` | The only field the server decides on: it must equal the pinned key's ID. |
+| `recovery_key_id` | The only field the server decides on: it must equal the current key's ID. The store records each capsule against it, so a restore can name the right cards after a rotation. |
 | `encapsulated_key` | Recorded. Opaque to the server. |
 
 KyRecovery adds `size_bytes`, `digest` (its own SHA-256) and `deposited_at`, which

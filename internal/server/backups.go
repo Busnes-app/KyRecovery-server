@@ -59,7 +59,7 @@ func (s *Server) backupInput(ctx context.Context) (backupstatus.Input, error) {
 	}
 	for _, c := range caps {
 		in.Capsules = append(in.Capsules, backupstatus.Capsule{ID: c.ID, Instance: c.PairedAppID, Service: c.ServiceName, Digest: c.Digest, Status: c.Status,
-			CreatedAt: c.CreatedAt, DepositedAt: c.DepositedAt, VerifiedAt: c.VerifiedAt})
+			RecoveryKeyID: c.RecoveryKeyID, CreatedAt: c.CreatedAt, DepositedAt: c.DepositedAt, VerifiedAt: c.VerifiedAt})
 	}
 	if in.Repos, err = s.db.ListResticRepos(ctx); err != nil {
 		return in, err
@@ -197,6 +197,15 @@ func (s *Server) handleRestorePlan(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusInternalServerError, "Failed reading snapshots")
 			return
 		}
+	}
+	keys, err := s.db.ListRecoveryKeys(ctx)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Failed reading recovery keys")
+		return
+	}
+	in.Keys = map[string]backupstatus.Key{}
+	for _, k := range keys {
+		in.Keys[k.KeyID] = backupstatus.Key{ID: k.KeyID, Threshold: k.Threshold, TotalShares: k.TotalShares, Status: k.Status}
 	}
 
 	plan, err := backupstatus.RestorePlan(in)

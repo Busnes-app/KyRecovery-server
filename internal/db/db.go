@@ -83,18 +83,34 @@ type PairedAppRecord struct {
 	RecoveryKeyID string `json:"recovery_key_id,omitempty"`
 }
 
-// RecoveryKeyRecord is the suite recovery public key this store hands to products and pins
-// deposits against. There is exactly one row; the private half never existed here.
+// RecoveryKeyRecord is a suite recovery public key this store has held. Exactly one is
+// "current": the key handed to products at pairing and the only one deposits may be sealed
+// to. A rotated-out key is "previous" while capsules sealed to it are retained, and
+// "retired" once the operator has said its cards may be destroyed. The private half never
+// existed here.
 type RecoveryKeyRecord struct {
-	KeyID       string    `json:"key_id"`
-	PublicKey   []byte    `json:"-"`
-	Threshold   int       `json:"threshold"`
-	TotalShares int       `json:"total_shares"`
-	ImportedBy  string    `json:"imported_by"`
-	ImportedAt  time.Time `json:"imported_at"`
+	KeyID       string     `json:"key_id"`
+	PublicKey   []byte     `json:"-"`
+	Threshold   int        `json:"threshold"`
+	TotalShares int        `json:"total_shares"`
+	Status      string     `json:"status"` // "current" | "previous" | "retired"
+	ImportedBy  string     `json:"imported_by"`
+	ImportedAt  time.Time  `json:"imported_at"`
+	RetiredBy   string     `json:"retired_by,omitempty"`
+	RetiredAt   *time.Time `json:"retired_at,omitempty"`
 }
 
 var ErrRecoveryKeyExists = errors.New("a recovery key is already imported")
+
+// ErrRecoveryKeyKnown means a rotation named a key this store already holds, in any state.
+// A key is never brought back: its cards may already be destroyed.
+var ErrRecoveryKeyKnown = errors.New("this recovery key is already known to the store")
+
+// ErrStaleRotation means the rotation named a key to replace that is no longer current.
+var ErrStaleRotation = errors.New("the key to replace is not the current recovery key")
+
+// ErrRetireRefused means the key is current, already retired, unknown, or still has capsules.
+var ErrRetireRefused = errors.New("recovery key cannot be retired")
 
 // ErrCapsuleExists reports that a capsule row with this ID is already stored. The row is the
 // mutual-exclusion primitive for a deposit: whoever inserts it owns the file path.
@@ -340,6 +356,25 @@ func (d *DB) migrate() error {
 		imported_at DATETIME NOT NULL
 	);
 
+	-- recovery_key above is the single-key table from before rotation. It is copied into
+	-- recovery_keys once and never written again; it stays so that an older binary started
+	-- on a migrated database still finds the key it pinned instead of offering a fresh import.
+	CREATE TABLE IF NOT EXISTS recovery_keys (
+		key_id TEXT PRIMARY KEY,
+		public_key BLOB NOT NULL,
+		threshold INTEGER NOT NULL,
+		total_shares INTEGER NOT NULL,
+		status TEXT NOT NULL CHECK (status IN ('current', 'previous', 'retired')),
+		imported_by TEXT NOT NULL,
+		imported_at DATETIME NOT NULL,
+		retired_by TEXT NOT NULL DEFAULT '',
+		retired_at DATETIME
+	);
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_recovery_keys_one_current ON recovery_keys(status) WHERE status = 'current';
+	INSERT INTO recovery_keys (key_id, public_key, threshold, total_shares, status, imported_by, imported_at)
+		SELECT key_id, public_key, threshold, total_shares, 'current', imported_by, imported_at FROM recovery_key
+		WHERE NOT EXISTS (SELECT 1 FROM recovery_keys);
+
 	CREATE TABLE IF NOT EXISTS restic_scan_state (
 		singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
 		last_attempt_at DATETIME,
@@ -384,6 +419,7 @@ func (d *DB) migrate() error {
 
 	CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 	CREATE INDEX IF NOT EXISTS idx_capsules_service ON capsules(service_name);
+	CREATE INDEX IF NOT EXISTS idx_capsules_recovery_key ON capsules(recovery_key_id);
 	CREATE INDEX IF NOT EXISTS idx_paired_code ON paired_apps(pairing_code);
 	CREATE INDEX IF NOT EXISTS idx_paired_token ON paired_apps(api_token);
 	CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
@@ -753,22 +789,89 @@ func (d *DB) ClearRevokedPairedApp(ctx context.Context, id string) (bool, error)
 	return count == 1, err
 }
 
-// InsertRecoveryKey pins the suite recovery public key. Only one row is ever allowed.
+// InsertRecoveryKey pins the first suite recovery public key as current. It succeeds only
+// on a store that has never held a key; every later key arrives through RotateRecoveryKey.
 func (d *DB) InsertRecoveryKey(ctx context.Context, k RecoveryKeyRecord) error {
-	q := `INSERT INTO recovery_key (singleton, key_id, public_key, threshold, total_shares, imported_by, imported_at)
-	      VALUES (1, ?, ?, ?, ?, ?, ?)`
-	_, err := d.conn.ExecContext(ctx, q, k.KeyID, k.PublicKey, k.Threshold, k.TotalShares, k.ImportedBy, k.ImportedAt.UTC())
-	if err != nil && strings.Contains(err.Error(), "UNIQUE constraint failed") {
+	q := `INSERT INTO recovery_keys (key_id, public_key, threshold, total_shares, status, imported_by, imported_at)
+	      SELECT ?, ?, ?, ?, 'current', ?, ? WHERE NOT EXISTS (SELECT 1 FROM recovery_keys)`
+	res, err := d.conn.ExecContext(ctx, q, k.KeyID, k.PublicKey, k.Threshold, k.TotalShares, k.ImportedBy, k.ImportedAt.UTC())
+	if err != nil {
+		return err
+	}
+	if n, err := res.RowsAffected(); err != nil {
+		return err
+	} else if n == 0 {
 		return ErrRecoveryKeyExists
 	}
-	return err
+	return nil
 }
 
-// GetRecoveryKey returns the pinned recovery key, or (nil, nil) if none has been imported.
-func (d *DB) GetRecoveryKey(ctx context.Context) (*RecoveryKeyRecord, error) {
-	q := `SELECT key_id, public_key, threshold, total_shares, imported_by, imported_at FROM recovery_key WHERE singleton = 1`
+// RotateRecoveryKey makes k the current key and demotes replaces to previous, in one
+// transaction. replaces must be the current key at commit, so two ceremony tabs racing each
+// other cannot both win, and k must be a key this store has never held.
+func (d *DB) RotateRecoveryKey(ctx context.Context, replaces string, k RecoveryKeyRecord) error {
+	tx, err := d.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	res, err := tx.ExecContext(ctx, `UPDATE recovery_keys SET status = 'previous' WHERE key_id = ? AND status = 'current'`, replaces)
+	if err != nil {
+		return err
+	}
+	if n, err := res.RowsAffected(); err != nil {
+		return err
+	} else if n != 1 {
+		return ErrStaleRotation
+	}
+	_, err = tx.ExecContext(ctx, `INSERT INTO recovery_keys (key_id, public_key, threshold, total_shares, status, imported_by, imported_at)
+	      VALUES (?, ?, ?, ?, 'current', ?, ?)`, k.KeyID, k.PublicKey, k.Threshold, k.TotalShares, k.ImportedBy, k.ImportedAt.UTC())
+	if err != nil && strings.Contains(err.Error(), "UNIQUE constraint failed") {
+		return ErrRecoveryKeyKnown
+	}
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+// RetireRecoveryKey marks a previous key retired. The guards live in the UPDATE: a current
+// key, or one any stored capsule names, is never retired, whatever the caller checked first.
+func (d *DB) RetireRecoveryKey(ctx context.Context, keyID, by string, at time.Time) error {
+	res, err := d.conn.ExecContext(ctx, `UPDATE recovery_keys SET status = 'retired', retired_by = ?, retired_at = ?
+	      WHERE key_id = ? AND status = 'previous' AND NOT EXISTS (SELECT 1 FROM capsules WHERE recovery_key_id = ?)`,
+		by, at.UTC(), keyID, keyID)
+	if err != nil {
+		return err
+	}
+	if n, err := res.RowsAffected(); err != nil {
+		return err
+	} else if n != 1 {
+		return ErrRetireRefused
+	}
+	return nil
+}
+
+const recoveryKeyColumns = `key_id, public_key, threshold, total_shares, status, imported_by, imported_at, retired_by, retired_at`
+
+func scanRecoveryKey(row interface{ Scan(...any) error }) (RecoveryKeyRecord, error) {
 	var k RecoveryKeyRecord
-	err := d.conn.QueryRowContext(ctx, q).Scan(&k.KeyID, &k.PublicKey, &k.Threshold, &k.TotalShares, &k.ImportedBy, &k.ImportedAt)
+	err := row.Scan(&k.KeyID, &k.PublicKey, &k.Threshold, &k.TotalShares, &k.Status, &k.ImportedBy, &k.ImportedAt, &k.RetiredBy, &k.RetiredAt)
+	return k, err
+}
+
+// GetRecoveryKey returns the current recovery key, or (nil, nil) if none has been imported.
+func (d *DB) GetRecoveryKey(ctx context.Context) (*RecoveryKeyRecord, error) {
+	return d.getRecoveryKey(ctx, `SELECT `+recoveryKeyColumns+` FROM recovery_keys WHERE status = 'current'`)
+}
+
+// GetRecoveryKeyByID returns any key this store has held, or (nil, nil).
+func (d *DB) GetRecoveryKeyByID(ctx context.Context, keyID string) (*RecoveryKeyRecord, error) {
+	return d.getRecoveryKey(ctx, `SELECT `+recoveryKeyColumns+` FROM recovery_keys WHERE key_id = ?`, keyID)
+}
+
+func (d *DB) getRecoveryKey(ctx context.Context, q string, args ...any) (*RecoveryKeyRecord, error) {
+	k, err := scanRecoveryKey(d.conn.QueryRowContext(ctx, q, args...))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -776,6 +879,24 @@ func (d *DB) GetRecoveryKey(ctx context.Context) (*RecoveryKeyRecord, error) {
 		return nil, err
 	}
 	return &k, nil
+}
+
+// ListRecoveryKeys returns every key this store has held, newest first.
+func (d *DB) ListRecoveryKeys(ctx context.Context) ([]RecoveryKeyRecord, error) {
+	rows, err := d.conn.QueryContext(ctx, `SELECT `+recoveryKeyColumns+` FROM recovery_keys ORDER BY imported_at DESC, key_id`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var list []RecoveryKeyRecord
+	for rows.Next() {
+		k, err := scanRecoveryKey(rows)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, k)
+	}
+	return list, rows.Err()
 }
 
 // InsertSession stores a new user session.

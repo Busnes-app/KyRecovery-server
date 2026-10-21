@@ -47,7 +47,7 @@ setting for remote users. Follow the [README](README.md) for transport and accou
 Run the [ceremony](docs/CEREMONY.md#ceremony-creating-the-suite-recovery-keypair) in a fresh private
 browser window at `/admin/ceremony`: print-preview throwaway cards first, then generate the
 real k-of-n set, print/distribute it, import only the public key and close the tab. Import
-is one-shot; key rotation is not implemented. Treat real cards as secrets, not screenshots
+is one-shot; a later key replaces it only through [rotation](docs/CEREMONY.md#rotating-the-recovery-key), which re-pairs every product. Treat real cards as secrets, not screenshots
 for reports. Pair one product, deposit a capsule and verify its receipt/audit entry.
 
 `./data` persists the blind store, pairings and server keys. The entrypoint assigns it to

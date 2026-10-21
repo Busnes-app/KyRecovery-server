@@ -2,6 +2,7 @@ package backupstatus
 
 import (
 	"errors"
+	"fmt"
 	"slices"
 	"strings"
 	"testing"
@@ -255,6 +256,30 @@ func TestRestorePlan(t *testing.T) {
 		}
 		if !slices.Contains(p.Warnings, WarnMismatch) {
 			t.Fatalf("1h gap must warn: %v", p.Warnings)
+		}
+	})
+	t.Run("names the key and cards the capsule needs", func(t *testing.T) {
+		in := base
+		in.Capsules = []Capsule{capsule("cap-old", "i1", 48*time.Hour, "active"), capsule("cap-new", "i1", 24*time.Hour, "active")}
+		in.Capsules[0].RecoveryKeyID, in.Capsules[1].RecoveryKeyID = "key-a", "key-b"
+		in.Keys = map[string]Key{
+			"key-a": {ID: "key-a", Threshold: 3, TotalShares: 5, Status: "previous"},
+			"key-b": {ID: "key-b", Threshold: 2, TotalShares: 3, Status: "current"},
+		}
+		p, _ := RestorePlan(in)
+		if p.RecoveryKey == nil || p.RecoveryKey.ID != "key-b" || len(p.Warnings) != 1 {
+			t.Fatalf("current-key plan = %+v %v", p.RecoveryKey, p.Warnings)
+		}
+		in.At = ago(30 * time.Hour)
+		p, _ = RestorePlan(in)
+		old := fmt.Sprintf(WarnOldKey, "key-a", 3, 5)
+		if p.RecoveryKey == nil || p.RecoveryKey.ID != "key-a" || p.RecoveryKey.Threshold != 3 || !slices.Contains(p.Warnings, old) {
+			t.Fatalf("old-key plan = %+v %v", p.RecoveryKey, p.Warnings)
+		}
+		in.Keys = nil
+		p, _ = RestorePlan(in)
+		if p.RecoveryKey != nil || !slices.Contains(p.Warnings, fmt.Sprintf(WarnUnknownKey, "key-a")) {
+			t.Fatalf("unknown-key plan = %+v %v", p.RecoveryKey, p.Warnings)
 		}
 	})
 	t.Run("corrupt newest is reported and skipped", func(t *testing.T) {
