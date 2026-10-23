@@ -40,9 +40,11 @@ The port is published on `127.0.0.1` only. Put a TLS reverse proxy on the same
 host in front of it, or set `KYRECOVERY_BIND` in `.env` to the host address your
 proxy reaches.
 
-On first start, a generated `admin` password is printed once to the container log
-(`docker compose logs kyrecovery`); treat that log as secret. A password you
-supplied in `KY_ADMIN_INITIAL_PASSWORD` is not printed. Sign in, run the
+On first start without `KY_ADMIN_INITIAL_PASSWORD`, the generated `admin` password
+is written to `/app/data/initial-admin-password` (0600, owned by uid 10001); the
+log names only the file. Read it with
+`docker compose exec kyrecovery cat /app/data/initial-admin-password`, sign in,
+change the password, then delete the file. Neither password is ever logged. Run the
 [ceremony](docs/CEREMONY.md#ceremony-creating-the-suite-recovery-keypair), then pair products.
 
 The entrypoint runs as root only to `chown` `./data` to uid 10001 on each start,
