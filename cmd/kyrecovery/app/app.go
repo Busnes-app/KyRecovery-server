@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/Busnes-app/ky-primitives/applysetup"
+	"github.com/Busnes-app/kyrecovery-server/internal/appversion"
 	"github.com/Busnes-app/kyrecovery-server/internal/audit"
 	"github.com/Busnes-app/kyrecovery-server/internal/auth"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
@@ -23,9 +24,6 @@ import (
 	"github.com/Busnes-app/kyrecovery-server/internal/server"
 	"github.com/Busnes-app/kyrecovery-server/pkg/client"
 )
-
-// version is this KyRecovery release; release-image.yml refuses a tag that disagrees.
-const version = "0.4.3"
 
 func Run(args []string) {
 	if len(args) < 2 {
@@ -47,7 +45,7 @@ func Run(args []string) {
 	case "pair":
 		cmdPair(args[2:])
 	case "version", "--version":
-		fmt.Println(version)
+		fmt.Println(appversion.String())
 	case "help", "--help", "-h":
 		printUsage()
 	default:
