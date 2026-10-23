@@ -16,6 +16,9 @@
 
 ### Changed
 
+- Security: the image is built with Go 1.27.3 (was 1.27.2) for GO-2026-6809:
+  `crypto/x509` now distrusts compromised intermediate certificates. `go.mod` sets
+  `toolchain go1.27.3` so `go build` from source uses it too.
 - The restore plan returns `steps`, the documented offline restore (download the
   capsule, check its digest, run the product's own `restore` with k shares), instead of
   a `kyquickstart restore --capsule` command that KyQuickStart does not implement. The
