@@ -2,9 +2,11 @@ package app
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/netip"
 	"os"
 	"os/signal"
@@ -124,12 +126,9 @@ func cmdServe(args []string) {
 	}
 
 	authMgr := auth.NewManager(authCfg, database)
-	initPass := os.Getenv("KY_ADMIN_INITIAL_PASSWORD")
-	adminPass, isNew, err := authMgr.EnsureAdminUser(context.Background(), initPass)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: failed ensuring admin user: %v\n", err)
-	} else if isNew {
-		announceAdmin(os.Stdout, adminPass, initPass != "")
+	if err := bootstrapAdmin(context.Background(), database, authMgr, *dataDir, os.Getenv("KY_ADMIN_INITIAL_PASSWORD"), os.Stdout); err != nil {
+		fmt.Fprintf(os.Stderr, "Admin bootstrap failed: %v\n", err)
+		os.Exit(1)
 	}
 
 	ledger := audit.NewLedger(database)
@@ -326,18 +325,74 @@ func cmdPair(args []string) {
 	}
 }
 
-// announceAdmin prints first-start credentials. A password the operator supplied is
-// already known to them and is never echoed into logs.
-func announceAdmin(w io.Writer, password string, supplied bool) {
+// initialAdminPasswordFile holds a generated bootstrap password, never the log.
+const initialAdminPasswordFile = "initial-admin-password"
+
+// bootstrapAdmin creates the local "admin" account when it does not exist. Its password
+// is supplied, or one generated into <dataDir>/initial-admin-password (0600) before the
+// account is written; a file left by a start that died first is reused. If that file
+// cannot be written, startup fails rather than put the password anywhere else.
+func bootstrapAdmin(ctx context.Context, database *db.DB, mgr *auth.Manager, dataDir, supplied string, w io.Writer) error {
+	existing, err := database.GetUserByUsername(ctx, "admin")
+	if err != nil {
+		return fmt.Errorf("look up admin: %w", err)
+	}
+	if existing != nil {
+		return nil
+	}
+	pass, path := supplied, ""
+	if pass == "" {
+		path = filepath.Join(dataDir, initialAdminPasswordFile)
+		if pass, err = initialAdminPassword(path); err != nil {
+			return fmt.Errorf("write %s: %w", path, err)
+		}
+	}
+	if _, _, err := mgr.EnsureAdminUser(ctx, pass); err != nil {
+		return err
+	}
+	announceAdmin(w, path)
+	return nil
+}
+
+// initialAdminPassword creates path exclusively with a fresh password, or returns the
+// one already in it.
+func initialAdminPassword(path string) (string, error) {
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
+	if errors.Is(err, fs.ErrExist) {
+		raw, err := os.ReadFile(path)
+		if pw := strings.TrimSpace(string(raw)); err == nil && pw != "" {
+			return pw, nil
+		}
+		return "", errors.New("file exists but holds no password; remove it and restart")
+	}
+	if err != nil {
+		return "", err
+	}
+	pw, err := auth.GenerateRandomPassword(16)
+	if err == nil {
+		_, err = f.WriteString(pw + "\n")
+	}
+	if cerr := f.Close(); err == nil {
+		err = cerr
+	}
+	if err != nil {
+		os.Remove(path)
+		return "", err
+	}
+	return pw, nil
+}
+
+// announceAdmin reports first-start credentials. It never prints a password: a supplied
+// one is already known to the operator, a generated one is named by its file (path).
+func announceAdmin(w io.Writer, path string) {
 	fmt.Fprintln(w, "================================================================================")
 	fmt.Fprintln(w, "🚀 KyRecovery Server First-Time Startup Initialized")
-	if supplied {
+	if path == "" {
 		fmt.Fprintln(w, "   Local administrator 'admin' created with KY_ADMIN_INITIAL_PASSWORD.")
 	} else {
-		fmt.Fprintln(w, "   Local Administrator Credentials:")
-		fmt.Fprintln(w, "     Username: admin")
-		fmt.Fprintf(w, "     Password: %s\n", password)
-		fmt.Fprintln(w, "   Save this password securely or pair KySignOn SSO in the dashboard.")
+		fmt.Fprintln(w, "   Local administrator 'admin' created. Its one-time password is in")
+		fmt.Fprintf(w, "     %s\n", path)
+		fmt.Fprintln(w, "   Sign in, change it, then delete that file.")
 	}
 	fmt.Fprintln(w, "================================================================================")
 }

@@ -38,9 +38,10 @@ docker compose up -d
 curl -fsS http://127.0.0.1:8095/healthz
 ```
 
-Read `docker compose logs kyrecovery` in a private terminal for the one-time generated
-`admin` password; treat these logs as secret. Alternatively set a generated
-`KY_ADMIN_INITIAL_PASSWORD` in the protected `.env` before first start (it is not logged).
+Read the one-time generated `admin` password with
+`docker compose exec kyrecovery cat /app/data/initial-admin-password`; it is never logged.
+Sign in, change it, then delete the file. Alternatively set a generated
+`KY_ADMIN_INITIAL_PASSWORD` in the protected `.env` before first start (no file is written).
 Open `http://localhost:8095` on the host for a trial; use HTTPS and the exact trusted-proxy
 setting for remote users. Follow the [README](README.md) for transport and account setup.
 

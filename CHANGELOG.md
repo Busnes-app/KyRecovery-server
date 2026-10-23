@@ -28,6 +28,10 @@
   of the name, email and registration time, not a key. The ceremony link reads "Rotate
   recovery key" once a key exists, the login form no longer prefills `admin`, and "Sync
   All" reports its result in the page, counting failures, instead of in an alert.
+- A generated local `admin` password is no longer printed to the log. It is written
+  to `<data-dir>/initial-admin-password` (0600; `/app/data/initial-admin-password` in
+  the image) and the log names only that file; `serve` refuses to start if the file
+  cannot be written. Delete it after the first sign-in. (#48)
 - After a rotation, deposits sealed to the old key are refused with 409 telling the
   product to re-pair. Products pick up a new key only by re-pairing, with the operator
   confirming the key ID.
