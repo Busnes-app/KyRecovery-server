@@ -6,7 +6,11 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o kyrecovery cmd/kyrecovery/main.go
+# Release builds pass the tag's version (X.Y.Z or X.Y.Z.N); other builds report internal/appversion/VERSION.
+ARG VERSION=
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -ldflags="-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=${VERSION}" \
+    -o kyrecovery cmd/kyrecovery/main.go
 
 FROM alpine:3.24
 RUN apk --no-cache add ca-certificates tzdata su-exec
