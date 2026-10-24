@@ -136,8 +136,9 @@ ceremony and deployment guidance, not by the software.
 
 - **Tests:** the security tests named above, plus the whole suite under the race detector on
   every push and pull request (`go` job). The SMB replication tests run against Samba in CI.
-- **Static analysis:** `go vet` and `govulncheck` on every push and pull request. There is no
-  CodeQL or other SAST workflow; the OpenSSF Scorecard workflow reports that as a finding.
+- **Static analysis:** `go vet` and `govulncheck` on every push and pull request, and GitHub CodeQL
+  (default setup, configured in the repository settings rather than a workflow file) for Go,
+  JavaScript/TypeScript and Actions.
 - **Dynamic analysis:** the race detector on the full suite, and `node scripts/test-wasm.mjs`,
   which runs a 3-of-5 ceremony in the built module and checks the key ID, public key and shares.
 - **Releases:** attested images and a repeatable binary ([VERIFYING-RELEASES.md](VERIFYING-RELEASES.md)).
