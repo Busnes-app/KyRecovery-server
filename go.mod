@@ -6,7 +6,7 @@ toolchain go1.27.3
 
 require (
 	github.com/Busnes-app/ky-primitives v0.10.0
-	github.com/Busnes-app/ky-primitives/offsite v0.2.1
+	github.com/Busnes-app/ky-primitives/offsite v0.2.2
 	github.com/cloudsoda/go-smb2 v0.0.0-20260918041005-0c5d69b69701
 	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/pkg/sftp v1.13.11
