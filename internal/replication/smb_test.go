@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hirochachacha/go-smb2"
+	"github.com/cloudsoda/go-smb2"
 
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
 	"github.com/Busnes-app/kyrecovery-server/internal/replication"
@@ -64,7 +64,7 @@ func TestSMBReplication(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer conn.Close()
-	sess, err := d.Dial(conn)
+	sess, err := d.DialConn(ctx, conn, target.Endpoint)
 	if err != nil {
 		t.Fatal(err)
 	}
