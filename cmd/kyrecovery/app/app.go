@@ -257,6 +257,7 @@ func cmdPair(args []string) {
 		fmt.Printf("Pairing Code: %s\n", rec.PairingCode)
 		fmt.Printf("Expires In:   %d minutes (%s)\n", *ttl, rec.ExpiresAt.Format("15:04:05 UTC"))
 		fmt.Println("\nEnter this 6-digit code in the Ky Suite app or busnes.app service to establish automated backup sync.")
+		fmt.Println("It is shown only now; generate a new one if it is lost.")
 
 	case "list":
 		fs := flag.NewFlagSet("pair list", flag.ExitOnError)
@@ -285,12 +286,12 @@ func cmdPair(args []string) {
 		fmt.Println("=== PAIRED APPLICATIONS & CONNECTORS ===")
 		now := time.Now()
 		for _, a := range list {
-			// A code is a credential only while it can still be claimed; show no other.
-			code := "-"
-			if a.Status == "pending" && now.Before(a.ExpiresAt) {
-				code = a.PairingCode
+			// The store keeps only a hash of each code; it is shown once, by pair generate.
+			status := a.Status
+			if a.Status == "pending" && !now.Before(a.ExpiresAt) {
+				status = "expired"
 			}
-			fmt.Printf("- [%s] %s (%s) — Code: %s, Status: %s\n", a.ID, a.AppName, a.ServiceName, code, a.Status)
+			fmt.Printf("- [%s] %s (%s) — Status: %s\n", a.ID, a.AppName, a.ServiceName, status)
 		}
 
 	case "claim":

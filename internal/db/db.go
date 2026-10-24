@@ -2,7 +2,11 @@ package db
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/rand"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"iter"
@@ -67,7 +71,9 @@ type AuditRecord struct {
 // PairedAppRecord represents a connected Ky Suite app or busnes.app service.
 // APIToken and PairingCode are credentials, so they never serialise by default:
 // the pairing code is returned only by the admin route that generates it, and the
-// token only by the claim that mints it.
+// token only by the claim that mints it. The store keeps only their hashes, so a
+// record read back from SQLite carries neither: both are set only on the record
+// returned by the call that created them.
 type PairedAppRecord struct {
 	ID           string     `json:"id"`
 	ServiceName  string     `json:"service_name"`
@@ -132,6 +138,7 @@ type UserRecord struct {
 
 // SessionRecord represents an authenticated user session. ID is the bearer
 // credential the session cookie carries, so it is never serialised into a response.
+// SQLite holds only its SHA-256 (see tokenHash); every method here takes the raw ID.
 type SessionRecord struct {
 	// NativeSSO marks a built-in OIDC login; it is refused once managed setup exists.
 	NativeSSO       bool      `json:"-"`
@@ -437,7 +444,121 @@ func (d *DB) migrate() error {
 			return err
 		}
 	}
-	return d.addColumn("capsules", "verified_at", "DATETIME")
+	if err := d.addColumn("capsules", "verified_at", "DATETIME"); err != nil {
+		return err
+	}
+	return d.hashStoredTokens()
+}
+
+// tokenHash is how a bearer credential is stored: the hex SHA-256 of the token, as
+// KyIdentity stores its session tokens. Session IDs (192 bits) and API tokens (256 bits)
+// are random, so a fast unsalted hash is enough: a copy of the database yields only
+// values that are useless as credentials and cannot be reversed.
+func tokenHash(token string) string {
+	sum := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(sum[:])
+}
+
+// codeHash is how a pairing code is stored. A six-digit code has under 20 bits, so a
+// plain SHA-256 of it is reversed by trying all 900,000 codes; the hash is keyed with a
+// keyring key instead, which a copy of the database without secret.key does not hold.
+func (d *DB) codeHash(code string) string {
+	mac := hmac.New(sha256.New, d.keys.PairingCodeKey())
+	mac.Write([]byte(code))
+	return hex.EncodeToString(mac.Sum(nil))
+}
+
+// newAPIToken mints a product's 256-bit deposit token.
+func newAPIToken() (string, error) {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("failed generating api token: %w", err)
+	}
+	return "kyrec_live_" + hex.EncodeToString(b), nil
+}
+
+// tokenHashMigration names the one-time rewrite of credentials stored as issued.
+const tokenHashMigration = "hash-stored-tokens-v1"
+
+// hashStoredTokens replaces every session ID, API token and pairing code that a store
+// written before hashing kept as issued with its hash, once, in one transaction. Existing
+// sessions and paired products keep working, because lookups hash what they are given. The
+// marker row is written first, so a second process opening the same database waits for the
+// write lock and then sees the marker instead of hashing the hashes.
+func (d *DB) hashStoredTokens() error {
+	if _, err := d.conn.Exec(`CREATE TABLE IF NOT EXISTS schema_migrations (
+		name TEXT PRIMARY KEY,
+		applied_at DATETIME NOT NULL
+	)`); err != nil {
+		return err
+	}
+	tx, err := d.conn.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	res, err := tx.Exec(`INSERT OR IGNORE INTO schema_migrations (name, applied_at) VALUES (?, ?)`, tokenHashMigration, time.Now().UTC())
+	if err != nil {
+		return err
+	}
+	if n, err := res.RowsAffected(); err != nil {
+		return err
+	} else if n == 0 {
+		return nil // already applied
+	}
+
+	type row struct{ id, token, code string }
+	var sessions []string
+	rows, err := tx.Query(`SELECT id FROM sessions`)
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return err
+		}
+		sessions = append(sessions, id)
+	}
+	if err := rows.Close(); err != nil {
+		return err
+	}
+	var apps []row
+	rows, err = tx.Query(`SELECT id, api_token, pairing_code FROM paired_apps`)
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var a row
+		if err := rows.Scan(&a.id, &a.token, &a.code); err != nil {
+			rows.Close()
+			return err
+		}
+		apps = append(apps, a)
+	}
+	if err := rows.Close(); err != nil {
+		return err
+	}
+
+	for _, id := range sessions {
+		if _, err := tx.Exec(`UPDATE sessions SET id = ? WHERE id = ?`, tokenHash(id), id); err != nil {
+			return err
+		}
+	}
+	for _, a := range apps {
+		if _, err := tx.Exec(`UPDATE paired_apps SET api_token = ?, pairing_code = ? WHERE id = ?`,
+			tokenHash(a.token), d.codeHash(a.code), a.id); err != nil {
+			return err
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	if len(sessions)+len(apps) > 0 {
+		log.Printf("db: hashed %d stored session IDs and %d product tokens and pairing codes", len(sessions), len(apps))
+	}
+	return nil
 }
 
 // addColumn adds a column to a table created by an older schema, once.
@@ -662,22 +783,35 @@ func (d *DB) DeleteAuditEventForTest(ctx context.Context, seq uint64) error {
 	return err
 }
 
-// InsertPairedApp stores a pending pairing code record.
+// pairedAppColumns never includes api_token or pairing_code: they hold hashes, and a hash
+// copied into APIToken or PairingCode would read as the credential it is not.
+const pairedAppColumns = `id, service_name, app_name, status, recovery_key_id, expires_at, paired_at, last_backup_at, created_at`
+
+// InsertPairedApp stores a pairing record, keeping only the hashes of its pairing code and
+// API token. A record with no API token (a pending code) gets the hash of a random value
+// nobody holds; ClaimPairingCode replaces it with the hash of the token it mints.
 func (d *DB) InsertPairedApp(ctx context.Context, app PairedAppRecord) error {
+	token := app.APIToken
+	if token == "" {
+		var err error
+		if token, err = newAPIToken(); err != nil {
+			return err
+		}
+	}
 	q := `INSERT INTO paired_apps (id, service_name, app_name, api_token, pairing_code, status, recovery_key_id, expires_at, created_at)
 	      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-	_, err := d.conn.ExecContext(ctx, q, app.ID, app.ServiceName, app.AppName, app.APIToken, app.PairingCode, app.Status,
+	_, err := d.conn.ExecContext(ctx, q, app.ID, app.ServiceName, app.AppName, tokenHash(token), d.codeHash(app.PairingCode), app.Status,
 		app.RecoveryKeyID, app.ExpiresAt.UTC(), app.CreatedAt.UTC())
 	return err
 }
 
 // GetPairedAppByCode finds a pending pairing code.
 func (d *DB) GetPairedAppByCode(ctx context.Context, code string) (*PairedAppRecord, error) {
-	q := `SELECT id, service_name, app_name, api_token, pairing_code, status, recovery_key_id, expires_at, paired_at, last_backup_at, created_at
+	q := `SELECT ` + pairedAppColumns + `
 	      FROM paired_apps WHERE pairing_code = ?`
-	row := d.conn.QueryRowContext(ctx, q, code)
+	row := d.conn.QueryRowContext(ctx, q, d.codeHash(code))
 	var a PairedAppRecord
-	err := row.Scan(&a.ID, &a.ServiceName, &a.AppName, &a.APIToken, &a.PairingCode, &a.Status, &a.RecoveryKeyID, &a.ExpiresAt, &a.PairedAt, &a.LastBackupAt, &a.CreatedAt)
+	err := row.Scan(&a.ID, &a.ServiceName, &a.AppName, &a.Status, &a.RecoveryKeyID, &a.ExpiresAt, &a.PairedAt, &a.LastBackupAt, &a.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -687,13 +821,14 @@ func (d *DB) GetPairedAppByCode(ctx context.Context, code string) (*PairedAppRec
 	return &a, nil
 }
 
-// GetPairedAppByToken finds an active paired app by its API bearer token.
+// GetPairedAppByToken finds an active paired app by its API bearer token. The lookup is
+// by the token's hash: the database never compares against, or holds, the token itself.
 func (d *DB) GetPairedAppByToken(ctx context.Context, token string) (*PairedAppRecord, error) {
-	q := `SELECT id, service_name, app_name, api_token, pairing_code, status, recovery_key_id, expires_at, paired_at, last_backup_at, created_at
+	q := `SELECT ` + pairedAppColumns + `
 	      FROM paired_apps WHERE api_token = ? AND status = 'paired'`
-	row := d.conn.QueryRowContext(ctx, q, token)
+	row := d.conn.QueryRowContext(ctx, q, tokenHash(token))
 	var a PairedAppRecord
-	err := row.Scan(&a.ID, &a.ServiceName, &a.AppName, &a.APIToken, &a.PairingCode, &a.Status, &a.RecoveryKeyID, &a.ExpiresAt, &a.PairedAt, &a.LastBackupAt, &a.CreatedAt)
+	err := row.Scan(&a.ID, &a.ServiceName, &a.AppName, &a.Status, &a.RecoveryKeyID, &a.ExpiresAt, &a.PairedAt, &a.LastBackupAt, &a.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -704,6 +839,8 @@ func (d *DB) GetPairedAppByToken(ctx context.Context, token string) (*PairedAppR
 }
 
 // ClaimPairingCode consumes a pairing code and marks it paired with specific app name/service.
+// It mints the product's API token here and stores only its hash, so the returned record is
+// the one and only place the token exists in plaintext.
 func (d *DB) ClaimPairingCode(ctx context.Context, code, serviceName, appName, recoveryKeyID string) (*PairedAppRecord, error) {
 	app, err := d.GetPairedAppByCode(ctx, code)
 	if err != nil {
@@ -721,10 +858,14 @@ func (d *DB) ClaimPairingCode(ctx context.Context, code, serviceName, appName, r
 
 	// The status and expiry guards live in the UPDATE so two concurrent claims of the same
 	// code cannot both mint a token; the checks above only shape the error message.
+	token, err := newAPIToken()
+	if err != nil {
+		return nil, err
+	}
 	now := time.Now().UTC()
-	q := `UPDATE paired_apps SET status = 'paired', service_name = ?, app_name = ?, paired_at = ?, recovery_key_id = ?
+	q := `UPDATE paired_apps SET status = 'paired', service_name = ?, app_name = ?, paired_at = ?, recovery_key_id = ?, api_token = ?
 	      WHERE id = ? AND status = 'pending' AND expires_at > ?`
-	res, err := d.conn.ExecContext(ctx, q, serviceName, appName, now, recoveryKeyID, app.ID, now)
+	res, err := d.conn.ExecContext(ctx, q, serviceName, appName, now, recoveryKeyID, tokenHash(token), app.ID, now)
 	if err != nil {
 		return nil, err
 	}
@@ -735,6 +876,7 @@ func (d *DB) ClaimPairingCode(ctx context.Context, code, serviceName, appName, r
 	}
 
 	app.Status = "paired"
+	app.APIToken = token
 	app.ServiceName = serviceName
 	app.AppName = appName
 	app.PairedAt = &now
@@ -752,7 +894,7 @@ func (d *DB) UpdateAppLastBackup(ctx context.Context, id string) error {
 
 // ListPairedApps returns all registered and pending paired applications.
 func (d *DB) ListPairedApps(ctx context.Context) ([]PairedAppRecord, error) {
-	q := `SELECT id, service_name, app_name, api_token, pairing_code, status, recovery_key_id, expires_at, paired_at, last_backup_at, created_at
+	q := `SELECT ` + pairedAppColumns + `
 	      FROM paired_apps ORDER BY created_at DESC`
 	rows, err := d.conn.QueryContext(ctx, q)
 	if err != nil {
@@ -763,7 +905,7 @@ func (d *DB) ListPairedApps(ctx context.Context) ([]PairedAppRecord, error) {
 	var list []PairedAppRecord
 	for rows.Next() {
 		var a PairedAppRecord
-		if err := rows.Scan(&a.ID, &a.ServiceName, &a.AppName, &a.APIToken, &a.PairingCode, &a.Status, &a.RecoveryKeyID, &a.ExpiresAt, &a.PairedAt, &a.LastBackupAt, &a.CreatedAt); err != nil {
+		if err := rows.Scan(&a.ID, &a.ServiceName, &a.AppName, &a.Status, &a.RecoveryKeyID, &a.ExpiresAt, &a.PairedAt, &a.LastBackupAt, &a.CreatedAt); err != nil {
 			return nil, err
 		}
 		list = append(list, a)
@@ -903,7 +1045,7 @@ func (d *DB) ListRecoveryKeys(ctx context.Context) ([]RecoveryKeyRecord, error) 
 func (d *DB) InsertSession(ctx context.Context, s SessionRecord) error {
 	q := `INSERT INTO sessions (id, user_id, email, name, role, expires_at, created_at,identity_issuer,identity_subject)
 	      SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?`
-	args := []any{s.ID, s.UserID, s.Email, s.Name, s.Role, s.ExpiresAt.UTC(), s.CreatedAt.UTC(), s.IdentityIssuer, s.IdentitySubject}
+	args := []any{tokenHash(s.ID), s.UserID, s.Email, s.Name, s.Role, s.ExpiresAt.UTC(), s.CreatedAt.UTC(), s.IdentityIssuer, s.IdentitySubject}
 	if strings.HasPrefix(s.UserID, "installer-") || s.IdentityIssuer != "" {
 		if s.UserID != InstallerIdentityID(s.IdentityIssuer, s.IdentitySubject) || s.Role != "admin" {
 			return errors.New("invalid managed session binding")
@@ -930,12 +1072,12 @@ func (d *DB) InsertSession(ctx context.Context, s SessionRecord) error {
 	return nil
 }
 
-// GetSession retrieves an active session by session ID.
+// GetSession retrieves an active session by its raw session ID, looked up by hash.
 func (d *DB) GetSession(ctx context.Context, id string) (*SessionRecord, error) {
-	q := `SELECT id, user_id, email, name, role, expires_at, created_at,identity_issuer,identity_subject FROM sessions WHERE id = ?`
-	row := d.conn.QueryRowContext(ctx, q, id)
-	var s SessionRecord
-	if err := row.Scan(&s.ID, &s.UserID, &s.Email, &s.Name, &s.Role, &s.ExpiresAt, &s.CreatedAt, &s.IdentityIssuer, &s.IdentitySubject); err != nil {
+	q := `SELECT user_id, email, name, role, expires_at, created_at,identity_issuer,identity_subject FROM sessions WHERE id = ?`
+	row := d.conn.QueryRowContext(ctx, q, tokenHash(id))
+	s := SessionRecord{ID: id}
+	if err := row.Scan(&s.UserID, &s.Email, &s.Name, &s.Role, &s.ExpiresAt, &s.CreatedAt, &s.IdentityIssuer, &s.IdentitySubject); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
@@ -949,17 +1091,18 @@ func (d *DB) GetSession(ctx context.Context, id string) (*SessionRecord, error) 
 }
 
 // DeleteUserSessionsExcept ends every session belonging to a user apart from one,
-// so a password change cannot leave the old password's sessions alive.
+// so a password change cannot leave the old password's sessions alive. keepSessionID is
+// the raw ID, as GetSession returns it.
 func (d *DB) DeleteUserSessionsExcept(ctx context.Context, userID, keepSessionID string) error {
 	q := `DELETE FROM sessions WHERE user_id = ? AND id != ?`
-	_, err := d.conn.ExecContext(ctx, q, userID, keepSessionID)
+	_, err := d.conn.ExecContext(ctx, q, userID, tokenHash(keepSessionID))
 	return err
 }
 
-// DeleteSession removes a session from SQLite.
+// DeleteSession removes a session, given its raw ID, from SQLite.
 func (d *DB) DeleteSession(ctx context.Context, id string) error {
 	q := `DELETE FROM sessions WHERE id = ?`
-	_, err := d.conn.ExecContext(ctx, q, id)
+	_, err := d.conn.ExecContext(ctx, q, tokenHash(id))
 	return err
 }
 

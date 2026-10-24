@@ -77,6 +77,12 @@ func (k *Keyring) LedgerKey() []byte {
 	return k.derive("kyrecovery/audit-ledger/v1")
 }
 
+// PairingCodeKey returns the HMAC key pairing codes are stored under. A six-digit code is
+// too small a space for an unkeyed hash to hide it from someone holding the database.
+func (k *Keyring) PairingCodeKey() []byte {
+	return k.derive("kyrecovery/pairing-code/v1")
+}
+
 // Seal encrypts a stored credential. Empty and already-sealed values pass through.
 func (k *Keyring) Seal(plaintext string) (string, error) {
 	if plaintext == "" || IsSealed(plaintext) {

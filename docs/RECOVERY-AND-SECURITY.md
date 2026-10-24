@@ -43,8 +43,9 @@ the old key, and until no offsite copy of its capsules remains.
 - **Credentials.** A product API token is shown once, to the product that claims
   the pairing code; a pairing code is shown once, to the administrator who
   generates it. Neither appears in the paired products listing, and no response
-  body contains a session token. The `pair` CLI reads the database directly and
-  prints codes that can still be claimed (see [CLI](OPERATIONS.md#cli)).
+  body contains a session token. The database keeps only hashes of session IDs,
+  API tokens and pairing codes, so a copy of it or of a backup holds none of
+  them, and `pair list` cannot print a code (see [CLI](OPERATIONS.md#cli)).
 - **Transport.** Session cookies are `HttpOnly`, and `Secure` when the login
   arrived over TLS (directly or via `X-Forwarded-Proto`). Run behind TLS and set
   `--cookie-secure=true` to make that unconditional. Changing a password signs
