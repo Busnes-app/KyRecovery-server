@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hirochachacha/go-smb2"
+	"github.com/cloudsoda/go-smb2"
 )
 
 // legacySMBClient reads historical capsules from a share. go-smb2 only speaks SMB 2 and 3, so
@@ -66,7 +66,7 @@ func (c *legacySMBClient) mount(ctx context.Context) (*smb2.Share, func(), error
 		Negotiator: smb2.Negotiator{RequireMessageSigning: true},
 		Initiator:  &smb2.NTLMInitiator{User: user, Password: c.Secret, Domain: domain},
 	}
-	sess, err := d.DialContext(ctx, conn)
+	sess, err := d.DialConn(ctx, conn, c.Addr)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
