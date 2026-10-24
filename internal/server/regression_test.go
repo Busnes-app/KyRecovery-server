@@ -1,6 +1,8 @@
 package server_test
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -185,23 +187,29 @@ func TestPairingListLeaksNoCredentials(t *testing.T) {
 		t.Error("generate returned the API token to the administrator")
 	}
 
-	apps, err := database.ListPairedApps(t.Context())
-	if err != nil || len(apps) == 0 {
-		t.Fatalf("ListPairedApps: %v", err)
-	}
-	token := apps[0].APIToken
-
-	for _, role := range []string{auth.RoleViewer, auth.RoleOperator, auth.RoleAdmin} {
+	list := func(role string) string {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/api/pairing/list", nil)
 		r.AddCookie(sessionCookie(t, database, role))
 		srv.ServeHTTP(w, r)
-		body := w.Body.String()
-		if strings.Contains(body, token) {
-			t.Errorf("%s read the product API token from /api/pairing/list", role)
-		}
-		if strings.Contains(body, code) {
+		return w.Body.String()
+	}
+	roles := []string{auth.RoleViewer, auth.RoleOperator, auth.RoleAdmin}
+	for _, role := range roles {
+		if strings.Contains(list(role), code) {
 			t.Errorf("%s read the live pairing code from /api/pairing/list", role)
+		}
+	}
+
+	claimed, err := database.ClaimPairingCode(t.Context(), code, "kypassword", "p", "key")
+	if err != nil || claimed.APIToken == "" {
+		t.Fatalf("claim: %v", err)
+	}
+	sum := sha256.Sum256([]byte(claimed.APIToken))
+	for _, role := range roles {
+		body := list(role)
+		if strings.Contains(body, claimed.APIToken) || strings.Contains(body, hex.EncodeToString(sum[:])) {
+			t.Errorf("%s read the product API token or its stored hash from /api/pairing/list", role)
 		}
 	}
 }

@@ -103,6 +103,7 @@ ceremony and deployment guidance, not by the software.
 | Password guessing | Argon2id PHC hashes via `ky-primitives/password`; 20 login attempts per address and 5 per account per 15 minutes | `internal/auth/auth.go`, `internal/server/limits.go` |
 | Pairing-code guessing and double claims | Six-digit code from `crypto/rand`, at most 60 minutes, rate limited; the single-use and expiry guards are in the SQL `UPDATE` | `internal/pairing/pairing.go`, `internal/db/db.go` |
 | Session theft | 24-byte random session ID in an `HttpOnly`, `SameSite=Lax` cookie, `Secure` over TLS; a password change ends the user's other sessions | `internal/auth/auth.go`, `internal/db/db.go` (`DeleteUserSessionsExcept`) |
+| Credentials read from a copy of the database or a backup | Only hashes are stored: SHA-256 of session IDs and API tokens, HMAC-SHA256 of pairing codes under a keyring key; lookups hash the presented value. The API token is minted at claim and returned once. Stores from before hashing are rewritten in place on open. `TestStolenDatabaseYieldsNoUsableCredentials` presents the stored values as credentials; `TestOpenHashesCredentialsStoredAsIssued` covers the rewrite | `internal/db/db.go` (`tokenHash`, `codeHash`, `hashStoredTokens`), `internal/db/tokens_test.go` |
 | Cross-site request forgery | `SameSite=Lax` session cookie on every route, plus `http.NewCrossOriginProtection` on key rotation and retirement, retention, pairing clear and the backup writes | `internal/server/server.go` |
 | Cross-site scripting in the dashboard | Every interpolated value goes through `esc` or `escJs`; `TestEmbeddedDashboardEscapesEveryInnerHTMLSink` fails on a new unescaped sink; CSP with `frame-ancestors 'none'`, and a stricter one with no inline script on `/admin/ceremony` | `internal/server/static/`, `internal/server/regression_test.go`, `internal/server/server.go` |
 | SQL injection | `database/sql` with `?` parameters; the one formatted statement, `ALTER TABLE` in `addColumn`, takes table and column names from constants in the migration code | `internal/db/db.go` |
@@ -115,9 +116,13 @@ ceremony and deployment guidance, not by the software.
 
 ## Residual risk
 
-- **Session IDs and product API tokens are stored as issued**, not hashed, in `kyrecovery.db`
-  (`sessions.id`, `paired_apps.api_token`). Someone with a copy of the database can use a live
-  session or deposit as a paired product until it is revoked. They still cannot open a capsule.
+- **Pairing codes are hashed under a key from `secret.key`.** Someone with the database **and**
+  the key file can recover a pending code by trying all 900,000; it is valid for at most 60
+  minutes and single use. Session IDs and API tokens are unkeyed SHA-256 of 192- and 256-bit
+  random values and are not recoverable from either.
+- **A binary older than the hashing release cannot use a hashed store.** Rolling back after an
+  upgrade signs everyone out and makes paired products' deposits fail with `401` until they
+  re-pair. Keep the pre-upgrade backup if a rollback may be needed.
 - **Cross-origin protection is uneven.** Older state-changing routes (pairing generate and revoke,
   recovery-key import, replication targets, SSO configuration, password change) rely on the
   `SameSite=Lax` cookie alone, which does not stop a request from another site on the same

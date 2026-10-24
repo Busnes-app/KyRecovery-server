@@ -3,7 +3,6 @@ package pairing
 import (
 	"context"
 	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 	"math/big"
 	"time"
@@ -11,7 +10,8 @@ import (
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
 )
 
-// GeneratePairingCode creates a new ephemeral pairing code for connecting a product.
+// GeneratePairingCode creates a new ephemeral pairing code for connecting a product. The
+// returned record is the only place the code exists in plaintext: the store keeps its hash.
 func GeneratePairingCode(ctx context.Context, database *db.DB, ttl time.Duration, serviceName, appName string) (*db.PairedAppRecord, error) {
 	if ttl <= 0 {
 		ttl = 15 * time.Minute // 15-minute default pairing window
@@ -30,19 +30,12 @@ func GeneratePairingCode(ctx context.Context, database *db.DB, ttl time.Duration
 	}
 	pairingCode := fmt.Sprintf("%06d", n.Int64()+100000)
 
-	// Generate random 256-bit API token
-	tokenBytes := make([]byte, 32)
-	if _, err := rand.Read(tokenBytes); err != nil {
-		return nil, fmt.Errorf("failed generating api token: %w", err)
-	}
-	apiToken := fmt.Sprintf("kyrec_live_%s", hex.EncodeToString(tokenBytes))
-
+	// No API token yet: ClaimPairingCode mints it and hands it to the claiming product only.
 	now := time.Now().UTC()
 	record := db.PairedAppRecord{
 		ID:          fmt.Sprintf("pair-%d", now.UnixNano()),
 		ServiceName: serviceName,
 		AppName:     appName,
-		APIToken:    apiToken,
 		PairingCode: pairingCode,
 		Status:      "pending",
 		ExpiresAt:   now.Add(ttl),

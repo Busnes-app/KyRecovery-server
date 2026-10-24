@@ -57,23 +57,28 @@ func seedPairings(t *testing.T, dir string) (live, claimed, revoked, expired str
 	return "111111", "222222", "333333", "444444"
 }
 
-func TestPairListShowsOnlyClaimableCodes(t *testing.T) {
+// The store keeps only a hash of each pairing code, so pair list has no code to print,
+// even for a live one: the code is shown once, by pair generate.
+func TestPairListPrintsNoCodes(t *testing.T) {
 	dir := t.TempDir()
 	live, claimed, revoked, expired := seedPairings(t, dir)
 	out := captureStdout(t, func() { cmdPair([]string{"list", "--data-dir", dir}) })
-	if !strings.Contains(out, live) {
-		t.Errorf("live pending code missing:\n%s", out)
+	if !strings.Contains(out, "[pair-live]") || !strings.Contains(out, "Status: pending") {
+		t.Errorf("live pending row missing:\n%s", out)
 	}
-	for _, code := range []string{claimed, revoked, expired} {
+	if !strings.Contains(out, "[pair-expired]") || !strings.Contains(out, "Status: expired") {
+		t.Errorf("expired pending row not marked expired:\n%s", out)
+	}
+	for _, code := range []string{live, claimed, revoked, expired} {
 		if strings.Contains(out, code) {
-			t.Errorf("code %s of a claimed, revoked or expired row printed:\n%s", code, out)
+			t.Errorf("code %s printed by pair list:\n%s", code, out)
 		}
 	}
 }
 
 func TestPairHonoursDataDirEnv(t *testing.T) {
 	dir := t.TempDir()
-	live, _, _, _ := seedPairings(t, dir)
+	seedPairings(t, dir)
 	t.Setenv("KYRECOVERY_DATA_DIR", dir)
 	cwd := t.TempDir()
 	if err := os.Mkdir(filepath.Join(cwd, "data"), 0o700); err != nil {
@@ -81,7 +86,7 @@ func TestPairHonoursDataDirEnv(t *testing.T) {
 	}
 	t.Chdir(cwd)
 	out := captureStdout(t, func() { cmdPair([]string{"list"}) })
-	if !strings.Contains(out, live) {
+	if !strings.Contains(out, "[pair-live]") {
 		t.Fatalf("pair list ignored KYRECOVERY_DATA_DIR:\n%s", out)
 	}
 }

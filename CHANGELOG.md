@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Security
+
+- Session IDs, product API tokens and pairing codes are no longer stored as issued.
+  `kyrecovery.db` keeps the SHA-256 of each session ID and API token and a keyed
+  HMAC-SHA256 of each pairing code, so a copy of the database or of a backup no longer
+  holds a usable credential. Existing stores are rewritten in place the first time the
+  new binary opens them; signed-in users and paired products keep working. An older
+  binary cannot use the rewritten store (users are signed out and products must
+  re-pair), so keep the pre-upgrade backup if you may roll back.
+- The API token is now minted when a product claims its code, not when the code is
+  generated, and is returned only in the claim response.
+- `pair list` no longer prints any pairing code; `pair generate` shows it once.
+
 ## 0.4.3 — 2026-10-23
 
 ### Added

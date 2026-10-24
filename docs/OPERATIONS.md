@@ -26,8 +26,9 @@ the image sets `/app/data`:
 docker exec -u kyrecovery kyrecovery-server /app/kyrecovery pair generate --service kynotes --app "KyNotes"
 ```
 
-`pair generate` prints the new code, and `pair list` prints the code of each
-pending, unexpired row (`-` for the rest). Treat their output as secret.
+`pair generate` prints the new code once; treat its output as secret. The store
+keeps only a keyed hash of the code, so `pair list` shows each row's status and
+never a code: generate a new one if a code is lost.
 
 ## Configuration
 
