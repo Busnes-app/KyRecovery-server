@@ -111,6 +111,8 @@ go build -o kyrecovery cmd/kyrecovery/main.go
 ./kyrecovery help
 ```
 
+The `go` job's `release binary is repeatable` step builds `cmd/kyrecovery/main.go` the way the Dockerfile does (`-trimpath`, from a `git archive` copy) in two directories and requires identical bytes. Keep the Dockerfile's `go build` and that step in step; `docs/VERIFYING-RELEASES.md` gives users the same command.
+
 Rebuild the ceremony module and prove the committed artefact matches, then run it:
 ```bash
 scripts/build-wasm.sh && git diff --exit-code -- internal/server/static/wasm
@@ -140,6 +142,9 @@ node scripts/test-wasm.mjs
 - Verify vendored files with `node internal/server/static/ky-ui/check-vendor.mjs` from this document's directory. Builds/CI run that check. Rendered evidence and capture limitations are recorded in the repository-root `UI-VERIFICATION.md`.
 
 ## Child DOX Index
+- `docs/ASSURANCE-CASE.md`: threat model, trust boundaries and weakness → counter → code table; update it in the same change when a trust boundary, security requirement or a listed code path moves.
+- `docs/VERIFYING-RELEASES.md`: how users verify a release image and rebuild its binary; update it when `release-image.yml`, the Dockerfile's `go build` or the image layout changes.
+- `CONTRIBUTING.md`: contribution process, test policy and the coding standard with the CI step enforcing each.
 - `docs/INSTALLER_SETUP.md`: installer setup and runtime security contracts; read before changing setup, identity grants, signed directory or forwarded-header handling.
 - `docs/plans/2026-10-10-release-readiness-handoff.md`: read when resuming the release-readiness and backup/restore work; lists local changes, next steps, and verification limits.
 - `docs/plans/2026-10-08-release-readiness-review.md`: read before planning the backup/restore implementation or assessing its release gates; records spec corrections and verification against current main.
@@ -162,4 +167,4 @@ node scripts/test-wasm.mjs
 
 ## README and topic guides
 
-Keep `README.md` as the concise product overview and navigation. Detailed procedures live in `docs/CEREMONY.md`, `docs/DEPOSITS.md`, `docs/INTEGRITY-AND-AUDIT.md`, `docs/RETENTION.md`, `docs/RECOVERY-AND-SECURITY.md`, `docs/BACKUP-STATUS.md`, `docs/OPERATIONS.md`. Update the owning topic guide and preserve README links when a procedure changes. Commands in these guides run from the repository root.
+Keep `README.md` as the concise product overview and navigation. Detailed procedures live in `docs/CEREMONY.md`, `docs/DEPOSITS.md`, `docs/INTEGRITY-AND-AUDIT.md`, `docs/RETENTION.md`, `docs/RECOVERY-AND-SECURITY.md`, `docs/BACKUP-STATUS.md`, `docs/OPERATIONS.md`, `docs/VERIFYING-RELEASES.md`, `docs/ASSURANCE-CASE.md`. Update the owning topic guide and preserve README links when a procedure changes. Commands in these guides run from the repository root.

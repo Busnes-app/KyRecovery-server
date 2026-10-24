@@ -29,6 +29,9 @@ the old key, and until no offsite copy of its capsules remains.
 
 ## Security model
 
+[Assurance case](ASSURANCE-CASE.md) ties these protections to the threat model and the code;
+[Verifying releases](VERIFYING-RELEASES.md) checks an image's provenance and rebuilds its binary.
+
 - **Roles.** Every `/api/` route is authorized against `viewer` < `operator` <
   `admin` by the `apiPolicy` table; anything unlisted defaults to `admin`.
   Viewers read; operators verify the chain, sync replication and download
