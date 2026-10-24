@@ -76,6 +76,22 @@ jobs:
       - run: test -z "$(gofmt -l $(git ls-files '*.go'))"
       - run: go mod tidy && git diff --exit-code go.mod go.sum && go mod verify
       - run: go vet ./...
+      # The release binary must not depend on where it is built: build it the way the
+      # Dockerfile does (no .git in the context, -trimpath, the main.go file argument) from two
+      # directories and require identical bytes. The ceremony.wasm it embeds is the committed
+      # one, which the build-wasm step below proves is rebuilt from source byte for byte.
+      # docs/VERIFYING-RELEASES.md tells users how to repeat this against a release image.
+      - name: release binary is repeatable
+        run: |
+          set -euo pipefail
+          ld="-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=0.0.0"
+          for d in "$RUNNER_TEMP/a" "$RUNNER_TEMP/elsewhere/b"; do
+            mkdir -p "$d/src"
+            git archive HEAD | tar -x -C "$d/src"
+            (cd "$d/src" && CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="$ld" -o "$d/kyrecovery" cmd/kyrecovery/main.go)
+          done
+          sha256sum "$RUNNER_TEMP/a/kyrecovery" "$RUNNER_TEMP/elsewhere/b/kyrecovery"
+          cmp "$RUNNER_TEMP/a/kyrecovery" "$RUNNER_TEMP/elsewhere/b/kyrecovery"
       - run: go build ./...
       - run: go test -race -count=1 ./...
       # Bounded fuzzing, roughly 10-20 s per target. Minimising a new input may take the

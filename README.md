@@ -75,3 +75,6 @@ account.
 - [Recovery and security](docs/RECOVERY-AND-SECURITY.md) — Restore, Security model, Upgrading from the previous KyRecovery. <a id="restore"></a><a id="security-model"></a><a id="upgrading-from-the-previous-kyrecovery"></a>
 - [Backup status](docs/BACKUP-STATUS.md) — Backup status and restore planning. <a id="backup-status-and-restore-planning"></a>
 - [Operations](docs/OPERATIONS.md) — CLI, Configuration, Verify, Upgrading to the secure compose defaults, and related procedures. <a id="cli"></a><a id="configuration"></a><a id="verify"></a><a id="upgrading-to-the-secure-compose-defaults"></a><a id="installer-setup"></a>
+- [Verifying releases](docs/VERIFYING-RELEASES.md) — Check a release image's signature and source commit, and rebuild its binary to the same bytes.
+- [Assurance case](docs/ASSURANCE-CASE.md) — Threat model, trust boundaries, and why the security requirements are met.
+- [Contributing](CONTRIBUTING.md) — How to report bugs, propose changes, the test policy and the coding standard.
