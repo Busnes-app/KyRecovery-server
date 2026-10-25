@@ -3,18 +3,19 @@ package replication
 import (
 	"bytes"
 	"context"
-	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 )
 
-// S3Client provides pure-Go AWS SigV4 signed operations for S3 and Cloudflare R2.
+// S3Client provides AWS SigV4 signed operations for S3 and Cloudflare R2.
 type S3Client struct {
 	Endpoint  string
 	Bucket    string
@@ -22,6 +23,10 @@ type S3Client struct {
 	AccessKey string
 	SecretKey string
 	client    *http.Client
+	now       func() time.Time
+	// The signer caches derived keys by access key ID, so it is never shared between
+	// clients holding different secrets.
+	signer *v4.Signer
 }
 
 // NewS3Client creates a new S3 client.
@@ -39,6 +44,9 @@ func NewS3Client(endpoint, bucket, region, accessKey, secretKey string) *S3Clien
 		AccessKey: accessKey,
 		SecretKey: secretKey,
 		client:    &http.Client{Timeout: 60 * time.Second, CheckRedirect: func(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse }},
+		now:       time.Now,
+		// S3 object keys are escaped once, never twice as other SigV4 services are.
+		signer: v4.NewSigner(func(o *v4.SignerOptions) { o.DisableURIPathEscaping = true }),
 	}
 }
 
@@ -47,8 +55,6 @@ func (c *S3Client) PutObject(ctx context.Context, key string, data io.Reader, si
 	if contentType == "" {
 		contentType = "application/octet-stream"
 	}
-
-	reqURL := c.buildURL(key)
 
 	// SigV4 signs a hash of the body, so the body has to be read twice. A capsule
 	// is a file, so hash one pass and rewind rather than holding the whole archive
@@ -78,49 +84,19 @@ func (c *S3Client) PutObject(ctx context.Context, key string, data io.Reader, si
 		size, body = int64(len(bodyBytes)), bytes.NewReader(bodyBytes)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, reqURL, body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, c.buildURL(key), nil)
 	if err != nil {
 		return err
 	}
-	req.ContentLength = size
-
-	now := time.Now().UTC()
-	dateStamp := now.Format("20060102")
-	amzDate := now.Format("20060102T150405Z")
-
-	parsedURL, _ := url.Parse(reqURL)
-	host := parsedURL.Host
-
-	req.Header.Set("Host", host)
-	req.Header.Set("Content-Type", contentType)
-	req.Header.Set("Content-Length", fmt.Sprintf("%d", size))
-	req.Header.Set("x-amz-date", amzDate)
 	req.Header.Set("x-amz-content-sha256", payloadHashHex)
-
-	// Build Canonical Request
-	canonicalHeaders := fmt.Sprintf("host:%s\nx-amz-content-sha256:%s\nx-amz-date:%s\n", host, payloadHashHex, amzDate)
-	signedHeaders := "host;x-amz-content-sha256;x-amz-date"
-	canonicalURI := parsedURL.EscapedPath()
-	if canonicalURI == "" {
-		canonicalURI = "/"
+	// Signed before Content-Type and the body are attached, so neither is in the
+	// signature, as before.
+	creds := aws.Credentials{AccessKeyID: c.AccessKey, SecretAccessKey: c.SecretKey}
+	if err := c.signer.SignHTTP(ctx, creds, req, payloadHashHex, "s3", c.Region, c.now()); err != nil {
+		return fmt.Errorf("failed signing S3 request: %w", err)
 	}
-
-	canonicalRequest := fmt.Sprintf("PUT\n%s\n\n%s\n%s\n%s", canonicalURI, canonicalHeaders, signedHeaders, payloadHashHex)
-	canonicalRequestHash := sha256.Sum256([]byte(canonicalRequest))
-
-	// String to Sign
-	credentialScope := fmt.Sprintf("%s/%s/s3/aws4_request", dateStamp, c.Region)
-	stringToSign := fmt.Sprintf("AWS4-HMAC-SHA256\n%s\n%s\n%s", amzDate, credentialScope, hex.EncodeToString(canonicalRequestHash[:]))
-
-	// Signing Key
-	signingKey := getSignatureKey(c.SecretKey, dateStamp, c.Region, "s3")
-	signature := hmacSHA256(signingKey, []byte(stringToSign))
-	signatureHex := hex.EncodeToString(signature)
-
-	// Authorization Header
-	authHeader := fmt.Sprintf("AWS4-HMAC-SHA256 Credential=%s/%s, SignedHeaders=%s, Signature=%s",
-		c.AccessKey, credentialScope, signedHeaders, signatureHex)
-	req.Header.Set("Authorization", authHeader)
+	req.Header.Set("Content-Type", contentType)
+	req.Body, req.ContentLength = io.NopCloser(body), size
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -148,18 +124,4 @@ func (c *S3Client) buildURL(key string) string {
 		return fmt.Sprintf("%s/%s", c.Endpoint, key)
 	}
 	return fmt.Sprintf("%s/%s/%s", c.Endpoint, c.Bucket, key)
-}
-
-func hmacSHA256(key []byte, data []byte) []byte {
-	h := hmac.New(sha256.New, key)
-	h.Write(data)
-	return h.Sum(nil)
-}
-
-func getSignatureKey(secret, dateStamp, regionName, serviceName string) []byte {
-	kDate := hmacSHA256([]byte("AWS4"+secret), []byte(dateStamp))
-	kRegion := hmacSHA256(kDate, []byte(regionName))
-	kService := hmacSHA256(kRegion, []byte(serviceName))
-	kSigning := hmacSHA256(kService, []byte("aws4_request"))
-	return kSigning
 }
