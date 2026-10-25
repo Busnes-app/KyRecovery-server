@@ -7,6 +7,7 @@ toolchain go1.27.3
 require (
 	github.com/Busnes-app/ky-primitives v0.10.0
 	github.com/Busnes-app/ky-primitives/offsite v0.2.2
+	github.com/aws/aws-sdk-go-v2 v1.47.4
 	github.com/cloudsoda/go-smb2 v0.0.0-20260918041005-0c5d69b69701
 	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/pkg/sftp v1.13.11
@@ -16,6 +17,7 @@ require (
 )
 
 require (
+	github.com/aws/smithy-go v1.28.6 // indirect
 	github.com/cloudsoda/sddl v0.0.0-20250224235906-926454e91efc // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/geoffgarside/ber v1.1.0 // indirect
