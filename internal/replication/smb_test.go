@@ -2,6 +2,7 @@ package replication_test
 
 import (
 	"context"
+	"crypto/fips140"
 	"crypto/sha256"
 	"fmt"
 	"github.com/Busnes-app/ky-primitives/offsite"
@@ -45,6 +46,16 @@ func TestSMBReplication(t *testing.T) {
 	database, mgr, capID := newCapsuleFixture(t)
 	if err := database.InsertReplicationTarget(ctx, target); err != nil {
 		t.Fatal(err)
+	}
+	if fips140.Enabled() {
+		if err := mgr.TestTarget(ctx, target); err == nil || !strings.Contains(err.Error(), "SMB/NTLM") {
+			t.Fatalf("profile accepted SMB target: %v", err)
+		}
+		rec, err := mgr.SyncCapsule(ctx, capID, target.ID)
+		if err == nil || rec.Status != "failed" {
+			t.Fatalf("profile reported SMB success: %+v %v", rec, err)
+		}
+		return
 	}
 	if err := mgr.TestTarget(ctx, target); err != nil {
 		t.Fatalf("TestTarget failed: %v", err)

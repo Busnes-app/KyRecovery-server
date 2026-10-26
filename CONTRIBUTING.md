@@ -32,6 +32,12 @@ Run the checks that apply to the files you changed, and the repository's
 full required checks before hand-off. Record the exact commands and their
 results in the pull request.
 
+The [supported strong-key profile](docs/STRONG-CRYPTO.md) requires the full race
+suite with `GODEBUG=fips140=on` as well as ordinary mode. Keep configured
+SMB refusal and ordinary Samba compatibility coverage distinct; both preserve
+stored destinations and capsules. Existing WASM, fuzz, Docker and restic checks
+remain required.
+
 ## AI attribution
 
 AI-assisted contributions are welcome; undisclosed ones are not. Disclose

@@ -55,13 +55,13 @@ ceremony and deployment guidance, not by the software.
 3. **Browser tab → server, during the ceremony.** `cmd/ceremony-wasm` generates and splits the
    private key inside the tab and posts only the public key and the k-of-n numbers. The private key
    never crosses this boundary.
-4. **KyRecovery → identity provider.** OIDC with PKCE `S256`. When the token response carries an
-   ID token, its signature, issuer, audience, expiry and nonce are checked by `verifier.Verify`
-   before a session exists, and a failed one is never retried against `userinfo`. Only when the
-   provider returns no ID token at all does an unmanaged install read the profile from the
-   issuer's `userinfo` endpoint with the access token; installer-managed setups refuse that
-   (`internal/auth/auth.go`, `ExchangeCode`). Issuer requests use a dialer that refuses unspecified, link-local and
-   multicast addresses at connect time.
+4. **KyRecovery → identity provider.** OIDC with PKCE `S256`. Every login requires an
+   ID token whose signature, issuer, audience, expiry and nonce pass verification.
+   A missing or failed ID token never falls back to `userinfo`; newly fetched RSA
+   JWKS members below 2048 bits are refused. The supported strong process profile
+   also requires direct HTTPS discovery/endpoints and refuses redirects. Issuer
+   requests retain connect-time refusal of unspecified, link-local and multicast
+   addresses (`internal/auth/auth.go`, `strong_crypto.go`, `jwks_strength.go`).
 5. **KyRecovery → offsite targets** (S3, R2, MinIO, SFTP, SMB, local mounts). The targets are
    configured by an admin and receive only ciphertext; S3 endpoints must be `https`
    (`internal/replication/offsite.go`).
@@ -114,6 +114,15 @@ ceremony and deployment guidance, not by the software.
 | Vulnerable dependencies | Dependabot, `govulncheck` in the `security` job, OSV ignore list with reasons; dependency-only releases ship daily | `.github/`, `osv-scanner.toml` |
 | Supply-chain tampering | Actions and base images pinned by digest; images carry build provenance verified before `:stable` or `:latest` moves; the binary and the ceremony module rebuild to the same bytes | [VERIFYING-RELEASES.md](VERIFYING-RELEASES.md) |
 
+## Supported key-strength configuration
+
+[STRONG-CRYPTO.md](STRONG-CRYPTO.md) covers the complete supported server/CLI,
+OIDC, TLS and replication configuration. Both SFTP paths refuse weak keys and
+algorithms; the process profile also refuses SMB/NTLM operations and short S3
+signing secrets. Normal-mode SMB remains explicit legacy compatibility with
+documented risks. This preserves the blind store and existing destinations,
+not a FIPS certification or proof of deployed endpoint policy.
+
 ## Residual risk
 
 - **Pairing codes are hashed under a key from `secret.key`.** Someone with the database **and**
@@ -129,9 +138,6 @@ ceremony and deployment guidance, not by the software.
   registrable domain.
 - **The dashboard CSP allows `'unsafe-inline'` scripts.** Escaping and its test are the XSS counter
   for the dashboard; the CSP is not. `/admin/ceremony` does not have this weakness.
-- **A provider that returns no ID token** signs users in on its `userinfo` answer alone (unmanaged
-  installs only). The answer comes straight from the issuer over its own connection, but it is
-  not a signed token.
 - **Rate limits are process-local** and reset on restart.
 - **Free disk space is not reserved or enforced** for the capsule volume
   ([Recovery and security](RECOVERY-AND-SECURITY.md#security-model)).

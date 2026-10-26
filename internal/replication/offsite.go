@@ -2,6 +2,7 @@ package replication
 
 import (
 	"context"
+	"crypto/fips140"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -108,6 +109,9 @@ func matchesReplica(r io.ReadCloser, rec *db.CapsuleRecord) (result error) {
 }
 
 func (m *Manager) transfer(ctx context.Context, t db.ReplicationTargetRecord, rec *db.CapsuleRecord, f *os.File, size int64) error {
+	if err := checkTargetCrypto(t); err != nil {
+		return err
+	}
 	l, err := targetLocation(t, rec.ID)
 	if err != nil {
 		return err
@@ -156,4 +160,19 @@ func ValidateTarget(t db.ReplicationTargetRecord) error {
 	}
 	_, err = offsite.Parse(l.config)
 	return err
+}
+
+// Keep record mapping independent of policy: the selected process profile
+// refuses incompatible operations without rewriting their stored destinations.
+func checkTargetCrypto(target db.ReplicationTargetRecord) error {
+	if !fips140.Enabled() {
+		return nil
+	}
+	if target.Type == "smb" {
+		return errors.New("SMB/NTLM is disabled in strong-crypto mode; use pinned SFTP or verified HTTPS S3")
+	}
+	if target.Type == "s3" && len(target.SecretKey) < 16 {
+		return errors.New("strong-crypto mode requires S3 signing secrets of at least 16 bytes")
+	}
+	return nil
 }

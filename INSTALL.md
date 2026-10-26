@@ -79,3 +79,11 @@ The startup checks above prove only the checks they perform. Use the README’s 
 section and the repository CI workflow for source/build tests; a passing health response or
 screenshot is not a substitute. Record the revision, commands, environment and skips when
 reporting results. Design plans and dated evidence remain records of their stated scope.
+
+## Strong-key configuration
+
+Apply [the supported key/TLS profile](docs/STRONG-CRYPTO.md) before rollout.
+Prepare IdP/SSH endpoint migration and retain the original data/key material.
+The existing Compose env_file forwards GODEBUG from the protected .env; preserve
+its image/build selection and overlay chain. The selected profile refuses
+SMB/NTLM and short S3 signing secrets without rewriting their records.

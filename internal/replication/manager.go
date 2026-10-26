@@ -112,6 +112,9 @@ func (m *Manager) SyncAllAutoTargets(ctx context.Context, capsuleID string) []db
 
 // TestTarget validates connectivity and credentials for a target.
 func (m *Manager) TestTarget(ctx context.Context, target db.ReplicationTargetRecord) error {
+	if err := checkTargetCrypto(target); err != nil {
+		return err
+	}
 	l, err := targetLocation(target, "connectivity-test")
 	if err != nil {
 		return err
