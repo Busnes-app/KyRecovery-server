@@ -9,6 +9,9 @@
   <link rel="stylesheet" href="/static/ky-ui/tokens.css">
   <link rel="stylesheet" href="/static/css/styles.css">
   <link rel="stylesheet" href="/static/ky-ui/navigation.css">
+  <link rel="stylesheet" href="/static/ky-ui/appearance.css">
+  <link rel="stylesheet" href="/static/ky-ui/appearance-themes.css">
+  <script src="/static/ky-ui/themes-browser.js"></script>
   <script src="/static/js/theme.js"></script>
 </head>
 <body>
@@ -23,7 +26,6 @@
       <span class="brand-tag">Recovery vault</span>
     </div>
     <div class="header-meta">
-      <select class="theme-selector no-print" data-theme-select aria-label="Color theme"><option value="system">System (Busnes)</option><option value="light">Busnes Light</option><option value="dark">Busnes Dark</option></select>
       <div id="system-status-pill" class="status-pill warning">
         <span class="dot"></span> LOADING
       </div>
@@ -81,6 +83,7 @@
     <button class="ky-nav-item tab-btn" data-tab="tab-custodians">Custodians & Quorum</button>
     <button class="ky-nav-item tab-btn" data-tab="tab-replication">Offsite Replication</button>
     <button class="ky-nav-item tab-btn" data-tab="tab-audit">Audit Ledger</button>
+    <button class="ky-nav-item tab-btn" data-tab="tab-appearance">Appearance</button>
   </nav>
 
   <!-- Main Content Area -->
@@ -401,6 +404,17 @@
       </div>
     </div>
 
+    <!-- Appearance: browser-local theme; theme.js fills the cards -->
+    <div id="tab-appearance" class="tab-content">
+      <div class="overview-heading">
+        <h1>Appearance</h1>
+      </div>
+      <p class="ky-appearance-description">Pick a theme. It applies straight away and is saved in this browser only. Match system follows your device’s light or dark setting.</p>
+      <fieldset class="ky-appearance" data-theme-picker>
+        <legend class="ky-appearance-legend">Theme</legend>
+        <div class="ky-appearance-grid"></div>
+      </fieldset>
+    </div>
   </main>
 
   <!-- Pairing Code Generator Modal -->
