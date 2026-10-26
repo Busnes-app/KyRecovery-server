@@ -10,6 +10,7 @@
   Saved `system`, `light` and `dark` choices keep their values. Text now uses
   self-hosted Space Grotesk (OFL) instead of system and serif fonts. No server or
   stored-data change.
+- On phones, the dashboard tab row brings the current tab into view when an Overview link opens it; the page does not scroll.
 - The saved theme applies before first paint again: `theme.js` is a classic head script
   over ky-ui 0.4.1's generated `themes-browser.js` instead of a deferred module.
 

@@ -30,6 +30,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 10000);
 });
 
+// Phones scroll the tab row sideways: keep the current tab in view, also after Overview links.
+// Only the row scrolls; the row is not sticky, so scrollIntoView would also move the page.
+function revealTab(tab) {
+  const row = tab.parentElement.getBoundingClientRect(), item = tab.getBoundingClientRect();
+  if (item.left < row.left) tab.parentElement.scrollLeft -= row.left - item.left;
+  else if (item.right > row.right) tab.parentElement.scrollLeft += item.right - row.right;
+}
+
 // Tab Navigation
 function initTabs() {
   const tabs = document.querySelectorAll('.tab-btn');
@@ -42,6 +50,7 @@ function initTabs() {
       tab.setAttribute('aria-current', 'page');
       const target = document.getElementById(tab.dataset.tab);
       if (target) target.classList.add('active');
+      revealTab(tab);
     });
   });
 }
