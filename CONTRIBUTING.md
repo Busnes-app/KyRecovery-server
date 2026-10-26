@@ -32,6 +32,10 @@ Run the checks that apply to the files you changed, and the repository's
 full required checks before hand-off. Record the exact commands and their
 results in the pull request.
 
+For overview changes, run `node scripts/test-overview.mjs` (also required by CI's
+`go` job). It checks the shipped script against the dashboard IDs and synthetic
+readiness responses; it does not replace a real-browser check.
+
 The [supported strong-key profile](docs/STRONG-CRYPTO.md) requires the full race
 suite with `GODEBUG=fips140=on` as well as ordinary mode. Keep configured
 SMB refusal and ordinary Samba compatibility coverage distinct; both preserve

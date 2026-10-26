@@ -114,6 +114,8 @@ jobs:
           node-version: 26
       - run: scripts/build-wasm.sh && git diff --exit-code -- internal/server/static/wasm
       - run: node scripts/test-wasm.mjs
+      - name: Overview evidence regression
+        run: node scripts/test-overview.mjs
       - run: node internal/server/static/ky-ui/check-vendor.mjs
       - run: node scripts/check-contrast.mjs
   security:
