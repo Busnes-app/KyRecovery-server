@@ -29,12 +29,14 @@
       <div id="system-status-pill" class="status-pill warning">
         <span class="dot"></span> LOADING
       </div>
-      <div id="user-auth-area" style="display: flex; align-items: center; gap: 10px;">
+      <!-- Phones fold the account controls into this popover; wider screens show them inline. -->
+      <button type="button" class="btn btn-secondary btn-sm account-toggle" popovertarget="user-auth-area">Account</button>
+      <div id="user-auth-area" popover>
         <span id="user-display-name" style="font-size: 13px; font-weight: 600; color: var(--text-main);">Unauthenticated</span>
         <span id="user-role-badge" class="status-pill danger">Guest</span>
-        <button id="btn-sso-pair-header" class="btn btn-secondary btn-sm" onclick="openSSOConfigModal()" style="display: none;">SSO pairing</button>
-        <button id="btn-change-pass-header" class="btn btn-secondary btn-sm" onclick="openChangePasswordModal()" style="display: none;">Password</button>
-        <button id="btn-auth-action" class="btn btn-primary btn-sm" onclick="handleAuthAction()">Sign In</button>
+        <button id="btn-sso-pair-header" class="btn btn-secondary btn-sm" popovertarget="user-auth-area" popovertargetaction="hide" onclick="openSSOConfigModal()" style="display: none;">SSO pairing</button>
+        <button id="btn-change-pass-header" class="btn btn-secondary btn-sm" popovertarget="user-auth-area" popovertargetaction="hide" onclick="openChangePasswordModal()" style="display: none;">Password</button>
+        <button id="btn-auth-action" class="btn btn-primary btn-sm" popovertarget="user-auth-area" popovertargetaction="hide" onclick="handleAuthAction()">Sign In</button>
       </div>
     </div>
   </header>
@@ -320,6 +322,9 @@
 
     <!-- Tab: Offsite Replication -->
     <div id="tab-replication" class="tab-content">
+      <div class="overview-heading">
+        <h1>Offsite replication</h1>
+      </div>
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title">Replication targets</div>
