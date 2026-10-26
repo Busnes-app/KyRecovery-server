@@ -155,8 +155,42 @@ jobs:
   # after every job passed, and with no checkout and no build of its own, so
   # the pushed bytes are the tested bytes. A pull request from a fork must
   # never reach this job or write a package.
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: tests/browser/package-lock.json
+      - name: Install and audit browser tooling
+        working-directory: tests/browser
+        timeout-minutes: 20
+        run: |
+          npm ci
+          npm audit --audit-level=high
+          npx playwright install --with-deps chromium
+      - name: Real dashboard and ceremony regressions
+        working-directory: tests/browser
+        timeout-minutes: 10
+        run: npm test
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: browser-failure-results
+          path: tests/browser/test-results
+          retention-days: 7
+
   publish:
-    needs: [go, security, docker]
+    needs: [go, security, docker, browser]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     # No concurrency group here on purpose: GitHub cancels a *pending* job when a

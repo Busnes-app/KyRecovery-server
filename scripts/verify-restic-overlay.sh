@@ -10,7 +10,7 @@ set -euo pipefail
 repo=$(cd "$(dirname "$0")/.." && pwd)
 work=$(mktemp -d)
 project=kyr-restic-verify-$$
-image=kyrecovery-server:restic-verify
+image=kyrecovery-server:restic-verify-$$
 restic_image=restic/restic:0.19.1@sha256:136600b6ff6843d61d355f7f71f460a166429f35de6fd11b568fece3c9a4d510
 rs_image=$(sed -n 's/^ *image: \(restic\/rest-server.*\)$/\1/p' "$repo/docker-compose.restic.yml")
 
@@ -22,6 +22,7 @@ compose_base() { docker compose -p "$project-base" --project-directory "$work/ba
 cleanup() {
 	compose down -v >/dev/null 2>&1 || true
 	compose_base down -v >/dev/null 2>&1 || true
+	docker image rm "$image" >/dev/null 2>&1 || true
 	# rest-server and KyRecovery own files in here; remove them as root inside a container.
 	docker run --rm -v "$work:/w" alpine sh -c 'rm -rf /w/* /w/.env' >/dev/null 2>&1 || true
 	rmdir "$work" 2>/dev/null || true

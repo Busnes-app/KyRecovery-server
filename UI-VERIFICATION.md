@@ -41,3 +41,17 @@ ky-ui 0.4.0 (shared source `4f83f34`): the Appearance theme-card picker over the
 ## Fleet visual refinement (2026-10-26)
 
 Phone header and Replication: on phones the brand, an Account button (a native popover holding the account controls) and the vault status replace the three-row header (222px → 131px to the bottom of the tab row); Offsite Replication has a page `h1`; empty tables hide their headings on phones so the empty-state sentence fits its card. The F6 tab-row check still passes (page and focus unchanged). Before/after captures (light/dark × 1280×900/390×844, synthetic fixture, clean commits), manifests with hashes, behaviour checks and CSVs are in [docs/ui-visual-refinement-2026-10-26](docs/ui-visual-refinement-2026-10-26/README.md). No score is self-assigned.
+
+## Automated dashboard and ceremony regressions
+
+`cd tests/browser && npm ci && npx playwright install chromium && npm test`
+builds the current binary and exercises eight workflows on desktop/phone Chromium.
+Each case owns its real server, credentials, SQLite data and local replication
+directory. The ceremony uses the committed WASM and disposable cards; tests check
+public import fields, explicit rotation and retirement. Other cases cover login,
+session invalidation, persisted form values, refusal behavior and theme storage.
+The `browser` CI job is required for main publication and tag releases.
+
+This qualifies those workflows on Chromium, not every UI state, accessibility,
+a product restore, offsite disaster recovery or human acceptance. Failure screenshots
+may contain only the fixture’s disposable test values and cards.

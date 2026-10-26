@@ -150,6 +150,11 @@ not a FIPS certification or proof of deployed endpoint policy.
   That job also runs `node scripts/test-overview.mjs` against the shipped dashboard script
   and element IDs, covering audit labels, capsule counts, failed responses and recovery.
   Its minimal DOM stub does not establish real-browser behavior or complete UI coverage.
+- **Browser workflows:** `tests/browser` runs committed assets against disposable real
+  servers on desktop/phone Chromium, including local authentication/session changes,
+  persisted form values, pairing, actual WASM ceremony/public-key import and rotation,
+  owned local replication and theme behavior. The `browser` job gates image publication
+  and tag releases. It does not prove offsite disaster recovery or a completed restore.
 - **Static analysis:** `go vet` and `govulncheck` on every push and pull request, and GitHub CodeQL
   (default setup, configured in the repository settings rather than a workflow file) for Go,
   JavaScript/TypeScript and Actions.

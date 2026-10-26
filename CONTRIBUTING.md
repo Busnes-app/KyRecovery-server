@@ -36,6 +36,13 @@ For overview changes, run `node scripts/test-overview.mjs` (also required by CI'
 `go` job). It checks the shipped script against the dashboard IDs and synthetic
 readiness responses; it does not replace a real-browser check.
 
+Run `cd tests/browser && npm ci && npx playwright install chromium && npm test`
+for dashboard/ceremony changes. The locked private package builds the current
+binary and tests desktop/phone Chromium with disposable credentials, data and
+local replication directories. Existing browser caches are reused. The `browser`
+CI job gates main publication and release images; its failure artifacts contain
+only disposable test data. This is not a completed product restore drill.
+
 The [supported strong-key profile](docs/STRONG-CRYPTO.md) requires the full race
 suite with `GODEBUG=fips140=on` as well as ordinary mode. Keep configured
 SMB refusal and ordinary Samba compatibility coverage distinct; both preserve
