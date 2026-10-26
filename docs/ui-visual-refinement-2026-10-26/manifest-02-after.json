@@ -1,0 +1,148 @@
+{
+  "product": "kyrecovery-server",
+  "stage": "02",
+  "phase": "after",
+  "captured_at": "2026-10-26T16:47:33.695Z",
+  "source_commit": "36fa319daaba71d3780690402727a34d32a607fc",
+  "uncommitted_source_sha256": null,
+  "os": "Linux 7.2.10-1-cachyos",
+  "driver": "Playwright 1.63.0 Chromium 153.0.8010.12, device scale 1, service workers blocked",
+  "fonts": "self-hosted Space Grotesk from /static/fonts; Space Grotesk loaded: true",
+  "server": "kyrecovery built from this worktree into a temporary directory on 127.0.0.1:5391, scratch data dir, random per-run admin password; removed after capture",
+  "fixture": "synthetic: fresh vault, bootstrap admin only; no ceremony, recovery key, paired products, capsules or replication (warning states are real)",
+  "shots": [
+    {
+      "file": "kyrecovery-02-after-overview-desktop-light.png",
+      "sha256": "40b47e607ae0567c23fad13ea391cead0cc21ed6001840e8a7e60c2f72db2397",
+      "surface": "overview",
+      "tab": "Overview",
+      "device": "desktop",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme_source": "OS light (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-02-after-replication-via-overview-desktop-light.png",
+      "sha256": "558531b4530e06ed5bbb1050f06e701fd5c750192c40bcefd045bf5cae95df73",
+      "surface": "replication-via-overview",
+      "tab": "Offsite Replication",
+      "device": "desktop",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme_source": "OS light (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-02-after-overview-mobile-light.png",
+      "sha256": "6aa83d60f264969aca306fba089e250a13e6b65a05d58d677f6691a4d8d8cf4c",
+      "surface": "overview",
+      "tab": "Overview",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme_source": "OS light (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-02-after-replication-via-overview-mobile-light.png",
+      "sha256": "592571335a759855c9015fbb846119798f3d0a5bff87ef9ccf099632831f2581",
+      "surface": "replication-via-overview",
+      "tab": "Offsite Replication",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme_source": "OS light (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-02-after-overview-desktop-dark.png",
+      "sha256": "ffc9777d9db262ebe2c850e3cd22d9bda3bfe4dd81aef79a0a435610a468cd87",
+      "surface": "overview",
+      "tab": "Overview",
+      "device": "desktop",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme_source": "OS dark (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-02-after-replication-via-overview-desktop-dark.png",
+      "sha256": "54a6b8910b46bf73e7fc80b183fbefd8b63cc5d4885908daefd14e863679c63b",
+      "surface": "replication-via-overview",
+      "tab": "Offsite Replication",
+      "device": "desktop",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme_source": "OS dark (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-02-after-overview-mobile-dark.png",
+      "sha256": "f2f1cc1e8590ed8a87f375e8a85ea90c6b1f6a33aa490e773d7a07a82861b193",
+      "surface": "overview",
+      "tab": "Overview",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme_source": "OS dark (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-02-after-replication-via-overview-mobile-dark.png",
+      "sha256": "35dccbe2c53bd7736da0a08aa1ce3d43901c49afa19f0a43860e3ad393821906",
+      "surface": "replication-via-overview",
+      "tab": "Offsite Replication",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme_source": "OS dark (prefers-color-scheme), no saved choice"
+    }
+  ],
+  "checks": [
+    {
+      "name": "desktop overview: one visible h1",
+      "pass": true,
+      "detail": "visible h1 count = 1"
+    },
+    {
+      "name": "desktop replication-via-overview: one visible h1",
+      "pass": true,
+      "detail": "visible h1 count = 1"
+    },
+    {
+      "name": "phone: header and tab row height",
+      "pass": true,
+      "detail": "top of page to bottom of tab row: 131px"
+    },
+    {
+      "name": "phone: every account control is reachable",
+      "pass": true,
+      "detail": "SSO pairing, Password, Sign Out visible after opening Account"
+    },
+    {
+      "name": "phone: replication empty states fit their card",
+      "pass": true,
+      "detail": "[{\"text\":\"No replication targets y\",\"left\":24,\"right\":24},{\"text\":\"No transfers yet.\",\"left\":122,\"right\":122}]"
+    },
+    {
+      "name": "phone: an Overview link reveals its tab without moving the page or focus",
+      "pass": true,
+      "detail": "scrollY 851 -> 851"
+    },
+    {
+      "name": "no console errors or CSP violations",
+      "pass": true,
+      "detail": "none"
+    }
+  ]
+}

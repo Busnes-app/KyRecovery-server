@@ -123,6 +123,9 @@ header {
 .brand-tag::before { content: "·"; margin: 0 8px 0 2px; color: var(--paper-dim); }
 
 .header-meta { display: flex; align-items: center; gap: 14px; font-size: 13px; color: var(--paper-muted); }
+/* Author display beats the UA rule that hides a closed popover, so wide screens show it inline. */
+#user-auth-area { display: flex; align-items: center; gap: 10px; position: static; inset: auto; width: auto; height: auto; margin: 0; padding: 0; border: 0; background: none; color: inherit; overflow: visible; }
+.btn.account-toggle { display: none; }
 
 .status-pill {
   display: inline-flex;
@@ -283,14 +286,22 @@ footer { padding: 16px 32px; border-top: 1px solid var(--rule); font-size: 13px;
   .brand-tag { display: none; }
   .metric-value { font-size: 52px; }
   .panel-header { flex-wrap: wrap; }
+  /* An empty table is one sentence; its column headings would push it past the card edge. */
+  table.data-table:has(> tbody > tr:only-child > td[colspan]) thead { display: none; }
 }
 
 .theme-selector { font: inherit; max-width: 100%; min-height: 36px; padding: 6px 10px; background: var(--ink-raised); color: var(--paper); border: 1px solid var(--rule-strong); border-radius: 4px; }
 .theme-selector:focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; }
+/* Phones: brand and Account on one row, the vault status under them; the account
+   controls open from Account as a popover. */
 @media (max-width: 680px) {
-  header { flex-wrap: wrap; }
-  .header-meta, #user-auth-area { flex-wrap: wrap; }
-  .header-meta { min-width: 0; }
+  header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; padding-top: 12px; padding-bottom: 12px; }
+  .header-meta { display: contents; }
+  #system-status-pill { grid-column: 1 / -1; grid-row: 2; justify-self: start; }
+  .btn.account-toggle { display: inline-flex; grid-column: 2; grid-row: 1; }
+  #user-auth-area:not(:popover-open) { display: none; }
+  #user-auth-area:popover-open { position: fixed; inset: 56px 16px auto auto; flex-direction: column; align-items: stretch; min-width: 220px; padding: 16px; border: 1px solid var(--rule-strong); border-radius: var(--radius-panel); background: var(--ink-raised); color: var(--paper); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2); }
+  #user-auth-area #user-role-badge { align-self: flex-start; }
 }
 
 /* Backups tab */
@@ -322,7 +333,7 @@ table.data-table.backups-sub th, table.data-table.backups-sub td { padding: 8px 
 /* Overview keeps evidence distinct from restore readiness. */
 .overview-heading { margin-bottom: 32px; }
 .overview-heading h1 { font-size: var(--ky-type-title); font-weight: 600; line-height: 1.25; }
-.overview-heading > p { margin-top: 10px; max-width: 65ch; color: var(--paper-muted); }
+.overview-heading > p { margin-top: 8px; max-width: 65ch; color: var(--paper-muted); }
 .overview-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-block: 1px solid var(--rule); margin-bottom: 36px; }
 .overview-facts > div { padding: 24px 24px 24px 0; min-width: 0; }
 .overview-facts > div + div { padding-left: 24px; border-left: 1px solid var(--rule); }
