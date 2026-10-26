@@ -1,6 +1,12 @@
-/* KyRecovery: a vault and its ledger. Slate ink, paper text, one brass accent.
-   Serif for headings and numerals; the system sans for everything else;
-   monospace only for hashes and identifiers. No font is downloaded. */
+/* KyRecovery: a vault and its ledger, in the shared Busnes palette.
+   Self-hosted Space Grotesk for text, monospace only for hashes and identifiers. */
+
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("/static/fonts/Space_Grotesk/SpaceGrotesk-VariableFont_wght.ttf") format("truetype");
+  font-weight: 300 700;
+  font-display: swap;
+}
 
 :root {
   --ink: #1c2430;
@@ -21,8 +27,7 @@
   --bad: #eb9d93;
   --bad-wash: rgba(235, 157, 147, 0.12); /* same red as --bad */
 
-  --serif: "Charter", "Bitstream Charter", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --sans: "Space Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
   --radius: 6px;
@@ -113,7 +118,7 @@ header {
 
 .brand { display: flex; align-items: center; gap: 12px; }
 .brand-icon { width: 30px; height: 30px; border-radius: 6px; display: block; }
-.brand-title { font-family: var(--serif); font-size: 21px; font-weight: 600; letter-spacing: -0.01em; color: var(--paper); }
+.brand-title { font-size: var(--ky-type-section); font-weight: 600; color: var(--paper); }
 .brand-tag { font-size: 13px; color: var(--paper-dim); }
 .brand-tag::before { content: "·"; margin: 0 8px 0 2px; color: var(--paper-dim); }
 
@@ -151,8 +156,9 @@ nav.nav-tabs {
   border-bottom: 2px solid transparent;
   color: var(--paper-muted);
   font: inherit;
-  font-size: 14px;
-  padding: 13px 12px;
+  font-size: var(--ky-type-nav);
+  min-height: var(--ky-control-size);
+  padding: 0 12px;
   cursor: pointer;
   white-space: nowrap;
   transition: color 120ms ease;
@@ -169,13 +175,13 @@ main { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: 32px; }
 .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 40px 48px; margin: 8px 0 36px; }
 .metric-card { display: flex; flex-direction: column; }
 .metric-label { order: 2; font-size: 15px; color: var(--paper-muted); margin-top: 2px; }
-.metric-value { font-family: var(--serif); font-size: 64px; font-weight: 400; line-height: 1; letter-spacing: -0.02em; color: var(--paper); font-variant-numeric: lining-nums; }
+.metric-value { font-size: 64px; font-weight: 400; line-height: 1; letter-spacing: -0.02em; color: var(--paper); font-variant-numeric: lining-nums; }
 .metric-sub { order: 3; font-size: 13.5px; color: var(--paper-dim); margin-top: 10px; max-width: var(--measure); }
 
 /* Panels: a titled ruled section. Only the header rule and the outer hairline. */
 .panel { border: 1px solid var(--rule); border-radius: var(--radius-panel); margin-bottom: 28px; overflow: hidden; background: var(--ink-raised); }
 .panel-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 20px; border-bottom: 1px solid var(--rule); }
-.panel-title { font-family: var(--serif); font-size: 18px; font-weight: 600; color: var(--paper); letter-spacing: -0.005em; }
+.panel-title { font-size: var(--ky-type-section); font-weight: 600; color: var(--paper); }
 .panel-body { padding: 20px; }
 .retention-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-bottom: 20px; }
 .retention-actions { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -251,7 +257,7 @@ code, .mono { font-family: var(--mono); font-size: 12.5px; color: var(--paper-mu
 /* Login */
 .login-card { border: 1px solid var(--rule); border-radius: var(--radius-panel); background: var(--ink-raised); padding: 28px; }
 .login-lede { text-align: left; margin-bottom: 24px; }
-.login-lede h2 { font-family: var(--serif); font-size: 30px; font-weight: 500; letter-spacing: -0.01em; margin: 14px 0 6px; }
+.login-lede h2 { font-size: 30px; font-weight: 500; letter-spacing: -0.01em; margin: 14px 0 6px; }
 .login-lede p { color: var(--paper-muted); font-size: 15px; max-width: 40ch; }
 
 /* Modal */
@@ -315,13 +321,13 @@ table.data-table.backups-sub th, table.data-table.backups-sub td { padding: 8px 
 
 /* Overview keeps evidence distinct from restore readiness. */
 .overview-heading { margin-bottom: 32px; }
-.overview-heading h1 { font-family: var(--serif); font-size: clamp(26px, 3vw, 34px); font-weight: 500; letter-spacing: -0.02em; }
+.overview-heading h1 { font-size: var(--ky-type-title); font-weight: 600; line-height: 1.25; }
 .overview-heading > p { margin-top: 10px; max-width: 65ch; color: var(--paper-muted); }
 .overview-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-block: 1px solid var(--rule); margin-bottom: 36px; }
 .overview-facts > div { padding: 24px 24px 24px 0; min-width: 0; }
 .overview-facts > div + div { padding-left: 24px; border-left: 1px solid var(--rule); }
 .overview-facts dt { color: var(--paper-muted); font-size: 13px; }
-.overview-facts dd { margin: 12px 0; font-size: 36px; font-family: var(--serif); font-variant-numeric: tabular-nums; line-height: 1.2; }
+.overview-facts dd { margin: 12px 0; font-size: 36px; font-variant-numeric: tabular-nums; line-height: 1.2; }
 .overview-facts dd.overview-text-value { font-family: var(--sans); font-size: 19px; font-weight: 600; margin-top: 18px; }
 .overview-facts p { color: var(--paper-muted); font-size: 13px; }
 .overview-next { margin-bottom: 32px; }
@@ -331,3 +337,7 @@ table.data-table.backups-sub th, table.data-table.backups-sub td { padding: 8px 
 .overview-next-row p { font-size: 13.5px; color: var(--paper-muted); margin-top: 5px; max-width: 55ch; }
 .overview-next-row button { flex-shrink: 0; min-height: 40px; }
 @media (max-width: 720px) { .overview-facts { grid-template-columns: 1fr; } .overview-facts > div, .overview-facts > div + div { padding: 20px 0; border-left: 0; } .overview-facts > div + div { border-top: 1px solid var(--rule); } .overview-facts dd { font-size: 30px; } .overview-next-row { flex-direction: column; align-items: flex-start; gap: 14px; } }
+
+/* Appearance page: the shared stylesheet reads --ink as secondary text, but here
+   --ink is the surface colour. Nothing inside these uses it as a surface. */
+.ky-appearance, .ky-appearance-description { --ink: var(--paper-muted); }

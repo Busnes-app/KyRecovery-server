@@ -142,7 +142,7 @@ node scripts/test-wasm.mjs
 
 - `internal/server/static/ky-ui/` is generated from Busnes-app/ky-ui, pinned by `VERSION` file hashes. Change shared colors, navigation states and storage helpers upstream, then run its consumer sync with an explicit worktree map; do not hand-edit vendored files.
 - Products own layout, routes, saved choice keys and named palettes. Busnes aliases consume shared tokens; mark primary navigation with `ky-nav-item` while preserving current-page semantics.
-- Verify vendored files with `node internal/server/static/ky-ui/check-vendor.mjs` from this document's directory. Builds/CI run that check. Rendered evidence and capture limitations are recorded in the repository-root `UI-VERIFICATION.md`.
+- Verify vendored files with `node internal/server/static/ky-ui/check-vendor.mjs` from this document's directory. Builds/CI run that check. Rendered evidence and capture limitations are recorded in the repository-root `UI-VERIFICATION.md`; the fleet Appearance stages (screenshots, manifests with hashes and behaviour checks, results CSV, reproducible `capture.mjs`) live in `docs/ui-fleet-2026-10-26/`.
 
 ## Child DOX Index
 - `docs/STRONG-CRYPTO.md`: supported process/edge profile, strong key/algorithm rules, migration and explicit SMB compatibility limits; preserve data/keys and all destination mappings.
@@ -161,6 +161,7 @@ node scripts/test-wasm.mjs
 ## Theme contract
 
 - Web themes default to the Busnes.app cream/light and charcoal/dark palettes with orange accents, following the OS until a browser-local choice is saved. Preserve existing named themes and saved choices.
+- The Appearance tab is the dashboard's only theme control (no header select); the standalone ceremony page keeps a compact select over the same choice. `static/js/theme.js` is a preloaded ES module over the shared catalog (`ky-ui/themes.js`): `Match system` plus every catalog theme as native radio cards built with DOM calls. `kyrecovery-theme` keeps `system`, `light` and `dark` for Busnes; other themes save their catalog ID. Local `--ink` is the surface colour, so named palettes override the `--ky-*` tokens inline (never the shared product-variable helper), and the picker re-scopes `--ink` for the shared stylesheet. Text uses self-hosted Space Grotesk (`static/fonts/`, OFL). Rendered checks live in `docs/ui-fleet-2026-10-26/capture.mjs`.
 
 - Routine status pills use neutral theme tokens; reserve green for explicit verification/success feedback. Retention controls live in a padded panel body, with three columns on desktop and stacked fields on mobile.
 

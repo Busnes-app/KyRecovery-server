@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Changed
+
+- The dashboard has an Appearance tab with the shared ky-ui 0.4.0 theme cards: Match
+  system plus every suite theme. It replaces the header select; the standalone ceremony
+  page keeps its own.
+  Saved `system`, `light` and `dark` choices keep their values. Text now uses
+  self-hosted Space Grotesk (OFL) instead of system and serif fonts. No server or
+  stored-data change.
+
 ### Security
 
 - Session IDs, product API tokens and pairing codes are no longer stored as issued.
