@@ -27,6 +27,11 @@ it until retention purges them; the server cannot re-seal them to the new key, b
 that would mean decrypting them. Keep the old cards until the dashboard lets you retire
 the old key, and until no offsite copy of its capsules remains.
 
+## Strong keys and TLS
+
+[STRONG-CRYPTO.md](STRONG-CRYPTO.md) inventories the supported process/edge policy,
+SSH/OIDC migration, preserved keys and explicit SMB compatibility limits.
+
 ## Security model
 
 [Assurance case](ASSURANCE-CASE.md) ties these protections to the threat model and the code;

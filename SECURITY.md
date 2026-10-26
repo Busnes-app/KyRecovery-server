@@ -24,6 +24,19 @@ and disclosure.
 - Keep the sealed-capsule store and the pinned keys private and backed up; losing the ceremony's custodian cards loses recovery.
 - Enforce the documented deposit budgets and container size caps; audit every pairing and deposit without logging the token.
 
+## Strong-key configuration and compatibility
+
+[docs/STRONG-CRYPTO.md](docs/STRONG-CRYPTO.md) owns supported key/TLS boundaries,
+endpoint migration and data preservation. OIDC requires a verified ID token
+and RSA-2048+ JWKS keys; both SFTP paths require supported algorithms and strong
+peer/client/CA keys. The optional process profile enforces TLS key policy, direct
+HTTPS OIDC, a 16-byte S3 signing-secret floor and refusal of SMB/NTLM operations.
+Normal-mode SMB is an explicit legacy compatibility choice, with MD4/HMAC-MD5,
+RC4-based session-key handling, credential-capture/relay risks and no PFS. Use
+dedicated credentials and restricted networks; prefer pinned SFTP or verified
+HTTPS S3. Required SMB message signing does not remove these authentication
+limitations, and a host mount needs its own transport policy.
+
 ## Security-sensitive changes
 
 Changes to the ceremony, pairing/claim, token scoping, the deposit route, capsule storage, or operator and custodian flows require tests for both the expected path and the relevant

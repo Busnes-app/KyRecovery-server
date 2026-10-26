@@ -2,13 +2,17 @@ package replication
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rand"
+	"crypto/rsa"
 	"encoding/pem"
 	"fmt"
 	"io"
 	"net"
 	"os"
 	"path"
+	"slices"
 	"strings"
 	"time"
 
@@ -57,6 +61,19 @@ func (c *SFTPClient) auth() (ssh.AuthMethod, error) {
 		if err != nil {
 			return nil, fmt.Errorf("private key: %w", err)
 		}
+		if err := checkSSHKey(signer.PublicKey()); err != nil {
+			return nil, err
+		}
+		if signer.PublicKey().Type() == ssh.KeyAlgoRSA {
+			algorithmSigner, ok := signer.(ssh.AlgorithmSigner)
+			if !ok {
+				return nil, fmt.Errorf("RSA signer does not support SHA-2")
+			}
+			signer, err = ssh.NewSignerWithAlgorithms(algorithmSigner, []string{ssh.KeyAlgoRSASHA512, ssh.KeyAlgoRSASHA256})
+			if err != nil {
+				return nil, fmt.Errorf("RSA signing policy: %w", err)
+			}
+		}
 		return ssh.PublicKeys(signer), nil
 	}
 	return ssh.Password(c.Secret), nil
@@ -69,10 +86,16 @@ func (c *SFTPClient) dial(ctx context.Context) (*sftp.Client, func(), error) {
 	if err != nil {
 		return nil, nil, err
 	}
+	algorithms := ssh.SupportedAlgorithms()
 	cfg := &ssh.ClientConfig{
-		User: c.User,
-		Auth: []ssh.AuthMethod{auth},
+		Config:            ssh.Config{KeyExchanges: algorithms.KeyExchanges, Ciphers: algorithms.Ciphers, MACs: algorithms.MACs},
+		HostKeyAlgorithms: algorithms.HostKeys,
+		User:              c.User,
+		Auth:              []ssh.AuthMethod{auth},
 		HostKeyCallback: func(_ string, _ net.Addr, key ssh.PublicKey) error {
+			if err := checkSSHKey(key); err != nil {
+				return err
+			}
 			fp := ssh.FingerprintSHA256(key)
 			if c.HostKey == "" {
 				return &UnknownHostKeyError{Fingerprint: fp}
@@ -189,4 +212,37 @@ func (c *SFTPClient) TestConnection(ctx context.Context) error {
 	}
 	f.Close()
 	return client.Remove(probe)
+}
+
+// Absolute-directory targets retain this compatibility transport until the
+// shared offsite API can represent them. Keep its key policy as strict as the
+// shared client; a pinned fingerprint does not waive the key-size requirement.
+func checkSSHKey(key ssh.PublicKey) error {
+	if cert, ok := key.(*ssh.Certificate); ok {
+		if !slices.Contains(ssh.SupportedAlgorithms().PublicKeyAuths, cert.Signature.Format) {
+			return fmt.Errorf("SSH certificate uses an unsupported signature algorithm")
+		}
+		if err := checkSSHKey(cert.SignatureKey); err != nil {
+			return err
+		}
+		key = cert.Key
+	}
+	public, ok := key.(ssh.CryptoPublicKey)
+	if !ok {
+		return fmt.Errorf("unsupported SSH key type %q", key.Type())
+	}
+	switch k := public.CryptoPublicKey().(type) {
+	case *rsa.PublicKey:
+		if k.N.BitLen() < 2048 {
+			return fmt.Errorf("RSA SSH keys must be at least 2048 bits")
+		}
+	case *ecdsa.PublicKey:
+		if k.Curve.Params().BitSize < 224 {
+			return fmt.Errorf("EC SSH keys must be at least 224 bits")
+		}
+	case ed25519.PublicKey:
+	default:
+		return fmt.Errorf("unsupported SSH key type %q", key.Type())
+	}
+	return nil
 }

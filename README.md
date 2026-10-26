@@ -11,6 +11,9 @@ here. KyRecovery holds no recovery private key, no Shamir share and no plaintext
 and there is no code path in the server that decrypts a capsule — a test,
 `TestNothingInTheServerDecrypts`, fails the build if one appears.
 
+For supported key/TLS configuration and migration, read
+[Strong-key configuration](docs/STRONG-CRYPTO.md) before upgrading an existing instance.
+
 ## Quick start
 
 ```bash

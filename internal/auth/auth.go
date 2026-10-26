@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"crypto/fips140"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
@@ -20,7 +21,6 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"golang.org/x/oauth2"
 
 	"github.com/Busnes-app/ky-primitives/applysetup"
 	"github.com/Busnes-app/ky-primitives/password"
@@ -68,9 +68,11 @@ type Manager struct {
 	db  *db.DB
 
 	// provider caches the discovered issuer metadata and its JWKS between logins.
-	providerMu     sync.Mutex
-	provider       *oidc.Provider
-	providerIssuer string
+	providerMu       sync.Mutex
+	provider         *oidc.Provider
+	providerIssuer   string
+	providerClientID string
+	providerVerifier *oidc.IDTokenVerifier
 }
 
 // NewManager creates a new authentication manager.
@@ -340,6 +342,9 @@ func validateIssuerURL(issuerURL string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("invalid issuer URL: %w", err)
 	}
+	if fips140.Enabled() && (u.Scheme != "https" || u.RawQuery != "" || u.Fragment != "") {
+		return "", errors.New("strong-crypto mode requires a direct HTTPS issuer without query or fragment")
+	}
 	if u.Scheme != "https" && u.Scheme != "http" {
 		return "", fmt.Errorf("issuer URL scheme %q is not supported (use https)", u.Scheme)
 	}
@@ -354,24 +359,32 @@ func validateIssuerURL(issuerURL string) (string, error) {
 
 // oidcProvider returns the cached OIDC provider for the configured issuer,
 // running discovery (and the JWKS fetch) once per issuer.
-func (m *Manager) oidcProvider(ctx context.Context) (*oidc.Provider, error) {
-	issuer, err := validateIssuerURL(m.GetConfig().IssuerURL)
+func (m *Manager) oidcProvider(ctx context.Context) (*oidc.Provider, *oidc.IDTokenVerifier, error) {
+	cfg := m.GetConfig()
+	issuer, err := validateIssuerURL(cfg.IssuerURL)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	m.providerMu.Lock()
 	defer m.providerMu.Unlock()
-	if m.provider != nil && m.providerIssuer == issuer {
-		return m.provider, nil
+	if m.provider != nil && m.providerIssuer == issuer && m.providerClientID == cfg.ClientID {
+		return m.provider, m.providerVerifier, nil
 	}
 
-	p, err := oidc.NewProvider(oidc.ClientContext(ctx, httpClient()), issuer)
+	p, err := discoverProvider(ctx, issuer)
 	if err != nil {
-		return nil, fmt.Errorf("OIDC discovery failed for %s: %w", issuer, err)
+		return nil, nil, fmt.Errorf("OIDC discovery failed for %s: %w", issuer, err)
 	}
-	m.provider, m.providerIssuer = p, issuer
-	return p, nil
+	client := *oidcHTTPClient()
+	base := client.Transport
+	if base == nil {
+		base = http.DefaultTransport
+	}
+	client.Transport = strongJWKSTransport{base: base}
+	verifier := p.VerifierContext(oidc.ClientContext(ctx, &client), &oidc.Config{ClientID: cfg.ClientID})
+	m.provider, m.providerIssuer, m.providerClientID, m.providerVerifier = p, issuer, cfg.ClientID, verifier
+	return p, verifier, nil
 }
 
 // TestSSOConnection checks that the issuer publishes usable OIDC discovery metadata.
@@ -386,7 +399,7 @@ func (m *Manager) TestSSOConnection(ctx context.Context, issuerURL string) error
 	// Discovery is what KyRecovery actually needs at login: it carries the
 	// endpoints and the JWKS used to verify ID tokens. A bare TCP connect is
 	// not evidence the issuer works, so it is not accepted as a fallback.
-	if _, err := oidc.NewProvider(oidc.ClientContext(ctx, httpClient()), issuerURL); err != nil {
+	if _, err := discoverProvider(ctx, issuerURL); err != nil {
 		return fmt.Errorf("could not read OIDC discovery document from %s: %w", issuerURL, err)
 	}
 	return nil
@@ -416,7 +429,7 @@ func GenerateRandomString(n int) (string, error) {
 // BuildAuthURL creates the KySignOn authorization URL with PKCE, using the
 // authorization endpoint published by the issuer's discovery document.
 func (m *Manager) BuildAuthURL(ctx context.Context, state, nonce, codeChallenge string) (string, error) {
-	provider, err := m.oidcProvider(ctx)
+	provider, _, err := m.oidcProvider(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -431,7 +444,16 @@ func (m *Manager) BuildAuthURL(ctx context.Context, state, nonce, codeChallenge 
 	params.Set("nonce", nonce)
 	params.Set("code_challenge", codeChallenge)
 	params.Set("code_challenge_method", "S256")
-	return fmt.Sprintf("%s?%s", provider.Endpoint().AuthURL, params.Encode()), nil
+	endpoint, err := url.Parse(provider.Endpoint().AuthURL)
+	if err != nil {
+		return "", fmt.Errorf("invalid authorization endpoint: %w", err)
+	}
+	query := endpoint.Query()
+	for key, values := range params {
+		query[key] = values
+	}
+	endpoint.RawQuery = query.Encode()
+	return endpoint.String(), nil
 }
 
 // TokenResponse represents the token endpoint response from KySignOn.
@@ -447,12 +469,12 @@ type TokenResponse struct {
 // user profile. The ID token's signature, issuer, audience, expiry and nonce are
 // all checked against the issuer's published JWKS before any session is created.
 func (m *Manager) ExchangeCode(ctx context.Context, code, verifier, nonce string) (*UserInfo, error) {
-	provider, err := m.oidcProvider(ctx)
+	provider, tokenVerifier, err := m.oidcProvider(ctx)
 	if err != nil {
 		return nil, err
 	}
 	cfg := m.GetConfig()
-	client := httpClient()
+	client := oidcHTTPClient()
 
 	data := url.Values{}
 	data.Set("grant_type", "authorization_code")
@@ -484,24 +506,12 @@ func (m *Manager) ExchangeCode(ctx context.Context, code, verifier, nonce string
 		return nil, fmt.Errorf("failed decoding token response: %w", err)
 	}
 
-	var userInfo *UserInfo
-	if tokResp.IDToken != "" {
-		// A present-but-invalid ID token is an authentication failure, never a
-		// reason to fall back to an unverified profile source.
-		userInfo, err = m.verifyIDToken(ctx, provider, tokResp.IDToken, nonce)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		if m.db != nil {
-			if _, managed, e := m.db.InstallerConfiguration(ctx); e != nil || managed {
-				return nil, errors.New("managed login requires a verified ID token")
-			}
-		}
-		userInfo, err = m.fetchUserInfo(ctx, provider, tokResp.AccessToken)
-		if err != nil {
-			return nil, fmt.Errorf("issuer returned no id_token and userinfo failed: %w", err)
-		}
+	if tokResp.IDToken == "" {
+		return nil, errors.New("issuer returned no ID token; a verified ID token is required")
+	}
+	userInfo, err := m.verifyIDToken(ctx, tokenVerifier, tokResp.IDToken, nonce)
+	if err != nil {
+		return nil, err
 	}
 
 	if m.db != nil {
@@ -532,9 +542,8 @@ func (m *Manager) ExchangeCode(ctx context.Context, code, verifier, nonce string
 }
 
 // verifyIDToken validates the JWS and the standard OIDC claims, then extracts the profile.
-func (m *Manager) verifyIDToken(ctx context.Context, provider *oidc.Provider, rawIDToken, nonce string) (*UserInfo, error) {
-	verifier := provider.Verifier(&oidc.Config{ClientID: m.GetConfig().ClientID})
-	idToken, err := verifier.Verify(oidc.ClientContext(ctx, httpClient()), rawIDToken)
+func (m *Manager) verifyIDToken(ctx context.Context, verifier *oidc.IDTokenVerifier, rawIDToken, nonce string) (*UserInfo, error) {
+	idToken, err := verifier.Verify(ctx, rawIDToken)
 	if err != nil {
 		return nil, fmt.Errorf("id_token verification failed: %w", err)
 	}
@@ -563,32 +572,6 @@ func (m *Manager) verifyIDToken(ctx context.Context, provider *oidc.Provider, ra
 		Email:   claims.Email,
 		Name:    claims.Name,
 		Role:    role,
-	}, nil
-}
-
-func (m *Manager) fetchUserInfo(ctx context.Context, provider *oidc.Provider, accessToken string) (*UserInfo, error) {
-	if accessToken == "" {
-		return nil, errors.New("no access token returned by issuer")
-	}
-	info, err := provider.UserInfo(oidc.ClientContext(ctx, httpClient()), oauth2.StaticTokenSource(&oauth2.Token{
-		AccessToken: accessToken,
-		TokenType:   "Bearer",
-	}))
-	if err != nil {
-		return nil, err
-	}
-
-	var claims struct {
-		Name string `json:"name"`
-		Role string `json:"role"`
-	}
-	_ = info.Claims(&claims)
-
-	return &UserInfo{
-		Subject: info.Subject,
-		Email:   info.Email,
-		Name:    claims.Name,
-		Role:    claims.Role,
 	}, nil
 }
 

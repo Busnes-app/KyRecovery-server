@@ -6,13 +6,13 @@ toolchain go1.27.3
 
 require (
 	github.com/Busnes-app/ky-primitives v0.10.0
-	github.com/Busnes-app/ky-primitives/offsite v0.2.2
+	github.com/Busnes-app/ky-primitives/offsite v0.2.3-0.20261026050236-bae5c14dba4c
 	github.com/aws/aws-sdk-go-v2 v1.47.4
 	github.com/cloudsoda/go-smb2 v0.0.0-20260918041005-0c5d69b69701
 	github.com/coreos/go-oidc/v3 v3.21.0
+	github.com/go-jose/go-jose/v4 v4.1.4
 	github.com/pkg/sftp v1.13.11
 	golang.org/x/crypto v0.58.0
-	golang.org/x/oauth2 v0.37.0
 	modernc.org/sqlite v1.60.1
 )
 
@@ -21,7 +21,6 @@ require (
 	github.com/cloudsoda/sddl v0.0.0-20250224235906-926454e91efc // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/geoffgarside/ber v1.1.0 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
@@ -35,6 +34,7 @@ require (
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	golang.org/x/net v0.61.0 // indirect
+	golang.org/x/oauth2 v0.37.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	modernc.org/libc v1.77.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect

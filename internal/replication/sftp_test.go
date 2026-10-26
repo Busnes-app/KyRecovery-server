@@ -61,7 +61,12 @@ func startSFTPServerWithHandlers(t *testing.T, handlers *sftp.Handlers, roots ..
 		},
 	}
 	cfg.AddHostKey(signer)
+	addr, _ = serveSFTPServerWithConfig(t, cfg, handlers, roots...)
+	return addr, ssh.FingerprintSHA256(signer.PublicKey())
+}
 
+func serveSFTPServerWithConfig(t *testing.T, cfg *ssh.ServerConfig, handlers *sftp.Handlers, roots ...string) (addr, fingerprint string) {
+	t.Helper()
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
@@ -114,7 +119,7 @@ func startSFTPServerWithHandlers(t *testing.T, handlers *sftp.Handlers, roots ..
 			}()
 		}
 	}()
-	return ln.Addr().String(), ssh.FingerprintSHA256(signer.PublicKey())
+	return ln.Addr().String(), ""
 }
 
 func newCapsuleFixture(t *testing.T) (*db.DB, *replication.Manager, string) {

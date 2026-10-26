@@ -50,22 +50,20 @@ here. Target types:
   server's host key is pinned: Test Connection reports the SHA256 fingerprint
   of an unknown server, the operator confirms it against `ssh-keygen -lf` and
   saves it, and a later mismatch refuses to connect. No pin, no connection.
-- `smb`: a Windows or Samba share over SMB 2 or 3, never SMB1. The host may be
-  given as `host`, `host:port`, `\\host\share\dir`, `//host/share/dir` or
-  `smb://host/share/dir`; a share or directory in the path fills in whichever
-  field was left blank. The user may be `DOMAIN\user`. The client requires message signing. Known limitation: the
-  SMB library accepts a server that grants a *guest* session, unsigned, so a
-  host impersonating the share can swallow uploads while the sync log records
-  success and can observe the NTLMv2 exchange. Give the target a strong
-  password, keep it on a trusted network, and check the share occasionally.
-  An SMB share mounted on the host and used as a `local` target does not have
-  this gap.
+- `smb`: explicit legacy NTLM compatibility for Windows/Samba SMB 2/3, never SMB1.
+  The client requires message signing and refuses unsigned guest sessions.
+  NTLM uses algorithms with known weaknesses and has no forward secrecy; use a
+  dedicated account/unique strong password on a restricted network, or prefer
+  pinned SFTP/verified HTTPS S3. The strong process profile refuses SMB operations.
+  A host mount needs its own secure authentication policy. See the exact
+  [risks, accepted address forms and migration](STRONG-CRYPTO.md#explicit-smb-compatibility-outside-the-profile).
 - `local`: a directory, typically an NFS or SMB mount managed by the host.
 
 Credentials for every type are sealed with `secret.key` before they reach the
 database.
 
-Replication uses `ky-primitives/offsite` v0.1.0 for local, ordinary S3,
+Replication uses the pinned strong-policy `ky-primitives/offsite` source described in
+[STRONG-CRYPTO.md](STRONG-CRYPTO.md) for local, ordinary S3,
 account-relative SFTP, and new SMB writes. Existing absolute SFTP directories and
 S3 endpoints containing the bucket name retain compatibility clients because the
 released library cannot express their original locations. Those branches preserve

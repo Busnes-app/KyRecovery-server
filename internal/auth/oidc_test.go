@@ -12,7 +12,9 @@ import (
 	"math/big"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -23,26 +25,35 @@ import (
 // that hands back whichever ID token the test asked for by authorization code.
 type fakeIssuer struct {
 	*httptest.Server
-	key    *rsa.PrivateKey
-	tokens map[string]string
+	key          *rsa.PrivateKey
+	tokens       map[string]string
+	fetches      atomic.Int32
+	authEndpoint string
+	jwkBefore    string
+	jwkAfter     string
 }
 
-func newFakeIssuer(t *testing.T) *fakeIssuer {
+func newFakeIssuer(t *testing.T, bits ...int) *fakeIssuer {
 	t.Helper()
-	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	size := 2048
+	if len(bits) > 0 {
+		size = bits[0]
+	}
+	key, err := rsa.GenerateKey(rand.Reader, size)
 	if err != nil {
 		t.Fatalf("rsa.GenerateKey failed: %v", err)
 	}
 
 	iss := &fakeIssuer{key: key, tokens: map[string]string{}}
 	mux := http.NewServeMux()
-	iss.Server = httptest.NewServer(mux)
+	iss.Server = httptest.NewTLSServer(mux)
+	auth.UseIssuerClientForTest(t, iss.Client())
 	t.Cleanup(iss.Close)
 
 	mux.HandleFunc("/.well-known/openid-configuration", func(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"issuer":                                iss.URL,
-			"authorization_endpoint":                iss.URL + "/oauth/authorize",
+			"authorization_endpoint":                authorizationEndpoint(iss),
 			"token_endpoint":                        iss.URL + "/oauth/token",
 			"userinfo_endpoint":                     iss.URL + "/oauth/userinfo",
 			"jwks_uri":                              iss.URL + "/jwks",
@@ -50,16 +61,16 @@ func newFakeIssuer(t *testing.T) *fakeIssuer {
 		})
 	})
 	mux.HandleFunc("/jwks", func(w http.ResponseWriter, r *http.Request) {
-		_ = json.NewEncoder(w).Encode(map[string]interface{}{
-			"keys": []map[string]string{{
-				"kty": "RSA",
-				"kid": "test-key",
-				"alg": "RS256",
-				"use": "sig",
-				"n":   b64u(key.N.Bytes()),
-				"e":   b64u(big.NewInt(int64(key.E)).Bytes()),
-			}},
+		iss.fetches.Add(1)
+		jwk, err := json.Marshal(map[string]string{
+			"kty": "RSA", "kid": "test-key", "alg": "RS256", "use": "sig",
+			"n": b64u(key.N.Bytes()), "e": b64u(big.NewInt(int64(key.E)).Bytes()),
 		})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		_, _ = fmt.Fprintf(w, `{"keys":[{%s%s%s}]}`, iss.jwkBefore, jwk[1:len(jwk)-1], iss.jwkAfter)
 	})
 	mux.HandleFunc("/oauth/token", func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
@@ -210,7 +221,7 @@ func TestTestSSOConnectionRequiresDiscovery(t *testing.T) {
 	}
 
 	// Link-local addresses (cloud metadata) are refused at dial time.
-	err := mgr.TestSSOConnection(ctx, "http://169.254.169.254")
+	err := mgr.TestSSOConnection(ctx, "https://169.254.169.254")
 	if err == nil || !strings.Contains(fmt.Sprint(err), "169.254.169.254") {
 		t.Fatalf("cloud metadata address should be blocked, got %v", err)
 	}
@@ -218,5 +229,86 @@ func TestTestSSOConnectionRequiresDiscovery(t *testing.T) {
 	iss := newFakeIssuer(t)
 	if err := mgr.TestSSOConnection(ctx, iss.URL); err != nil {
 		t.Fatalf("a real issuer should pass: %v", err)
+	}
+}
+
+func TestOIDCSigningKeyFloor(t *testing.T) {
+	for _, bits := range []int{1024, 2047, 2048} {
+		t.Run(fmt.Sprint(bits), func(t *testing.T) {
+			iss := newFakeIssuer(t, bits)
+			iss.tokens["fixture"] = iss.sign(t, iss.key, map[string]any{"iss": iss.URL, "aud": "recovery", "sub": "subject", "nonce": "nonce", "exp": time.Now().Add(time.Hour).Unix()})
+			for _, variant := range []struct{ name, before, after string }{
+				{name: "canonical"},
+				{name: "uppercase type", after: `,"KTY":"EC"`},
+				{name: "mixed-case type", after: `,"Kty":"EC"`},
+				{name: "uppercase modulus", after: `,"N":"` + b64u(new(big.Int).Lsh(big.NewInt(1), 2047).Bytes()) + `"`},
+				{name: "uppercase short modulus", after: `,"N":"AQ"`},
+				{name: "aliases before canonical", before: `"KTY":"EC","N":"AQ",`},
+				{name: "type and modulus aliases", after: `,"KTY":"EC","N":"AQ"`},
+			} {
+				t.Run(variant.name, func(t *testing.T) {
+					iss.jwkBefore, iss.jwkAfter = variant.before, variant.after
+					fetches := iss.fetches.Load()
+					mgr := auth.NewManager(auth.OIDCConfig{Enabled: true, IssuerURL: iss.URL, ClientID: "recovery"}, nil)
+					for i := 0; i < 2; i++ {
+						got, err := mgr.ExchangeCode(t.Context(), "fixture", "verifier", "nonce")
+						if bits < 2048 {
+							if err == nil || got != nil {
+								t.Fatalf("accepted RSA-%d token: %+v", bits, got)
+							}
+							if !strings.Contains(err.Error(), "2048") {
+								t.Fatalf("wrong refusal: %v", err)
+							}
+							return
+						}
+						if err != nil || got.Subject != "subject" {
+							t.Fatalf("strong ID token: %+v %v", got, err)
+						}
+					}
+					if delta := iss.fetches.Load() - fetches; delta != 1 {
+						t.Fatalf("JWKS cache lost: %d fetches", delta)
+					}
+				})
+			}
+		})
+	}
+}
+
+func TestMissingIDTokenDoesNotUseUserinfo(t *testing.T) {
+	iss := newFakeIssuer(t)
+	iss.tokens["missing"] = ""
+	var calls atomic.Int32
+	iss.Config.Handler.(*http.ServeMux).HandleFunc("/oauth/userinfo", func(w http.ResponseWriter, r *http.Request) {
+		calls.Add(1)
+		_ = json.NewEncoder(w).Encode(map[string]string{"sub": "subject", "role": "admin"})
+	})
+	mgr := auth.NewManager(auth.OIDCConfig{Enabled: true, IssuerURL: iss.URL, ClientID: "recovery"}, nil)
+	got, err := mgr.ExchangeCode(t.Context(), "missing", "verifier", "nonce")
+	if err == nil || got != nil || calls.Load() != 0 {
+		t.Fatalf("missing token reached userinfo or authenticated: %+v %v calls=%d", got, err, calls.Load())
+	}
+}
+
+func authorizationEndpoint(iss *fakeIssuer) string {
+	if iss.authEndpoint != "" {
+		return iss.authEndpoint
+	}
+	return iss.URL + "/oauth/authorize"
+}
+
+func TestAuthorizationEndpointRetainsQuery(t *testing.T) {
+	iss := newFakeIssuer(t)
+	iss.authEndpoint = iss.URL + "/authorize?audience=retained&state=untrusted-default"
+	mgr := auth.NewManager(auth.OIDCConfig{Enabled: true, IssuerURL: iss.URL, ClientID: "recovery"}, nil)
+	target, err := mgr.BuildAuthURL(t.Context(), "actual-state", "actual-nonce", "challenge")
+	if err != nil {
+		t.Fatal(err)
+	}
+	u, err := url.Parse(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if u.Query().Get("audience") != "retained" || u.Query().Get("state") != "actual-state" || u.Query().Get("nonce") != "actual-nonce" {
+		t.Fatalf("authorization parameters changed: %v", u.Query())
 	}
 }
