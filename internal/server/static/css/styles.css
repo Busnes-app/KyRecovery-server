@@ -125,7 +125,7 @@ header {
 .header-meta { display: flex; align-items: center; gap: 14px; font-size: 13px; color: var(--paper-muted); }
 /* Author display beats the UA rule that hides a closed popover, so wide screens show it inline. */
 #user-auth-area { display: flex; align-items: center; gap: 10px; position: static; inset: auto; width: auto; height: auto; margin: 0; padding: 0; border: 0; background: none; color: inherit; overflow: visible; }
-.account-toggle { display: none; }
+.btn.account-toggle { display: none; }
 
 .status-pill {
   display: inline-flex;
@@ -298,7 +298,7 @@ footer { padding: 16px 32px; border-top: 1px solid var(--rule); font-size: 13px;
   header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; padding-top: 12px; padding-bottom: 12px; }
   .header-meta { display: contents; }
   #system-status-pill { grid-column: 1 / -1; grid-row: 2; justify-self: start; }
-  .account-toggle { display: inline-flex; grid-column: 2; grid-row: 1; }
+  .btn.account-toggle { display: inline-flex; grid-column: 2; grid-row: 1; }
   #user-auth-area:not(:popover-open) { display: none; }
   #user-auth-area:popover-open { position: fixed; inset: 56px 16px auto auto; flex-direction: column; align-items: stretch; min-width: 220px; padding: 16px; border: 1px solid var(--rule-strong); border-radius: var(--radius-panel); background: var(--ink-raised); color: var(--paper); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2); }
   #user-auth-area #user-role-badge { align-self: flex-start; }
