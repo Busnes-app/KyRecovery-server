@@ -60,7 +60,7 @@ for (const [count, expectedCount, expected] of [
   await context.loadReadiness();
   const pill = elements.get('system-status-pill');
   assert.equal(elements.get('metric-capsules').textContent, String(expectedCount));
-  assert.equal(pill.innerHTML.replace(/<[^>]*>/g, '').trim(), expected);
+  assert.equal(pill.innerHTML, '<span class="dot"></span> ' + expected);
   assert.equal(pill.className, expected === 'No capsules stored' ? 'status-pill warning' : 'status-pill ready');
   assert.equal(elements.get('metric-custodians').textContent, '0');
   assert.equal(elements.get('overview-audit-status').textContent, 'Unknown');
