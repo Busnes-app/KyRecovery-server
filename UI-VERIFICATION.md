@@ -37,3 +37,7 @@ See [UI-POLISH.md](UI-POLISH.md) for the implemented changes, preservation scope
 ## 2026-10-26 fleet Appearance
 
 ky-ui 0.4.0 (shared source `4f83f34`): the Appearance theme-card picker over the shared catalog, plus shell geometry from shared tokens. Before/after screenshots, capture conditions, hashes, real-browser behaviour checks and the results spreadsheet are in [docs/ui-fleet-2026-10-26](docs/ui-fleet-2026-10-26/README.md). Ratings are set by the independent council, not this record.
+
+## Fleet visual refinement (2026-10-26)
+
+Phone header and Replication: on phones the brand, an Account button (a native popover holding the account controls) and the vault status replace the three-row header (222px → 131px to the bottom of the tab row); Offsite Replication has a page `h1`; empty tables hide their headings on phones so the empty-state sentence fits its card. The F6 tab-row check still passes (page and focus unchanged). Before/after captures (light/dark × 1280×900/390×844, synthetic fixture, clean commits), manifests with hashes, behaviour checks and CSVs are in [docs/ui-visual-refinement-2026-10-26](docs/ui-visual-refinement-2026-10-26/README.md). No score is self-assigned.

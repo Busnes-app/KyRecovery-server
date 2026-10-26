@@ -1,0 +1,22 @@
+product,stage,phase,check,result,detail,source_commit,uncommitted_source_sha256,captured_at
+kyrecovery-server,00,before,desktop overview: one visible h1,pass,visible h1 count = 1,cd058d425a13a2dd988421fbdc2483b8079029d9,,2026-10-26T16:21:01.375Z
+kyrecovery-server,00,before,desktop replication-via-overview: one visible h1,fail,"visible h1 count: got 0, want 1",cd058d425a13a2dd988421fbdc2483b8079029d9,,2026-10-26T16:21:01.375Z
+kyrecovery-server,00,before,phone: header and tab row height,pass,top of page to bottom of tab row: 222px,cd058d425a13a2dd988421fbdc2483b8079029d9,,2026-10-26T16:21:01.375Z
+kyrecovery-server,00,before,phone: every account control is reachable,pass,"SSO pairing, Password, Sign Out visible",cd058d425a13a2dd988421fbdc2483b8079029d9,,2026-10-26T16:21:01.375Z
+kyrecovery-server,00,before,phone: replication empty states fit their card,fail,"clipped: [{""text"":""No replication targets y"",""left"":116,""right"":-271},{""text"":""No transfers yet."",""left"":247,""right"":-3}]",cd058d425a13a2dd988421fbdc2483b8079029d9,,2026-10-26T16:21:01.375Z
+kyrecovery-server,00,before,phone: an Overview link reveals its tab without moving the page or focus,pass,scrollY 944 -> 944,cd058d425a13a2dd988421fbdc2483b8079029d9,,2026-10-26T16:21:01.375Z
+kyrecovery-server,00,before,no console errors or CSP violations,pass,none,cd058d425a13a2dd988421fbdc2483b8079029d9,,2026-10-26T16:21:01.375Z
+kyrecovery-server,01,after,desktop overview: one visible h1,pass,visible h1 count = 1,cf2e85724619cb8524b088a82d13c88177ce8208,,2026-10-26T16:42:32.605Z
+kyrecovery-server,01,after,desktop replication-via-overview: one visible h1,pass,visible h1 count = 1,cf2e85724619cb8524b088a82d13c88177ce8208,,2026-10-26T16:42:32.605Z
+kyrecovery-server,01,after,phone: header and tab row height,pass,top of page to bottom of tab row: 131px,cf2e85724619cb8524b088a82d13c88177ce8208,,2026-10-26T16:42:32.605Z
+kyrecovery-server,01,after,phone: every account control is reachable,pass,"SSO pairing, Password, Sign Out visible after opening Account",cf2e85724619cb8524b088a82d13c88177ce8208,,2026-10-26T16:42:32.605Z
+kyrecovery-server,01,after,phone: replication empty states fit their card,pass,"[{""text"":""No replication targets y"",""left"":24,""right"":24},{""text"":""No transfers yet."",""left"":122,""right"":122}]",cf2e85724619cb8524b088a82d13c88177ce8208,,2026-10-26T16:42:32.605Z
+kyrecovery-server,01,after,phone: an Overview link reveals its tab without moving the page or focus,pass,scrollY 851 -> 851,cf2e85724619cb8524b088a82d13c88177ce8208,,2026-10-26T16:42:32.605Z
+kyrecovery-server,01,after,no console errors or CSP violations,pass,none,cf2e85724619cb8524b088a82d13c88177ce8208,,2026-10-26T16:42:32.605Z
+kyrecovery-server,02,after,desktop overview: one visible h1,pass,visible h1 count = 1,36fa319daaba71d3780690402727a34d32a607fc,,2026-10-26T16:47:33.695Z
+kyrecovery-server,02,after,desktop replication-via-overview: one visible h1,pass,visible h1 count = 1,36fa319daaba71d3780690402727a34d32a607fc,,2026-10-26T16:47:33.695Z
+kyrecovery-server,02,after,phone: header and tab row height,pass,top of page to bottom of tab row: 131px,36fa319daaba71d3780690402727a34d32a607fc,,2026-10-26T16:47:33.695Z
+kyrecovery-server,02,after,phone: every account control is reachable,pass,"SSO pairing, Password, Sign Out visible after opening Account",36fa319daaba71d3780690402727a34d32a607fc,,2026-10-26T16:47:33.695Z
+kyrecovery-server,02,after,phone: replication empty states fit their card,pass,"[{""text"":""No replication targets y"",""left"":24,""right"":24},{""text"":""No transfers yet."",""left"":122,""right"":122}]",36fa319daaba71d3780690402727a34d32a607fc,,2026-10-26T16:47:33.695Z
+kyrecovery-server,02,after,phone: an Overview link reveals its tab without moving the page or focus,pass,scrollY 851 -> 851,36fa319daaba71d3780690402727a34d32a607fc,,2026-10-26T16:47:33.695Z
+kyrecovery-server,02,after,no console errors or CSP violations,pass,none,36fa319daaba71d3780690402727a34d32a607fc,,2026-10-26T16:47:33.695Z
