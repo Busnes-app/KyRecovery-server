@@ -1,6 +1,7 @@
 # KyRecovery
 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15934/badge)](https://www.bestpractices.dev/projects/15934)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Busnes-app/KyRecovery-server/badge)](https://scorecard.dev/viewer/?uri=github.com/Busnes-app/KyRecovery-server)
 
 **Start here:** [Standalone installation](INSTALL.md). Local operator sign-in works without KyIdentity. The browser ceremony creates the recovery key and custodian cards; the server stores sealed capsules, public-key metadata and audit evidence. Stored capsules alone do not prove that a restore or off-site custody has been tested.
 
