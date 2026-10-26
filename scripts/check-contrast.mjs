@@ -8,6 +8,10 @@ const script = read('../internal/server/static/js/theme.js');
 for (const page of ['index.html', 'ceremony.html']) {
   const html = read(`../internal/server/static/${page}`);
   assert(html.indexOf('/static/ky-ui/tokens.css') < html.indexOf('/static/css/styles.css'), `${page}: product semantic aliases must follow shared aliases`);
+  // Classic, in order, in <head>: a module would apply the saved theme after first paint.
+  const head = html.slice(0, html.indexOf('</head>'));
+  assert(head.includes('<script src="/static/ky-ui/themes-browser.js"></script>\n  <script src="/static/js/theme.js"></script>'), `${page}: theme scripts must be classic and in order in <head>`);
+  assert(!head.includes('type="module"'), `${page}: a module theme script is deferred past first paint`);
 }
 assert(css.includes(':root:not([data-theme]):not([data-ky-theme])'), 'System alias specificity must match shared defaults');
 const declarations = text => Object.fromEntries([...text.matchAll(/--([a-z-]+):\s*([^;]+);/g)].map(m => [m[1], m[2].trim()]));

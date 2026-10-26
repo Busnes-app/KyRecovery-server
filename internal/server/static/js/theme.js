@@ -1,7 +1,10 @@
 // Follow the OS until the user chooses a palette. No server state is changed.
-// The suite catalog comes from ky-ui. Busnes keeps its original saved values
+// The suite catalog comes from ky-ui's classic themes-browser.js, loaded first in <head>,
+// so the saved choice applies before first paint. Busnes keeps its original saved values
 // ("system", "light", "dark"); other themes save their catalog ID.
-import { SYSTEM_THEME, THEME_CATALOG, THEME_PALETTES, findTheme } from '/static/ky-ui/themes.js';
+(() => {
+'use strict';
+const { SYSTEM_THEME, THEME_CATALOG, THEME_PALETTES, findTheme } = window.kyThemes;
 
 const key = 'kyrecovery-theme';
 const legacy = { light: 'busnes-light', dark: 'busnes-dark' };
@@ -77,6 +80,10 @@ function shortcut(select) {
 
 media.addEventListener('change', () => { if (choice === 'system') apply(); });
 window.addEventListener('storage', event => { if (event.key === key || event.key === null) { choice = stored(); apply(); } });
-document.querySelectorAll('[data-theme-picker] .ky-appearance-grid').forEach(picker);
-document.querySelectorAll('[data-theme-select]').forEach(shortcut);
 apply();
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-theme-picker] .ky-appearance-grid').forEach(picker);
+  document.querySelectorAll('[data-theme-select]').forEach(shortcut);
+  apply();
+});
+})();
