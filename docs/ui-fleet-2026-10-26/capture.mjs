@@ -62,6 +62,8 @@ const savedChecks = [['light', 'busnes-light', ''], ['dark', 'busnes-dark', ''],
 const surfaces = {
   overview: { tab: 'Overview' },
   appearance: { tab: phase === 'before' ? 'Overview' : 'Appearance' },
+  // Fleet review F6: a tab opened by an Overview link, not by the tab row (a click scrolls the row itself).
+  ...(stage >= '05' && { 'replication-via-overview': { action: 'View replication', tab: 'Offsite Replication' } }),
 };
 
 try {
@@ -85,7 +87,8 @@ try {
       for (const [surface, s] of Object.entries(surfaces)) {
         await page.goto('/');
         await page.locator('#dashboard-view').waitFor();
-        await page.locator('nav.nav-tabs').getByRole('button', { name: s.tab, exact: true }).click();
+        if (s.action) await page.getByRole('button', { name: s.action }).click();
+        else await page.locator('nav.nav-tabs').getByRole('button', { name: s.tab, exact: true }).click();
         await page.waitForLoadState('networkidle');
         await page.evaluate(() => document.fonts.ready);
         await page.waitForTimeout(300);
@@ -160,6 +163,32 @@ try {
       await page.waitForFunction(() => document.querySelector('[data-theme-picker] input[value=forest]')?.checked);
       await other.close();
       return 'forest checked after storage event';
+    });
+    await check('phone: an Overview link reveals its tab without moving the page or focus', async () => {
+      const phone = await browser.newContext({ baseURL: base, colorScheme: 'light', viewport: { width: 390, height: 844 }, storageState: storage });
+      const p = await phone.newPage();
+      try {
+        await p.goto('/');
+        await p.locator('#dashboard-view').waitFor();
+        // Test-only height, so the page cannot clamp its scroll: any movement comes from the tab change.
+        await p.addStyleTag({ content: 'main { min-height: 400vh; }' });
+        const link = p.getByRole('button', { name: 'View replication' });
+        await link.scrollIntoViewIfNeeded();
+        const before = await p.evaluate(() => scrollY);
+        await link.click();
+        await p.waitForTimeout(300);
+        const r = await p.evaluate(() => {
+          const nav = document.querySelector('nav.nav-tabs'), box = nav.getBoundingClientRect();
+          const cur = nav.querySelector('[aria-current="page"]'), item = cur.getBoundingClientRect();
+          return { tab: cur.textContent.trim(), inView: item.left >= box.left - 1 && item.right <= box.right + 1, y: scrollY,
+            max: document.documentElement.scrollHeight - innerHeight, navFocused: !!document.activeElement?.closest('nav') };
+        });
+        expectEq(r.tab, 'Offsite Replication', 'current tab');
+        expectEq(r.inView, true, 'current tab in view');
+        expectEq(r.y, Math.max(0, Math.min(before, r.max)), 'page scroll');
+        expectEq(r.navFocused, false, 'focus in tab row');
+        return `scrollY ${before} -> ${r.y}`;
+      } finally { await phone.close(); }
     });
     await check('no console errors or CSP violations', async () => { if (errors.length) throw new Error(errors.join(' | ')); return 'none'; });
     await ctx.close();

@@ -13,6 +13,8 @@ Claude Opus 5.5 council; this record claims no score.
 | `02-after` | final tree, hash in `manifest-02-after.json` | confirmation batch after the owner corrections and shared `4f83f34` |
 | `03-after` | clean `2738beb` (Appearance head) | F2 baseline: steady-state captures and checks before the first-paint fix. The driver's `after` phase is used because `before` targets the pre-Appearance UI |
 | `04-after` | clean `71affc9` (ky-ui 0.4.1) | F2 fix: theme script back to a classic `<head>` script. Appearance captures match stage 03 byte for byte, as do the overview captures |
+| `05-after` | clean `ef53cd2` | fleet review F6 baseline. Adds `replication-via-overview`, Offsite Replication opened by the Overview "View replication" link. At 390px the tab is off-screen; the new phone check fails (10/11) |
+| `06-after` | F6 fix, hash in `manifest-06-after.json` | the tab row scrolls to the current tab and the page stays put (944 → 944px on a tall test page); 11/11 checks. Only the two phone `replication-via-overview` captures change; the rest are pixel-identical to stage 05 |
 
 Each batch is light and dark (OS `prefers-color-scheme`, no saved choice) × 1280×900
 and 390×844 CSS px, device scale 1, full-page PNGs named
