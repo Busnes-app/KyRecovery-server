@@ -147,6 +147,9 @@ not a FIPS certification or proof of deployed endpoint policy.
 
 - **Tests:** the security tests named above, plus the whole suite under the race detector on
   every push and pull request (`go` job). The SMB replication tests run against Samba in CI.
+  That job also runs `node scripts/test-overview.mjs` against the shipped dashboard script
+  and element IDs, covering audit labels, capsule counts, failed responses and recovery.
+  Its minimal DOM stub does not establish real-browser behavior or complete UI coverage.
 - **Static analysis:** `go vet` and `govulncheck` on every push and pull request, and GitHub CodeQL
   (default setup, configured in the repository settings rather than a workflow file) for Go,
   JavaScript/TypeScript and Actions.

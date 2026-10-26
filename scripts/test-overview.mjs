@@ -2,16 +2,88 @@
 import { strict as assert } from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
-const elements = new Map();
-const document = { addEventListener() {}, getElementById(id) { if (!elements.has(id)) elements.set(id, {}); return elements.get(id); } };
-const context = { document, console, fetch: async () => ({ ok: true, json: async () => context.response }) };
-runInNewContext(readFileSync(new URL('../internal/server/static/js/app.js', import.meta.url), 'utf8'), context);
-for (const [flag, expected] of [[true, 'Appends blocked'], [false, 'Accepting entries'], [undefined, 'Unknown']]) {
-  context.response = { capsule_count: 3, custodian_count: 5, audit_append_disabled: flag };
+const appSource = readFileSync(new URL('../internal/server/static/js/app.js', import.meta.url), 'utf8');
+const page = readFileSync(new URL('../internal/server/static/index.html', import.meta.url), 'utf8');
+const ids = [...page.matchAll(/\sid=["']([^"']+)["']/g)].map(match => match[1]);
+for (const id of ['overview-audit-status', 'metric-capsules', 'metric-custodians', 'system-status-pill']) {
+  assert.equal(ids.filter(value => value === id).length, 1, `dashboard must contain exactly one ${id}`);
+}
+
+function runtime(body) {
+  const elements = new Map(ids.map(id => {
+    let text = '';
+    return [id, {
+      get textContent() { return text; },
+      set textContent(value) { text = String(value ?? ''); },
+      innerHTML: '', className: '',
+    }];
+  }));
+  const state = { body, errors: [], jsonCalls: 0 };
+  const context = {
+    document: { addEventListener() {}, getElementById: id => elements.get(id) ?? null },
+    console: { error: (...args) => state.errors.push(args) },
+    fetch: async url => {
+      assert.equal(url, '/api/readiness');
+      if (state.networkError) throw new Error('synthetic network failure');
+      return {
+        ok: state.ok !== false,
+        json: async () => {
+          state.jsonCalls++;
+          if (state.jsonError) throw new Error('synthetic JSON failure');
+          return state.body;
+        },
+      };
+    },
+  };
+  runInNewContext(appSource, context);
+  return { context, elements, state };
+}
+
+for (const [flag, expected] of [
+  [true, 'Appends blocked'], [false, 'Accepting entries'], [undefined, 'Unknown'],
+  [null, 'Unknown'], ['false', 'Unknown'], [0, 'Unknown'],
+]) {
+  const { context, elements, state } = runtime({ capsule_count: 3, custodian_count: 5, audit_append_disabled: flag });
   await context.loadReadiness();
   assert.equal(elements.get('overview-audit-status').textContent, expected);
-  assert.equal(elements.get('metric-capsules').textContent, 3);
-  assert.equal(elements.get('metric-custodians').textContent, 5);
+  assert.equal(elements.get('metric-capsules').textContent, '3');
+  assert.equal(elements.get('metric-custodians').textContent, '5');
+  assert.equal(state.errors.length, 0);
 }
-assert(!elements.get('system-status-pill').innerHTML.includes('restore'));
-console.log('Overview evidence states passed.');
+
+for (const [count, expectedCount, expected] of [
+  [0, 0, 'No capsules stored'], [1, 1, '1 capsule stored'], [2, 2, '2 capsules stored'],
+  ['3', 3, '3 capsules stored'], [undefined, 0, 'No capsules stored'],
+  ['invalid', 0, 'No capsules stored'], ['<img src=x onerror=alert(1)>', 0, 'No capsules stored'],
+]) {
+  const { context, elements, state } = runtime({ capsule_count: count });
+  await context.loadReadiness();
+  const pill = elements.get('system-status-pill');
+  assert.equal(elements.get('metric-capsules').textContent, String(expectedCount));
+  assert.equal(pill.innerHTML, '<span class="dot"></span> ' + expected);
+  assert.equal(pill.className, expected === 'No capsules stored' ? 'status-pill warning' : 'status-pill ready');
+  assert.equal(elements.get('metric-custodians').textContent, '0');
+  assert.equal(elements.get('overview-audit-status').textContent, 'Unknown');
+  assert.equal(state.errors.length, 0);
+}
+
+for (const failure of ['http', 'network', 'json']) {
+  const { context, elements, state } = runtime({});
+  state.ok = failure !== 'http';
+  state.networkError = failure === 'network';
+  state.jsonError = failure === 'json';
+  await context.loadReadiness();
+  assert.equal(state.jsonCalls, failure === 'json' ? 1 : 0);
+  assert.equal(state.errors.length, failure === 'http' ? 0 : 1);
+  assert.equal(elements.get('system-status-pill').innerHTML, '');
+
+  // A later valid response must recover without inventing restore evidence.
+  Object.assign(state, { ok: true, networkError: false, jsonError: false,
+    body: { capsule_count: 1, custodian_count: 2, audit_append_disabled: false } });
+  await context.loadReadiness();
+  assert.equal(elements.get('overview-audit-status').textContent, 'Accepting entries');
+  assert.equal(elements.get('metric-capsules').textContent, '1');
+  assert.equal(elements.get('metric-custodians').textContent, '2');
+  assert(!elements.get('system-status-pill').innerHTML.includes('restore'));
+}
+console.log('Overview audit, count, failure and recovery states passed.');
