@@ -1,0 +1,162 @@
+{
+  "product": "kyrecovery-server",
+  "stage": "02",
+  "phase": "after",
+  "captured_at": "2026-10-26T11:35:28.996Z",
+  "source_commit": "b60e5710b920fdca012179615ad278fbca6cf206",
+  "uncommitted_source_sha256": "52fff7e6d20ec30101bbac296bf244c5d3673b77964f30a3e1b9377ccb5928a2",
+  "os": "Linux 7.2.10-1-cachyos",
+  "driver": "Playwright 1.63.0 Chromium 153.0.8010.12, device scale 1, service workers blocked",
+  "server": "kyrecovery built from this worktree into a temporary directory, scratch data dir, random per-run admin password; removed after capture",
+  "fixture": "synthetic: fresh vault, bootstrap admin only; no ceremony, recovery key, paired products, capsules or replication (warning states are real)",
+  "shots": [
+    {
+      "file": "kyrecovery-02-after-overview-desktop-light.png",
+      "sha256": "72f885a7fc8c00e5fdc73dac647d6d525d282afab0e786e0fd63837e50fa78fd",
+      "surface": "overview",
+      "tab": "Overview",
+      "device": "desktop",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme_source": "OS light (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-02-after-appearance-desktop-light.png",
+      "sha256": "f2fb27d01512022a5e2e1d3ae950cef751bd31f34c2bf6bee5c81e9ab338edef",
+      "surface": "appearance",
+      "tab": "Appearance",
+      "device": "desktop",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme_source": "OS light (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-02-after-overview-mobile-light.png",
+      "sha256": "4bbc204e89adc830a9274d76dc0d438366952b9df24bff4c1e115547ec221b98",
+      "surface": "overview",
+      "tab": "Overview",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme_source": "OS light (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-02-after-appearance-mobile-light.png",
+      "sha256": "d33fc6169521e0958acfc11f1ea1a78510c963083d4b7be048a3389125fab11f",
+      "surface": "appearance",
+      "tab": "Appearance",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme_source": "OS light (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-02-after-overview-desktop-dark.png",
+      "sha256": "ca4f9a45ac094ff2d222f8174712a946cf2b6cd110f1a1c7ed5168fcbf5e7e3d",
+      "surface": "overview",
+      "tab": "Overview",
+      "device": "desktop",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme_source": "OS dark (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-02-after-appearance-desktop-dark.png",
+      "sha256": "bf5d1a7178b9635df8471caaff8fa886b3be5df12921bc47141cc93fd6fef1fd",
+      "surface": "appearance",
+      "tab": "Appearance",
+      "device": "desktop",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme_source": "OS dark (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-02-after-overview-mobile-dark.png",
+      "sha256": "06d2ee24e0c94e599e127fe5572952fd5d83a03db94294dfeb651e0d44e67d0a",
+      "surface": "overview",
+      "tab": "Overview",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme_source": "OS dark (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-02-after-appearance-mobile-dark.png",
+      "sha256": "70de9d4f5baf9fe149a2717f75b4f08409419ee572a0899835c8f25f1ed5492d",
+      "surface": "appearance",
+      "tab": "Appearance",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme_source": "OS dark (prefers-color-scheme), no saved choice"
+    }
+  ],
+  "checks": [
+    {
+      "name": "all catalog themes plus Match system render as native radios",
+      "pass": true,
+      "detail": "radio count = 23"
+    },
+    {
+      "name": "no saved choice checks Match system and follows the OS",
+      "pass": true,
+      "detail": "data-theme = busnes-light"
+    },
+    {
+      "name": "legacy saved value \"light\" resolves to busnes-light unchanged",
+      "pass": true,
+      "detail": "stored value untouched = light"
+    },
+    {
+      "name": "legacy saved value \"dark\" resolves to busnes-dark unchanged",
+      "pass": true,
+      "detail": "stored value untouched = dark"
+    },
+    {
+      "name": "legacy saved value \"ocean\" resolves to ocean unchanged",
+      "pass": true,
+      "detail": "stored value untouched = ocean"
+    },
+    {
+      "name": "keyboard arrows move the choice and persist it",
+      "pass": true,
+      "detail": "saved = coffee"
+    },
+    {
+      "name": "a light named theme keeps light nav hover and selected surfaces",
+      "pass": true,
+      "detail": "hover color(srgb 0.896471 0.928863 0.948118) / rgb(24, 49, 66); selected rgb(182, 220, 237)"
+    },
+    {
+      "name": "Match system clears the named palette and the saved choice",
+      "pass": true,
+      "detail": "body background = rgb(248, 246, 240)"
+    },
+    {
+      "name": "the picker is in sync with another tab",
+      "pass": true,
+      "detail": "forest checked after storage event"
+    },
+    {
+      "name": "no console errors or CSP violations",
+      "pass": true,
+      "detail": "none"
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "product": "kyrecovery-server",
+  "stage": "00",
+  "phase": "before",
+  "captured_at": "2026-10-26T10:56:32.339Z",
+  "source_commit": "b60e5710b920fdca012179615ad278fbca6cf206",
+  "uncommitted_source_sha256": null,
+  "os": "Linux 7.2.10-1-cachyos",
+  "driver": "Playwright 1.63.0 Chromium 153.0.8010.12, device scale 1, service workers blocked",
+  "server": "kyrecovery built from this worktree into a temporary directory, scratch data dir, random per-run admin password; removed after capture",
+  "fixture": "synthetic: fresh vault, bootstrap admin only; no ceremony, recovery key, paired products, capsules or replication (warning states are real)",
+  "shots": [
+    {
+      "file": "kyrecovery-00-before-overview-desktop-light.png",
+      "sha256": "d9688438dcef4c3e04ec0804e3e8a1af3d63dc464240bc93db43b623051a862d",
+      "surface": "overview",
+      "tab": "Overview",
+      "device": "desktop",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme_source": "OS light (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-00-before-appearance-desktop-light.png",
+      "sha256": "d9688438dcef4c3e04ec0804e3e8a1af3d63dc464240bc93db43b623051a862d",
+      "surface": "appearance",
+      "tab": "Overview",
+      "device": "desktop",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme_source": "OS light (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-00-before-overview-mobile-light.png",
+      "sha256": "239fe38cc94731b247144383e14081a84bcf7c53ec841b838252589a11d1fbff",
+      "surface": "overview",
+      "tab": "Overview",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme_source": "OS light (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-00-before-appearance-mobile-light.png",
+      "sha256": "239fe38cc94731b247144383e14081a84bcf7c53ec841b838252589a11d1fbff",
+      "surface": "appearance",
+      "tab": "Overview",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme_source": "OS light (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-00-before-overview-desktop-dark.png",
+      "sha256": "5467d5ab3bbb53029a504b32f645ac7fa864e4f3553c7316b7c26f51db8bdbb2",
+      "surface": "overview",
+      "tab": "Overview",
+      "device": "desktop",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme_source": "OS dark (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-00-before-appearance-desktop-dark.png",
+      "sha256": "5467d5ab3bbb53029a504b32f645ac7fa864e4f3553c7316b7c26f51db8bdbb2",
+      "surface": "appearance",
+      "tab": "Overview",
+      "device": "desktop",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme_source": "OS dark (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-00-before-overview-mobile-dark.png",
+      "sha256": "8244374e107b4eb862b80a49ca269a31fa202ad2b75c4fc59248fdbbfbc18989",
+      "surface": "overview",
+      "tab": "Overview",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme_source": "OS dark (prefers-color-scheme), no saved choice"
+    },
+    {
+      "file": "kyrecovery-00-before-appearance-mobile-dark.png",
+      "sha256": "8244374e107b4eb862b80a49ca269a31fa202ad2b75c4fc59248fdbbfbc18989",
+      "surface": "appearance",
+      "tab": "Overview",
+      "device": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme_source": "OS dark (prefers-color-scheme), no saved choice"
+    }
+  ]
+}
