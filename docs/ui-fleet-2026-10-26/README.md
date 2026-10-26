@@ -11,6 +11,8 @@ Claude Opus 5.5 council; this record claims no score.
 | `00-before` | clean base `b60e571` | main view and the existing theme control, before any change |
 | `01-after` | uncommitted tree, hash in `manifest-01-after.json` | first implementation pass, before the owner's 2026-10-26 corrections (nav selector removed, shared description copy). Kept as the record of that step |
 | `02-after` | final tree, hash in `manifest-02-after.json` | confirmation batch after the owner corrections and shared `4f83f34` |
+| `03-after` | clean `2738beb` (Appearance head) | F2 baseline: steady-state captures and checks before the first-paint fix. The driver's `after` phase is used because `before` targets the pre-Appearance UI |
+| `04-after` | clean `71affc9` (ky-ui 0.4.1) | F2 fix: theme script back to a classic `<head>` script. Appearance captures match stage 03 byte for byte, as do the overview captures |
 
 Each batch is light and dark (OS `prefers-color-scheme`, no saved choice) × 1280×900
 and 390×844 CSS px, device scale 1, full-page PNGs named
@@ -23,7 +25,7 @@ directory excluded), OS, driver, fixture, capture time and each PNG's SHA-256.
 ## Changes
 
 - New Appearance tab: native radio cards for Match system plus every ky-ui catalog theme, built with DOM calls. The dashboard header theme select is removed (owner correction); the standalone ceremony page keeps its compact select over the same choice.
-- `static/js/theme.js` is a preloaded ES module over `ky-ui/themes.js`. Saved `system`, `light` and `dark` keep their values; other themes save their catalog ID under `kyrecovery-theme`.
+- `static/js/theme.js` is a preloaded ES module over `ky-ui/themes.js` (stages 01-03). From stage 04 it is a classic `<head>` script over the generated `ky-ui/themes-browser.js`, so the saved choice applies before first paint (fleet review F2). Saved `system`, `light` and `dark` keep their values; other themes save their catalog ID under `kyrecovery-theme`.
 - KyRecovery's local `--ink` is its surface colour. Named palettes therefore override the `--ky-*` tokens inline, and the shared `applyThemeVariables` helper is not used. The picker and the shared description re-scope `--ink` so the shared stylesheet's secondary text stays readable.
 - Text uses self-hosted Space Grotesk (variable TTF and OFL licence under `static/fonts/`) instead of system sans and serif headings; titles are 24px/600, section titles 17px, tab rows 40px/14px.
 
@@ -36,7 +38,7 @@ directory excluded), OS, driver, fixture, capture time and each PNG's SHA-256.
 
 ## Known limits and open defects
 
-- Same deferred-module first-paint caveat as other vanilla products: a saved named theme applies when the module runs. Busnes and Match system are CSS-only.
+- Stages 01-03 had the deferred-module first-paint caveat; stage 04 removes it. First-paint timing evidence: ky-ui `reviews/2026-10-26-fleet/f2-first-paint/`.
 - The overview's large numerals (64px and 36px) and the crowded mobile header (status pill, user, three buttons) are unchanged; a task-view pass was not done.
 - The horizontal tab bar scrolls on mobile and does not scroll the current tab into view.
 

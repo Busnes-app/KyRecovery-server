@@ -19,3 +19,23 @@ kyrecovery-server,02,after,a light named theme keeps light nav hover and selecte
 kyrecovery-server,02,after,Match system clears the named palette and the saved choice,pass,"body background = rgb(248, 246, 240)",b60e5710b920fdca012179615ad278fbca6cf206,52fff7e6d20ec30101bbac296bf244c5d3673b77964f30a3e1b9377ccb5928a2,2026-10-26T11:35:28.996Z
 kyrecovery-server,02,after,the picker is in sync with another tab,pass,forest checked after storage event,b60e5710b920fdca012179615ad278fbca6cf206,52fff7e6d20ec30101bbac296bf244c5d3673b77964f30a3e1b9377ccb5928a2,2026-10-26T11:35:28.996Z
 kyrecovery-server,02,after,no console errors or CSP violations,pass,none,b60e5710b920fdca012179615ad278fbca6cf206,52fff7e6d20ec30101bbac296bf244c5d3673b77964f30a3e1b9377ccb5928a2,2026-10-26T11:35:28.996Z
+kyrecovery-server,03,after,all catalog themes plus Match system render as native radios,pass,radio count = 23,2738beb742cec16c569c45cc2e929d2e8e74621a,,2026-10-26T12:56:09.777Z
+kyrecovery-server,03,after,no saved choice checks Match system and follows the OS,pass,data-theme = busnes-light,2738beb742cec16c569c45cc2e929d2e8e74621a,,2026-10-26T12:56:09.777Z
+kyrecovery-server,03,after,"legacy saved value ""light"" resolves to busnes-light unchanged",pass,stored value untouched = light,2738beb742cec16c569c45cc2e929d2e8e74621a,,2026-10-26T12:56:09.777Z
+kyrecovery-server,03,after,"legacy saved value ""dark"" resolves to busnes-dark unchanged",pass,stored value untouched = dark,2738beb742cec16c569c45cc2e929d2e8e74621a,,2026-10-26T12:56:09.777Z
+kyrecovery-server,03,after,"legacy saved value ""ocean"" resolves to ocean unchanged",pass,stored value untouched = ocean,2738beb742cec16c569c45cc2e929d2e8e74621a,,2026-10-26T12:56:09.777Z
+kyrecovery-server,03,after,keyboard arrows move the choice and persist it,pass,saved = coffee,2738beb742cec16c569c45cc2e929d2e8e74621a,,2026-10-26T12:56:09.777Z
+kyrecovery-server,03,after,a light named theme keeps light nav hover and selected surfaces,pass,"hover color(srgb 0.896471 0.928863 0.948118) / rgb(24, 49, 66); selected rgb(182, 220, 237)",2738beb742cec16c569c45cc2e929d2e8e74621a,,2026-10-26T12:56:09.777Z
+kyrecovery-server,03,after,Match system clears the named palette and the saved choice,pass,"body background = rgb(248, 246, 240)",2738beb742cec16c569c45cc2e929d2e8e74621a,,2026-10-26T12:56:09.777Z
+kyrecovery-server,03,after,the picker is in sync with another tab,pass,forest checked after storage event,2738beb742cec16c569c45cc2e929d2e8e74621a,,2026-10-26T12:56:09.777Z
+kyrecovery-server,03,after,no console errors or CSP violations,pass,none,2738beb742cec16c569c45cc2e929d2e8e74621a,,2026-10-26T12:56:09.777Z
+kyrecovery-server,04,after,all catalog themes plus Match system render as native radios,pass,radio count = 23,71affc90c0597df81153aba62788fac43f4c1585,,2026-10-26T13:07:31.278Z
+kyrecovery-server,04,after,no saved choice checks Match system and follows the OS,pass,data-theme = busnes-light,71affc90c0597df81153aba62788fac43f4c1585,,2026-10-26T13:07:31.278Z
+kyrecovery-server,04,after,"legacy saved value ""light"" resolves to busnes-light unchanged",pass,stored value untouched = light,71affc90c0597df81153aba62788fac43f4c1585,,2026-10-26T13:07:31.278Z
+kyrecovery-server,04,after,"legacy saved value ""dark"" resolves to busnes-dark unchanged",pass,stored value untouched = dark,71affc90c0597df81153aba62788fac43f4c1585,,2026-10-26T13:07:31.278Z
+kyrecovery-server,04,after,"legacy saved value ""ocean"" resolves to ocean unchanged",pass,stored value untouched = ocean,71affc90c0597df81153aba62788fac43f4c1585,,2026-10-26T13:07:31.278Z
+kyrecovery-server,04,after,keyboard arrows move the choice and persist it,pass,saved = coffee,71affc90c0597df81153aba62788fac43f4c1585,,2026-10-26T13:07:31.278Z
+kyrecovery-server,04,after,a light named theme keeps light nav hover and selected surfaces,pass,"hover color(srgb 0.896471 0.928863 0.948118) / rgb(24, 49, 66); selected rgb(182, 220, 237)",71affc90c0597df81153aba62788fac43f4c1585,,2026-10-26T13:07:31.278Z
+kyrecovery-server,04,after,Match system clears the named palette and the saved choice,pass,"body background = rgb(248, 246, 240)",71affc90c0597df81153aba62788fac43f4c1585,,2026-10-26T13:07:31.278Z
+kyrecovery-server,04,after,the picker is in sync with another tab,pass,forest checked after storage event,71affc90c0597df81153aba62788fac43f4c1585,,2026-10-26T13:07:31.278Z
+kyrecovery-server,04,after,no console errors or CSP violations,pass,none,71affc90c0597df81153aba62788fac43f4c1585,,2026-10-26T13:07:31.278Z
