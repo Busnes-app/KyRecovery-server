@@ -1,0 +1,88 @@
+Command: docker build -t kyrecovery-ui-r3:1864911 .
+docker run --rm kyrecovery-ui-r3:1864911 help
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.02kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/golang:1.27.3-alpine@sha256:b8c9b82affbbb82a020bbcf998dad2ba9516944ac7e883524642a481a9505e9c
+#2 ...
+
+#3 [internal] load metadata for docker.io/library/alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
+#3 DONE 0.4s
+
+#2 [internal] load metadata for docker.io/library/golang:1.27.3-alpine@sha256:b8c9b82affbbb82a020bbcf998dad2ba9516944ac7e883524642a481a9505e9c
+#2 DONE 0.4s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 126B done
+#4 DONE 0.0s
+
+#5 [stage-1 1/7] FROM docker.io/library/alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
+#5 resolve docker.io/library/alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a 0.0s done
+#5 DONE 0.0s
+
+#6 [builder 1/6] FROM docker.io/library/golang:1.27.3-alpine@sha256:b8c9b82affbbb82a020bbcf998dad2ba9516944ac7e883524642a481a9505e9c
+#6 resolve docker.io/library/golang:1.27.3-alpine@sha256:b8c9b82affbbb82a020bbcf998dad2ba9516944ac7e883524642a481a9505e9c 0.0s done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 7.99MB 0.0s done
+#7 DONE 0.1s
+
+#8 [builder 2/6] WORKDIR /app
+#8 CACHED
+
+#9 [builder 3/6] COPY go.mod go.sum ./
+#9 CACHED
+
+#10 [builder 4/6] RUN go mod download
+#10 CACHED
+
+#11 [builder 5/6] COPY . .
+#11 DONE 0.5s
+
+#12 [builder 6/6] RUN CGO_ENABLED=0 GOOS=linux go build -trimpath     -ldflags="-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release="     -o kyrecovery cmd/kyrecovery/main.go
+#12 DONE 14.0s
+
+#13 [stage-1 3/7] RUN addgroup -g 10001 -S kyrecovery &&     adduser -u 10001 -S -G kyrecovery -H -h /nonexistent kyrecovery
+#13 CACHED
+
+#14 [stage-1 2/7] RUN apk --no-cache add ca-certificates tzdata su-exec
+#14 CACHED
+
+#15 [stage-1 4/7] WORKDIR /app
+#15 CACHED
+
+#16 [stage-1 5/7] COPY --from=builder /app/kyrecovery /app/kyrecovery
+#16 DONE 0.1s
+
+#17 [stage-1 6/7] COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+#17 DONE 0.1s
+
+#18 [stage-1 7/7] RUN chmod 0755 /app/docker-entrypoint.sh /app/kyrecovery &&     mkdir -p /app/data && chown kyrecovery:kyrecovery /app/data
+#18 DONE 0.2s
+
+#19 exporting to image
+#19 exporting layers
+#19 exporting layers 0.4s done
+#19 exporting manifest sha256:23f4fe43a0ab034507833f57422dfd0738b94f4f2cdc56889667e7a433fc1587 0.0s done
+#19 exporting config sha256:12a36a0018b16232e0ba3142c331201d4484e6094e0363687c6ed1d510a8857e 0.0s done
+#19 exporting attestation manifest sha256:bf9983c41410b7e1f74417c304c1e931a1d17b11ad2ae46f80e2841d38c101b6 0.0s done
+#19 exporting manifest list sha256:a2b20023de1f1bb7b3822e623ef1b5ebe65d6401ac847d797024a159dc50342f 0.0s done
+#19 naming to docker.io/library/kyrecovery-ui-r3:1864911 done
+#19 unpacking to docker.io/library/kyrecovery-ui-r3:1864911 0.1s done
+#19 DONE 0.8s
+KyRecovery — Disaster Recovery & Verification Service for the Ky Suite
+
+Usage:
+  kyrecovery <command> [options]
+
+Commands:
+  serve           Start KyRecovery web dashboard and REST API daemon
+  audit           Inspect or verify cryptographic audit log chain
+  pair            Manage paired product connectors and ephemeral 6-digit codes
+  version         Print the KyRecovery version
+
+Run 'kyrecovery <command> --help' for details on each command.

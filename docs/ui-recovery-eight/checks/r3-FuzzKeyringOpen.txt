@@ -1,0 +1,9 @@
+Command: go test -p 2 -parallel 2 -fuzz=FuzzKeyringOpen -fuzztime=1000000x -fuzzminimizetime=5s ./internal/secrets
+fuzz: elapsed: 0s, gathering baseline coverage: 0/66 completed
+fuzz: elapsed: 0s, gathering baseline coverage: 66/66 completed, now fuzzing with 2 workers
+fuzz: elapsed: 3s, execs: 251660 (83868/sec), new interesting: 4 (total: 70)
+fuzz: elapsed: 6s, execs: 504104 (84152/sec), new interesting: 4 (total: 70)
+fuzz: elapsed: 9s, execs: 821378 (105762/sec), new interesting: 5 (total: 71)
+fuzz: elapsed: 11s, execs: 1000000 (82291/sec), new interesting: 5 (total: 71)
+PASS
+ok  	github.com/Busnes-app/kyrecovery-server/internal/secrets	11.177s

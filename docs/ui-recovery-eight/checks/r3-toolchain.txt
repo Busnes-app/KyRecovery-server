@@ -1,0 +1,7 @@
+Command: test -z "$(gofmt -l $(git ls-files "*.go"))"
+go mod tidy
+git diff --exit-code -- go.mod go.sum
+go mod verify
+go vet -p 2 ./...
+go build -p 2 ./...
+all modules verified

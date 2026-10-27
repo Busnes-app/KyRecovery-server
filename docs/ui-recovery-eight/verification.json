@@ -28,116 +28,155 @@
     },
     "current_browser": {
       "status": "pass",
-      "result": "18 passed,9.7seconds,exit0",
-      "evidence": "checks/r2-browser.txt"
+      "result": "20 passed,10.6seconds,exit0",
+      "evidence": "checks/r3-browser.txt"
     },
     "full_required": {
       "status": "pass",
-      "results": "checks/r2-results.json",
+      "results": "checks/r3-results.json",
       "checks": [
         {
           "name": "toolchain",
           "command": "test -z \"$(gofmt -l $(git ls-files \"*.go\"))\"\ngo mod tidy\ngit diff --exit-code -- go.mod go.sum\ngo mod verify\ngo vet -p 2 ./...\ngo build -p 2 ./...",
           "exit_code": 0,
-          "seconds": 5.02,
-          "evidence": "docs/ui-recovery-eight/checks/r2-toolchain.txt",
-          "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+          "seconds": 3.92,
+          "evidence": "docs/ui-recovery-eight/checks/r3-toolchain.txt",
+          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "environment": {
+            "GOMAXPROCS": "2"
+          }
         },
         {
           "name": "race-samba",
           "command": "go test -p 2 -race -count=1 ./...",
           "exit_code": 0,
-          "seconds": 34.05,
-          "evidence": "docs/ui-recovery-eight/checks/r2-race-samba.txt",
-          "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+          "seconds": 31.64,
+          "evidence": "docs/ui-recovery-eight/checks/r3-race-samba.txt",
+          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "environment": {
+            "GOMAXPROCS": "2"
+          },
+          "fixture": "Disposable CI-pinned Samba image; owned random loopback port and share."
         },
         {
           "name": "fips-race-samba",
           "command": "go test -p 2 -race -count=1 ./...",
           "exit_code": 0,
-          "seconds": 31.88,
-          "evidence": "docs/ui-recovery-eight/checks/r2-fips-race-samba.txt",
-          "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+          "seconds": 29.32,
+          "evidence": "docs/ui-recovery-eight/checks/r3-fips-race-samba.txt",
+          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "environment": {
+            "GOMAXPROCS": "2",
+            "GODEBUG": "fips140=on"
+          },
+          "fixture": "Disposable CI-pinned Samba image; owned random loopback port and share."
         },
         {
           "name": "FuzzParseSMBEndpoint",
           "command": "go test -p 2 -parallel 2 -fuzz=FuzzParseSMBEndpoint -fuzztime=150000x -fuzzminimizetime=5s ./internal/replication",
           "exit_code": 0,
-          "seconds": 17.1,
-          "evidence": "docs/ui-recovery-eight/checks/r2-FuzzParseSMBEndpoint.txt",
-          "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+          "seconds": 16.89,
+          "evidence": "docs/ui-recovery-eight/checks/r3-FuzzParseSMBEndpoint.txt",
+          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "environment": {
+            "GOMAXPROCS": "2"
+          }
         },
         {
           "name": "FuzzTargetLocation",
           "command": "go test -p 2 -parallel 2 -fuzz=FuzzTargetLocation -fuzztime=150000x -fuzzminimizetime=5s ./internal/replication",
           "exit_code": 0,
-          "seconds": 18.15,
-          "evidence": "docs/ui-recovery-eight/checks/r2-FuzzTargetLocation.txt",
-          "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+          "seconds": 17.3,
+          "evidence": "docs/ui-recovery-eight/checks/r3-FuzzTargetLocation.txt",
+          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "environment": {
+            "GOMAXPROCS": "2"
+          }
         },
         {
           "name": "FuzzKeyringOpen",
           "command": "go test -p 2 -parallel 2 -fuzz=FuzzKeyringOpen -fuzztime=1000000x -fuzzminimizetime=5s ./internal/secrets",
           "exit_code": 0,
-          "seconds": 11.24,
-          "evidence": "docs/ui-recovery-eight/checks/r2-FuzzKeyringOpen.txt",
-          "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+          "seconds": 11.64,
+          "evidence": "docs/ui-recovery-eight/checks/r3-FuzzKeyringOpen.txt",
+          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "environment": {
+            "GOMAXPROCS": "2"
+          }
         },
         {
           "name": "FuzzCapsuleNames",
           "command": "go test -p 2 -parallel 2 -fuzz=FuzzCapsuleNames -fuzztime=150000x -fuzzminimizetime=5s ./internal/server",
           "exit_code": 0,
-          "seconds": 21.91,
-          "evidence": "docs/ui-recovery-eight/checks/r2-FuzzCapsuleNames.txt",
-          "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+          "seconds": 18.65,
+          "evidence": "docs/ui-recovery-eight/checks/r3-FuzzCapsuleNames.txt",
+          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "environment": {
+            "GOMAXPROCS": "2"
+          }
         },
         {
           "name": "wasm-node",
           "command": "scripts/build-wasm.sh\ngit diff --exit-code -- internal/server/static/wasm\nnode scripts/test-wasm.mjs\nnode scripts/test-overview.mjs\nnode internal/server/static/ky-ui/check-vendor.mjs\nnode scripts/check-contrast.mjs",
           "exit_code": 0,
           "seconds": 0.62,
-          "evidence": "docs/ui-recovery-eight/checks/r2-wasm-node.txt",
-          "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+          "evidence": "docs/ui-recovery-eight/checks/r3-wasm-node.txt",
+          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "environment": {
+            "GOMAXPROCS": "2"
+          }
         },
         {
           "name": "repeatable",
-          "command": "mkdir -p \"/tmp/kyrecovery-repeatable-3lj9lblb/a/src\"\ngit archive HEAD | tar -x -C \"/tmp/kyrecovery-repeatable-3lj9lblb/a/src\"\n(cd \"/tmp/kyrecovery-repeatable-3lj9lblb/a/src\" && CGO_ENABLED=0 GOOS=linux go build -p 2 -trimpath -ldflags=\"-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=0.0.0\" -o \"/tmp/kyrecovery-repeatable-3lj9lblb/a/kyrecovery\" cmd/kyrecovery/main.go)\nmkdir -p \"/tmp/kyrecovery-repeatable-3lj9lblb/elsewhere/b/src\"\ngit archive HEAD | tar -x -C \"/tmp/kyrecovery-repeatable-3lj9lblb/elsewhere/b/src\"\n(cd \"/tmp/kyrecovery-repeatable-3lj9lblb/elsewhere/b/src\" && CGO_ENABLED=0 GOOS=linux go build -p 2 -trimpath -ldflags=\"-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=0.0.0\" -o \"/tmp/kyrecovery-repeatable-3lj9lblb/elsewhere/b/kyrecovery\" cmd/kyrecovery/main.go)\nsha256sum \"/tmp/kyrecovery-repeatable-3lj9lblb/a/kyrecovery\" \"/tmp/kyrecovery-repeatable-3lj9lblb/elsewhere/b/kyrecovery\"\ncmp \"/tmp/kyrecovery-repeatable-3lj9lblb/a/kyrecovery\" \"/tmp/kyrecovery-repeatable-3lj9lblb/elsewhere/b/kyrecovery\"",
+          "command": "mkdir -p \"/tmp/kyrecovery-repeatable-o_lmmwwi/a/src\"\ngit archive HEAD | tar -x -C \"/tmp/kyrecovery-repeatable-o_lmmwwi/a/src\"\n(cd \"/tmp/kyrecovery-repeatable-o_lmmwwi/a/src\" && CGO_ENABLED=0 GOOS=linux go build -p 2 -trimpath -ldflags=\"-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=0.0.0\" -o \"/tmp/kyrecovery-repeatable-o_lmmwwi/a/kyrecovery\" cmd/kyrecovery/main.go)\nmkdir -p \"/tmp/kyrecovery-repeatable-o_lmmwwi/elsewhere/b/src\"\ngit archive HEAD | tar -x -C \"/tmp/kyrecovery-repeatable-o_lmmwwi/elsewhere/b/src\"\n(cd \"/tmp/kyrecovery-repeatable-o_lmmwwi/elsewhere/b/src\" && CGO_ENABLED=0 GOOS=linux go build -p 2 -trimpath -ldflags=\"-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=0.0.0\" -o \"/tmp/kyrecovery-repeatable-o_lmmwwi/elsewhere/b/kyrecovery\" cmd/kyrecovery/main.go)\nsha256sum \"/tmp/kyrecovery-repeatable-o_lmmwwi/a/kyrecovery\" \"/tmp/kyrecovery-repeatable-o_lmmwwi/elsewhere/b/kyrecovery\"\ncmp \"/tmp/kyrecovery-repeatable-o_lmmwwi/a/kyrecovery\" \"/tmp/kyrecovery-repeatable-o_lmmwwi/elsewhere/b/kyrecovery\"",
           "exit_code": 0,
-          "seconds": 2.12,
-          "evidence": "docs/ui-recovery-eight/checks/r2-repeatable.txt",
-          "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+          "seconds": 2.42,
+          "evidence": "docs/ui-recovery-eight/checks/r3-repeatable.txt",
+          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "environment": {
+            "GOMAXPROCS": "2"
+          }
         },
         {
           "name": "vulnerabilities",
           "command": "go run golang.org/x/vuln/cmd/govulncheck@latest ./...",
           "exit_code": 0,
-          "seconds": 5.88,
-          "evidence": "docs/ui-recovery-eight/checks/r2-vulnerabilities.txt",
-          "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+          "seconds": 6.08,
+          "evidence": "docs/ui-recovery-eight/checks/r3-vulnerabilities.txt",
+          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "environment": {
+            "GOMAXPROCS": "2"
+          }
         },
         {
           "name": "docker-cli",
-          "command": "docker build -t kyrecovery-ui-r2:1829418 .\ndocker run --rm kyrecovery-ui-r2:1829418 help",
+          "command": "docker build -t kyrecovery-ui-r3:1864911 .\ndocker run --rm kyrecovery-ui-r3:1864911 help",
           "exit_code": 0,
-          "seconds": 20.54,
-          "evidence": "docs/ui-recovery-eight/checks/r2-docker-cli.txt",
-          "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+          "seconds": 20.86,
+          "evidence": "docs/ui-recovery-eight/checks/r3-docker-cli.txt",
+          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "environment": {
+            "GOMAXPROCS": "2"
+          }
         },
         {
           "name": "restic-overlay",
           "command": "scripts/verify-restic-overlay.sh",
           "exit_code": 0,
-          "seconds": 28.33,
-          "evidence": "docs/ui-recovery-eight/checks/r2-restic-overlay.txt",
-          "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+          "seconds": 33.66,
+          "evidence": "docs/ui-recovery-eight/checks/r3-restic-overlay.txt",
+          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "environment": {
+            "GOMAXPROCS": "2"
+          }
         }
       ]
     },
     "impeccable": {
       "status": "audited",
-      "raw": "checks/r2-impeccable-raw.json",
-      "exceptions": "checks/r2-impeccable-exceptions.json",
-      "findings": 21,
+      "raw": "checks/r3-impeccable-raw.json",
+      "exceptions": "checks/r3-impeccable-exceptions.json",
+      "findings": 17,
       "required_fixes": 0
     },
     "capture_reservation": {
@@ -149,17 +188,17 @@
     }
   },
   "pending": [
-    "Opus and Sol round2 reviews and arithmetic/spread audit",
-    "Updated Council spreadsheet after terminal reviews",
-    "Gemini advisory only after both primaries satisfied",
-    "Current-head hosted CI and autonomous PR reviewer"
+    "Opus and Sol round3 reviews and arithmetic/spread audit",
+    "Updated Council workbook after terminal round3 reviews",
+    "Gemini advisory only after both primaries genuinely satisfied",
+    "Current-head hosted CI and autonomous reviewer"
   ],
   "mySlop": "HTTP401 unknown or revoked token reconfirmed; no successful board post",
   "merge_deploy": "Not authorized",
   "implementation": {
-    "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61",
-    "evidence_commit": "2e13195",
-    "manifest": "manifest-02-after.json",
+    "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+    "evidence_commit": "9ae739e83b10a4b293f1fe3a6a088712a5c86c0d",
+    "manifest": "manifest-03-after.json",
     "images": 52,
     "overflows": 0,
     "vendor": "0.4.3"
@@ -167,6 +206,12 @@
   "behavior_gate_limits": [
     "Initial-viewport empty/unconfigured coverage only",
     "Full keyboard/focus, loading/error and all-theme control contrast gates are untested",
-    "Existing custom modal focus behavior was not replaced by this presentation pass"
-  ]
+    "Scoped native-dialog focus/escape/return checks pass on desktop/phone; native Chrome may move focus to browser chrome but background page controls are inert"
+  ],
+  "council": {
+    "round1": "complete/not satisfied",
+    "round2": "complete/Opus not satisfied,Sol satisfied for covered visual scope",
+    "round3": "Opus/Sol running",
+    "gemini": "deferred"
+  }
 }
