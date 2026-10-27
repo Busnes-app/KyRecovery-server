@@ -63,6 +63,16 @@ function initTabs() {
   document.fonts.ready.then(revealCurrent);
 }
 
+// Native dialogs own the focus boundary, Escape and focus restoration.
+function openModal(id, trigger = document.activeElement) {
+  const toggle = document.querySelector('.account-toggle');
+  if (trigger.closest('#user-auth-area') && toggle.checkVisibility()) {
+    document.getElementById('user-auth-area').hidePopover();
+    toggle.focus();
+  } else trigger.focus();
+  document.getElementById(id).showModal();
+}
+
 // 1. Readiness & System Status
 async function loadReadiness() {
   try {
@@ -163,6 +173,13 @@ async function loadRecoveryKey() {
     if (!res.ok) return;
     const keys = await res.json() || [];
     const k = keys.find(x => x.status === 'current');
+    const backupsAction = document.getElementById('overview-backups-action');
+    const keyAction = document.getElementById('overview-key-action');
+    backupsAction.className = k ? 'btn btn-primary' : 'btn btn-secondary';
+    keyAction.className = k ? 'btn btn-secondary' : 'btn btn-primary';
+    const backupsRow = document.getElementById('overview-backups-row');
+    const keyRow = document.getElementById('overview-key-row');
+    keyRow.parentElement.insertBefore(k ? backupsRow : keyRow, k ? keyRow : backupsRow);
     // After the first import the ceremony page rotates the key; say so on the way in.
     const link = document.getElementById('ceremony-link');
     if (link) link.textContent = k ? 'Rotate recovery key' : 'Run recovery key ceremony';
@@ -258,10 +275,10 @@ async function verifyAuditChain() {
 
 // Custodian Add
 function openCustodianModal() {
-  document.getElementById('custodian-modal').classList.add('open');
+  openModal('custodian-modal');
 }
 function closeCustodianModal() {
-  document.getElementById('custodian-modal').classList.remove('open');
+  document.getElementById('custodian-modal').close();
 }
 async function submitCustodian(e) {
   e.preventDefault();
@@ -383,11 +400,11 @@ function applyAdminOnly() {
 }
 
 function openPairingGenModal() {
-  document.getElementById('pairing-gen-modal').classList.add('open');
+  openModal('pairing-gen-modal');
 }
 
 function closePairingGenModal() {
-  document.getElementById('pairing-gen-modal').classList.remove('open');
+  document.getElementById('pairing-gen-modal').close();
 }
 
 async function submitGeneratePairing(e) {
@@ -411,7 +428,7 @@ async function submitGeneratePairing(e) {
     document.getElementById('display-pairing-code').textContent = data.pairing_code;
     document.getElementById('display-pairing-expires').textContent = `${ttl} minutes (${new Date(data.expires_at).toLocaleTimeString()})`;
     document.getElementById('display-pairing-url').textContent = window.location.origin;
-    document.getElementById('pairing-code-display-modal').classList.add('open');
+    openModal('pairing-code-display-modal');
 
     loadPairing();
     loadAudit();
@@ -421,7 +438,7 @@ async function submitGeneratePairing(e) {
 }
 
 function closePairingDisplayModal() {
-  document.getElementById('pairing-code-display-modal').classList.remove('open');
+  document.getElementById('pairing-code-display-modal').close();
 }
 
 // 7. Authentication State Management & SSO Gateway
@@ -567,6 +584,7 @@ function handleAuthAction() {
 
 // 7b. SSO Pairing & Config Modal
 async function openSSOConfigModal() {
+  const trigger = document.activeElement;
   const statusBox = document.getElementById('sso-test-status');
   if (statusBox) statusBox.style.display = 'none';
 
@@ -585,11 +603,11 @@ async function openSSOConfigModal() {
     console.error('Error fetching SSO config:', err);
   }
 
-  document.getElementById('sso-config-modal').classList.add('open');
+  openModal('sso-config-modal', trigger);
 }
 
 function closeSSOConfigModal() {
-  document.getElementById('sso-config-modal').classList.remove('open');
+  document.getElementById('sso-config-modal').close();
 }
 
 async function testSSOConnection() {
@@ -663,11 +681,11 @@ function openChangePasswordModal() {
   document.getElementById('pass-new').value = '';
   document.getElementById('pass-confirm').value = '';
   document.getElementById('change-pass-error').style.display = 'none';
-  document.getElementById('change-password-modal').classList.add('open');
+  openModal('change-password-modal');
 }
 
 function closeChangePasswordModal() {
-  document.getElementById('change-password-modal').classList.remove('open');
+  document.getElementById('change-password-modal').close();
 }
 
 async function submitChangePassword(e) {
@@ -784,11 +802,11 @@ async function loadReplicationLogs() {
 function openReplicationModal() {
   applyReplicationPreset();
   document.getElementById('repl-test-status').style.display = 'none';
-  document.getElementById('replication-modal').classList.add('open');
+  openModal('replication-modal');
 }
 
 function closeReplicationModal() {
-  document.getElementById('replication-modal').classList.remove('open');
+  document.getElementById('replication-modal').close();
 }
 
 function applyReplicationPreset() {
@@ -1001,14 +1019,14 @@ async function openDiffModal() {
     }
 
     document.getElementById('diff-results-container').style.display = 'none';
-    document.getElementById('diff-modal').classList.add('open');
+    openModal('diff-modal');
   } catch (err) {
     alert('Error loading capsules: ' + err.message);
   }
 }
 
 function closeDiffModal() {
-  document.getElementById('diff-modal').classList.remove('open');
+  document.getElementById('diff-modal').close();
 }
 
 async function executeSnapshotDiff() {
@@ -1160,7 +1178,7 @@ function renderBackups({ report, scan, samples }) {
   document.getElementById('backups-stale').textContent = count('stale') + count('never');
   document.getElementById('backups-corrupt').textContent = count('corrupt');
   document.getElementById('backups-scan').textContent = count('scan_error') + count('missing');
-  document.getElementById('backups-storage').textContent = scan.enabled ? fmtBytes(repos.reduce((sum, r) => sum + (Number(r.size_bytes) || 0), 0)) : '--';
+  document.getElementById('backups-storage').textContent = scan.enabled ? fmtBytes(repos.reduce((sum, r) => sum + (Number(r.size_bytes) || 0), 0)) : 'Off';
 
   const banner = document.getElementById('backups-banner');
   banner.hidden = !scan.enabled || report.scan_fresh;
