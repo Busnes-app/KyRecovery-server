@@ -36,6 +36,8 @@ function revealTab(tab) {
   const row = tab.parentElement.getBoundingClientRect(), item = tab.getBoundingClientRect();
   if (item.left < row.left) tab.parentElement.scrollLeft -= row.left - item.left;
   else if (item.right > row.right) tab.parentElement.scrollLeft += item.right - row.right;
+  if (item.top < row.top) tab.parentElement.scrollTop -= row.top - item.top;
+  else if (item.bottom > row.bottom) tab.parentElement.scrollTop += item.bottom - row.bottom;
 }
 
 // Tab Navigation
@@ -53,6 +55,12 @@ function initTabs() {
       revealTab(tab);
     });
   });
+  const revealCurrent = () => {
+    const current = document.querySelector('.tab-btn[aria-current="page"]');
+    if (current) revealTab(current);
+  };
+  window.addEventListener('resize', revealCurrent);
+  document.fonts.ready.then(revealCurrent);
 }
 
 // 1. Readiness & System Status
@@ -438,6 +446,7 @@ async function loadAuthUser() {
     const loginGateway = document.getElementById('login-gateway-view');
     const dashboardView = document.getElementById('dashboard-view');
     const ssoActiveSection = document.getElementById('sso-active-section');
+    document.body.classList.toggle('signed-in', !!(data.authenticated && data.user));
 
     // Show SSO sign-in button only if SSO is paired & active
     if (ssoActiveSection) {
@@ -1160,7 +1169,7 @@ function renderBackups({ report, scan, samples }) {
   document.querySelectorAll('.restic-off-note').forEach(el => { el.hidden = scan.enabled; });
 
   document.getElementById('backups-table-body').innerHTML = services.length === 0
-    ? '<tr><td colspan="6">No services yet. Pair a product or link a restic repository.</td></tr>'
+    ? `<tr><td colspan="6">No services yet. Pair a product or link a restic repository.<button type="button" class="btn btn-secondary empty-action" onclick="document.querySelector('[data-tab=tab-pairing]').click()">Paired products</button></td></tr>`
     : services.map(s => serviceRows(s, samplesFor)).join('');
 
   document.getElementById('backups-unassigned').innerHTML = unassigned.length === 0

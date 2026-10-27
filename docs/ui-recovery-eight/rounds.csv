@@ -1,0 +1,7 @@
+Round,Reviewer,Cohort,n,Sum,Exact mean,Display mean,At least 8,Satisfied,Report SHA256
+1,opus,settings,24,157.8,263/40,6.6,False,False,37bcf3197c2c55132b7758a1b2878c69f90d0af15a5bcf56f016c0d5e2ebb0ae
+1,opus,admin-console,24,154.6,773/120,6.4,False,False,37bcf3197c2c55132b7758a1b2878c69f90d0af15a5bcf56f016c0d5e2ebb0ae
+1,opus,auth,4,26.0,13/2,6.5,False,False,37bcf3197c2c55132b7758a1b2878c69f90d0af15a5bcf56f016c0d5e2ebb0ae
+1,sol,settings,24,176.4,147/20,7.4,False,False,c98d50ea2c086d42692d0868c680eef7f9ba9db1015bd7b5ef4833df782c4e4b
+1,sol,admin-console,24,172.8,36/5,7.2,False,False,c98d50ea2c086d42692d0868c680eef7f9ba9db1015bd7b5ef4833df782c4e4b
+1,sol,auth,4,30.0,15/2,7.5,False,False,c98d50ea2c086d42692d0868c680eef7f9ba9db1015bd7b5ef4833df782c4e4b

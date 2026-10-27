@@ -1,0 +1,386 @@
+{
+  "round": 1,
+  "raw_reports": {
+    "opus-round1.md": "61b5df2d1f9b62b591b92cd2d1a2dc057b6da08a37ddea5670c0b414b64e9252",
+    "opus-round1.json": "37bcf3197c2c55132b7758a1b2878c69f90d0af15a5bcf56f016c0d5e2ebb0ae",
+    "sol-round1.md": "c9697b80491b2c78195f4dc705cbadb66feb476001a294a1f4219b5681b07dae",
+    "sol-round1.json": "c98d50ea2c086d42692d0868c680eef7f9ba9db1015bd7b5ef4833df782c4e4b"
+  },
+  "cohorts": {
+    "opus": {
+      "settings": {
+        "sum": "157.8",
+        "n": 24,
+        "mean": "263/40"
+      },
+      "admin-console": {
+        "sum": "154.6",
+        "n": 24,
+        "mean": "773/120"
+      },
+      "auth": {
+        "sum": "26.0",
+        "n": 4,
+        "mean": "13/2"
+      }
+    },
+    "sol": {
+      "settings": {
+        "sum": "176.4",
+        "n": 24,
+        "mean": "147/20"
+      },
+      "admin-console": {
+        "sum": "172.8",
+        "n": 24,
+        "mean": "36/5"
+      },
+      "auth": {
+        "sum": "30.0",
+        "n": 4,
+        "mean": "15/2"
+      }
+    }
+  },
+  "spreads_at_least2": [
+    {
+      "file": "screenshots/kyrecovery-00-before-audit-desktop-dark.png",
+      "dimension": "typography",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-audit-desktop-dark.png",
+      "dimension": "density_layout",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-audit-desktop-dark.png",
+      "dimension": "coherence",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-audit-desktop-light.png",
+      "dimension": "typography",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-audit-desktop-light.png",
+      "dimension": "density_layout",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-audit-desktop-light.png",
+      "dimension": "coherence",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-audit-mobile-dark.png",
+      "dimension": "density_layout",
+      "opus": 4,
+      "sol": 6
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-audit-mobile-dark.png",
+      "dimension": "coherence",
+      "opus": 5,
+      "sol": 7
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-audit-mobile-light.png",
+      "dimension": "density_layout",
+      "opus": 4,
+      "sol": 6
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-audit-mobile-light.png",
+      "dimension": "coherence",
+      "opus": 5,
+      "sol": 7
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-ceremony-desktop-dark.png",
+      "dimension": "typography",
+      "opus": 5,
+      "sol": 7
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-ceremony-desktop-dark.png",
+      "dimension": "density_layout",
+      "opus": 5,
+      "sol": 7
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-ceremony-desktop-dark.png",
+      "dimension": "visible_affordances",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-ceremony-desktop-dark.png",
+      "dimension": "coherence",
+      "opus": 5,
+      "sol": 7
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-ceremony-desktop-light.png",
+      "dimension": "typography",
+      "opus": 5,
+      "sol": 7
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-ceremony-desktop-light.png",
+      "dimension": "density_layout",
+      "opus": 5,
+      "sol": 7
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-ceremony-desktop-light.png",
+      "dimension": "visible_affordances",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-ceremony-desktop-light.png",
+      "dimension": "coherence",
+      "opus": 5,
+      "sol": 7
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-ceremony-mobile-dark.png",
+      "dimension": "typography",
+      "opus": 5,
+      "sol": 7
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-ceremony-mobile-dark.png",
+      "dimension": "density_layout",
+      "opus": 5,
+      "sol": 7
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-ceremony-mobile-dark.png",
+      "dimension": "visible_affordances",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-ceremony-mobile-dark.png",
+      "dimension": "coherence",
+      "opus": 5,
+      "sol": 7
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-ceremony-mobile-light.png",
+      "dimension": "typography",
+      "opus": 5,
+      "sol": 7
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-ceremony-mobile-light.png",
+      "dimension": "density_layout",
+      "opus": 5,
+      "sol": 7
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-ceremony-mobile-light.png",
+      "dimension": "visible_affordances",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-ceremony-mobile-light.png",
+      "dimension": "coherence",
+      "opus": 5,
+      "sol": 7
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-custodians-desktop-dark.png",
+      "dimension": "typography",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-custodians-desktop-dark.png",
+      "dimension": "density_layout",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-custodians-desktop-light.png",
+      "dimension": "typography",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-custodians-desktop-light.png",
+      "dimension": "density_layout",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-custodians-mobile-dark.png",
+      "dimension": "typography",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-custodians-mobile-dark.png",
+      "dimension": "density_layout",
+      "opus": 5,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-custodians-mobile-dark.png",
+      "dimension": "coherence",
+      "opus": 5,
+      "sol": 7
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-custodians-mobile-light.png",
+      "dimension": "typography",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-custodians-mobile-light.png",
+      "dimension": "density_layout",
+      "opus": 5,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-custodians-mobile-light.png",
+      "dimension": "coherence",
+      "opus": 5,
+      "sol": 7
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-login-desktop-dark.png",
+      "dimension": "density_layout",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-login-desktop-light.png",
+      "dimension": "density_layout",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-login-mobile-dark.png",
+      "dimension": "visible_affordances",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-login-mobile-light.png",
+      "dimension": "visible_affordances",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-overview-desktop-dark.png",
+      "dimension": "color",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-overview-desktop-dark.png",
+      "dimension": "coherence",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-overview-desktop-light.png",
+      "dimension": "color",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-overview-desktop-light.png",
+      "dimension": "coherence",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-overview-mobile-dark.png",
+      "dimension": "color",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-overview-mobile-light.png",
+      "dimension": "color",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-pairing-desktop-dark.png",
+      "dimension": "typography",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-pairing-desktop-dark.png",
+      "dimension": "density_layout",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-pairing-desktop-light.png",
+      "dimension": "typography",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-pairing-desktop-light.png",
+      "dimension": "density_layout",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-pairing-mobile-dark.png",
+      "dimension": "typography",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-pairing-mobile-light.png",
+      "dimension": "typography",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-replication-form-mobile-dark.png",
+      "dimension": "color",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "screenshots/kyrecovery-00-before-replication-form-mobile-light.png",
+      "dimension": "color",
+      "opus": 6,
+      "sol": 8
+    }
+  ],
+  "spread_audit": "Parent individually re-inspected all26 originals with54quality-dimension spreads>=2, including both themes and sizes. Retain independent scores without averaging: differences are severity judgments about the same shell, type and framing. Both support the selected fixes.",
+  "corrections": [
+    "Opus prose says46consolecaptures;actualconsole44plus4ceremonyand4auth=52. Per-file counts and means are correct and unchanged.",
+    "Phone ceremony CSSviewportis390inbothcaptureandnativeinspection;missingviewportmeta is not evidence of currentcaptureclipping. Newmeta supportsrealphoneUA,withbehaviorcheckedseparately."
+  ],
+  "implementation_selection": [
+    "One240pxdesktopsidebar,existingresponsivephone/tabpattern",
+    "Oneh1perview;inventorybeforeCapsulesretention",
+    "40pxcontrols/sharedtokens0.4.3/fieldborders",
+    "Scrollmodalbodywithvisibleheaderandactions",
+    "Brandedceremony/backlink,savedthemeappliedwithoutdropdown",
+    "Signed-outwordmark/formwithoutstatus/accountnoise",
+    "SingleprimaryCustodiansaction,destructivepurgevisualtreatment",
+    "Phoneauditoverflowcue,compactoverview/Backupsummary"
+  ]
+}

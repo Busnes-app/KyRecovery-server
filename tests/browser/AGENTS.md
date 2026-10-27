@@ -20,6 +20,7 @@ Private Playwright tooling, owned server/data fixtures and desktop/phone scenari
 
 Use semantic locators when the current markup supplies them; stable IDs cover unlabeled legacy inputs.
 Browser tests qualify existing behavior without changing the product's documented security exceptions.
+`suite-ui.spec.mjs` checks one navigation region, desktop account placement, active navigation visibility after resizing, and accessible phone replication-footer geometry.
 
 ## Verification
 

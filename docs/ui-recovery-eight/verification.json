@@ -1,0 +1,38 @@
+{
+  "runtime_source": "7f71f61",
+  "baseline": {
+    "captures": 52,
+    "unique": 52,
+    "admin_console": 24,
+    "settings": 24,
+    "auth": 4,
+    "cohorts_separate": true,
+    "source": "manifest-00-before.json"
+  },
+  "checks": {
+    "browser": {
+      "status": "pass",
+      "evidence": "checks/baseline-browser.txt",
+      "result": "16 passed,9.6seconds,exit0;desktop/Pixel7realserver/WASMtests"
+    },
+    "vendor": {
+      "status": "pass",
+      "version": "0.4.1"
+    },
+    "overview_node": {
+      "status": "pass"
+    },
+    "contrast_script": {
+      "status": "pass-scoped",
+      "result": "Existing active light/dark palette checks pass;not allcontrols/allthemes"
+    }
+  },
+  "pending": [
+    "Baseline Opus/Sol ratings",
+    "UI implementation and after captures",
+    "Full required product verification",
+    "Gemini advisory after both primaries satisfied"
+  ],
+  "mySlop": "HTTP401 unknown or revoked token;no successful board post",
+  "merge_deploy": "Not authorized"
+}
