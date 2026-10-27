@@ -2,7 +2,8 @@
 
 **Repo:** Busnes-app/KyRecovery-server
 **Worktree:** /home/yoshi/git/busnes.app/kyrecovery-server/.claude/worktrees/ui-recovery-eight (`ui/recovery-eight`)
-**PR:** Follow-up to externally merged #79; current URL is recorded in delivery.json after creation. #78/#79 merges are not Council8/10 acceptance.
+**PR:** #81 — https://github.com/Busnes-app/KyRecovery-server/pull/81
+**Prior PRs:** #78/#79 merged externally; their merges are not Council8/10 acceptance.
 
 ## Done
 
