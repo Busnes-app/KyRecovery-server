@@ -1,0 +1,27 @@
+npm notice run test
+npm notice run node run.mjs
+
+Running 16 tests using 2 workers
+
+(node:1751108) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1751107) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [phone] › core.spec.mjs:5:1 › real login, cookies, reload and logout enforce the session (990ms)
+  ✓   2 [desktop] › core.spec.mjs:5:1 › real login, cookies, reload and logout enforce the session (1.1s)
+  ✓   3 [phone] › core.spec.mjs:23:1 › password validation and replacement revoke another existing session (1.3s)
+  ✓   4 [desktop] › core.spec.mjs:23:1 › password validation and replacement revoke another existing session (1.4s)
+  ✓   5 [phone] › core.spec.mjs:50:1 › custodian values persist as literal text and update the directory count (746ms)
+  ✓   6 [desktop] › core.spec.mjs:50:1 › custodian values persist as literal text and update the directory count (789ms)
+  ✓   7 [phone] › core.spec.mjs:70:1 › retention validates fields, persists values and refuses a cross-origin write (830ms)
+  ✓   8 [desktop] › core.spec.mjs:70:1 › retention validates fields, persists values and refuses a cross-origin write (752ms)
+  ✓   9 [phone] › core.spec.mjs:94:1 › actual WASM ceremony refuses invalid topology, imports only public fields and rotates explicitly (1.2s)
+  ✓  10 [desktop] › core.spec.mjs:94:1 › actual WASM ceremony refuses invalid topology, imports only public fields and rotates explicitly (1.5s)
+  ✓  11 [phone] › core.spec.mjs:116:1 › pairing requires ceremony, claims once, revokes and clears the registration (1.1s)
+  ✓  12 [desktop] › core.spec.mjs:116:1 › pairing requires ceremony, claims once, revokes and clears the registration (1.2s)
+  ✓  13 [phone] › core.spec.mjs:152:1 › local replication form tests an owned directory, persists and deletes its target (1.0s)
+  ✓  15 [phone] › core.spec.mjs:178:1 › Appearance follows the OS, persists across reload and synchronizes tabs (752ms)
+  ✓  14 [desktop] › core.spec.mjs:152:1 › local replication form tests an owned directory, persists and deletes its target (1.3s)
+  ✓  16 [desktop] › core.spec.mjs:178:1 › Appearance follows the OS, persists across reload and synchronizes tabs (722ms)
+
+  16 passed (9.6s)

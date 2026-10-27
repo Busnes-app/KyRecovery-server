@@ -45,22 +45,22 @@
   <div id="login-gateway-view" style="display: none; max-width: 480px; margin: 48px auto; padding: 0 20px; width: 100%;">
     <div style="text-align: center; margin-bottom: 24px;">
       <img src="/favicon.svg" alt="KyRecovery" style="width: 56px; height: 56px; border-radius: 12px; margin-bottom: 12px;">
-      <h2>Sign in to the vault</h2>
+      <h1>Sign in to the vault</h1>
       <p style="color: var(--text-muted); font-size: 13px; margin-top: 6px;">Sign in with your administrator account to access the disaster recovery console.</p>
     </div>
 
     <div class="panel" style="padding: 28px;">
       <form onsubmit="submitLocalLogin(event)">
         <div class="form-group">
-          <label class="form-label">Username</label>
+          <label class="form-label" for="login-username">Username</label>
           <input id="login-username" class="form-input" type="text" placeholder="admin" required autocomplete="username">
         </div>
         <div class="form-group">
-          <label class="form-label">Password</label>
+          <label class="form-label" for="login-password">Password</label>
           <input id="login-password" class="form-input" type="password" placeholder="Enter administrator password" required autocomplete="current-password">
           <div class="metric-sub">Generated in server startup log on first launch</div>
         </div>
-        <div id="login-error-box" style="display: none; background: var(--accent-red-dim); border: 1px solid var(--accent-red); color: #ff8080; padding: 8px 12px; border-radius: 4px; font-size: 12px; margin-bottom: 16px;"></div>
+        <div id="login-error-box" style="display: none; background: var(--accent-red-dim); border: 1px solid var(--accent-red); color: var(--accent-red); padding: 8px 12px; border-radius: 4px; font-size: 12px; margin-bottom: 16px;"></div>
         <button type="submit" id="btn-local-login-submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 10px 0; font-weight: bold;">Sign In</button>
       </form>
 
@@ -77,15 +77,15 @@
   <!-- Dashboard Container (Visible When Authenticated) -->
   <div id="dashboard-view">
   <!-- Navigation Tabs -->
-  <nav class="nav-tabs">
-    <button class="ky-nav-item tab-btn active" aria-current="page" data-tab="tab-overview">Overview</button>
-    <button class="ky-nav-item tab-btn" data-tab="tab-backups">Backups</button>
-    <button class="ky-nav-item tab-btn" data-tab="tab-capsules">Capsules</button>
-    <button class="ky-nav-item tab-btn" data-tab="tab-pairing">Paired Products</button>
-    <button class="ky-nav-item tab-btn" data-tab="tab-custodians">Custodians & Quorum</button>
-    <button class="ky-nav-item tab-btn" data-tab="tab-replication">Offsite Replication</button>
-    <button class="ky-nav-item tab-btn" data-tab="tab-audit">Audit Ledger</button>
-    <button class="ky-nav-item tab-btn" data-tab="tab-appearance">Appearance</button>
+  <nav class="nav-tabs" aria-label="Primary">
+    <button class="ky-nav-item tab-btn active" aria-current="page" data-tab="tab-overview"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z"/></svg><span>Overview</span></button>
+    <button class="ky-nav-item tab-btn" data-tab="tab-backups"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z M4 9h16 M9 14h6"/></svg><span>Backups</span></button>
+    <button class="ky-nav-item tab-btn" data-tab="tab-capsules"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6z M9 7h6 M9 11h6 M9 15h4"/></svg><span>Capsules</span></button>
+    <button class="ky-nav-item tab-btn" data-tab="tab-pairing"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 8l-2-2a4 4 0 0 0-5 6l4 4a4 4 0 0 0 6 0 M15 16l2 2a4 4 0 0 0 5-6l-4-4a4 4 0 0 0-6 0 M8 12h8"/></svg><span>Paired Products</span></button>
+    <button class="ky-nav-item tab-btn" data-tab="tab-custodians"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M2 21v-3a6 6 0 0 1 12 0v3 M16 5a4 4 0 0 1 0 8 M17 16a5 5 0 0 1 5 5"/></svg><span>Custodians & Quorum</span></button>
+    <button class="ky-nav-item tab-btn" data-tab="tab-replication"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4z M14 14h6v6h-6z M16 4h4v4 M20 4l-8 8 M4 16v4h4 M4 20l8-8"/></svg><span>Offsite Replication</span></button>
+    <button class="ky-nav-item tab-btn" data-tab="tab-audit"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5z M8 7h8 M8 11h8 M8 15h5"/></svg><span>Audit Ledger</span></button>
+    <button class="ky-nav-item tab-btn" data-tab="tab-appearance"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-2-1-3-3-3h-3c-1 0-2-1-2-2V3z M7 8h.01 M6 13h.01 M9 17h.01"/></svg><span>Appearance</span></button>
   </nav>
 
   <!-- Main Content Area -->
@@ -130,6 +130,7 @@
     <!-- Tab: Backups -->
     <div id="tab-backups" class="tab-content">
       <p id="backups-banner" class="backups-banner" role="status" hidden></p>
+      <div class="page-heading"><h1>Backups</h1></div>
       <div class="metrics-grid backups-metrics">
         <div class="metric-card"><div class="metric-label">services healthy</div><div id="backups-healthy" class="metric-value">--</div></div>
         <div class="metric-card"><div class="metric-label">stale or never backed up</div><div id="backups-stale" class="metric-value">--</div></div>
@@ -140,7 +141,7 @@
 
       <div class="panel">
         <div class="panel-header">
-          <div class="panel-title">Backup health</div>
+          <h2 class="panel-title">Backup health</h2>
           <button class="btn btn-secondary btn-sm" onclick="loadBackups()">Refresh</button>
         </div>
         <p class="panel-note">Restic snapshot contents are encrypted; only write times are visible here.</p>
@@ -164,14 +165,13 @@
       </div>
 
       <div class="panel">
-        <div class="panel-header"><div class="panel-title">Unassigned repositories</div></div>
-        <p class="panel-note restic-off-note" hidden>Restic scanning is off. Set <code>KYRECOVERY_RESTIC_DIR</code> or <code>--restic-dir</code> to rest-server's data directory, mounted read-only (see <code>docker-compose.restic.yml</code>).</p>
+        <div class="panel-header"><h2 class="panel-title">Unassigned repositories</h2></div>
         <div id="backups-unassigned" class="panel-body"></div>
         <datalist id="backups-service-names"></datalist>
       </div>
 
       <div class="panel">
-        <div class="panel-header"><div class="panel-title">Restore</div></div>
+        <div class="panel-header"><h2 class="panel-title">Restore</h2></div>
         <p class="panel-note">Finds the capsule and restic snapshot to restore from, by metadata only. Requires KyQuickStart with restore support.</p>
         <div class="panel-body">
           <div class="retention-fields">
@@ -189,7 +189,7 @@
             </div>
             <div>
               <label class="form-label" for="restore-at">Restore to (local time; empty means now)</label>
-              <input id="restore-at" class="form-input" type="datetime-local">
+          <input id="restore-at" class="form-input" type="datetime-local">
             </div>
           </div>
           <button class="btn btn-primary btn-sm" onclick="planRestore()">Find restore point</button>
@@ -201,41 +201,8 @@
 
     <!-- Tab 2: Capsules -->
     <div id="tab-capsules" class="tab-content">
+      <div class="page-heading"><h1>Capsules</h1><div class="heading-actions"><button class="btn btn-secondary btn-sm" onclick="openDiffModal()">Compare versions</button></div></div>
       <div class="panel">
-        <div class="panel-header"><div class="panel-title">Backup retention</div></div>
-        <p class="panel-note">Keep all recent backups plus the newest per UTC calendar week and month for each paired product. Each window counts back from today and overlaps the others: for example, all backups for 14 days, weekly backups for 8 weeks, and monthly backups for 12 months. Daily 0 keeps everything forever; weekly/monthly 0 disables that tier. Saving does not delete anything. Manual purge can remove the last backup beyond all windows. Offsite copies require their own retention policy.</p>
-        <div class="panel-body">
-          <div class="admin-only" style="display:none;">
-            <div class="retention-fields">
-              <div>
-                <label class="form-label" for="retention-days">Keep every backup (days)</label>
-                <input id="retention-days" class="form-input" type="number" min="0" max="36500" step="1" value="0" required aria-describedby="retention-status">
-              </div>
-              <div>
-                <label class="form-label" for="retention-weeks">Keep newest per week (weeks)</label>
-                <input id="retention-weeks" class="form-input" type="number" min="0" max="5200" step="1" value="0" required>
-              </div>
-              <div>
-                <label class="form-label" for="retention-months">Keep newest per month (months)</label>
-                <input id="retention-months" class="form-input" type="number" min="0" max="1200" step="1" value="0" required>
-              </div>
-            </div>
-          </div>
-          <div class="retention-actions">
-            <button class="btn btn-primary btn-sm admin-only" style="display:none;" onclick="saveRetention()">Save retention</button>
-            <button class="btn btn-secondary btn-sm" onclick="loadRetention()">Refresh preview</button>
-            <button class="btn btn-secondary btn-sm admin-only" style="display:none;" onclick="purgeExpiredBackups()">Purge expired</button>
-          </div>
-        </div>
-        <p id="retention-status" class="panel-note" role="status" aria-live="polite">Loading retention…</p>
-      </div>
-      <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title">Capsules</div>
-          <div style="display: flex; gap: 8px;">
-            <button class="btn btn-secondary btn-sm" onclick="openDiffModal()">Compare versions</button>
-          </div>
-        </div>
         <div style="overflow-x: auto;">
           <table class="data-table">
             <thead>
@@ -255,14 +222,42 @@
           </table>
         </div>
       </div>
+      <div class="panel">
+        <div class="panel-header"><h2 class="panel-title">Backup retention</h2></div>
+        <p class="panel-note">Keep all recent backups plus the newest per UTC calendar week and month for each paired product. Each window counts back from today and overlaps the others: for example, all backups for 14 days, weekly backups for 8 weeks, and monthly backups for 12 months. Daily 0 keeps everything forever; weekly/monthly 0 disables that tier. Saving does not delete anything. Manual purge can remove the last backup beyond all windows. Offsite copies require their own retention policy.</p>
+        <div class="panel-body">
+          <div class="admin-only" style="display:none;">
+            <div class="retention-fields">
+              <div>
+                <label class="form-label" for="retention-days">Keep every backup (days)</label>
+          <input id="retention-days" class="form-input" type="number" min="0" max="36500" step="1" value="0" required aria-describedby="retention-status">
+              </div>
+              <div>
+                <label class="form-label" for="retention-weeks">Keep newest per week (weeks)</label>
+          <input id="retention-weeks" class="form-input" type="number" min="0" max="5200" step="1" value="0" required>
+              </div>
+              <div>
+                <label class="form-label" for="retention-months">Keep newest per month (months)</label>
+          <input id="retention-months" class="form-input" type="number" min="0" max="1200" step="1" value="0" required>
+              </div>
+            </div>
+          </div>
+          <div class="retention-actions">
+            <button class="btn btn-primary btn-sm admin-only" style="display:none;" onclick="saveRetention()">Save retention</button>
+            <button class="btn btn-secondary btn-sm" onclick="loadRetention()">Refresh preview</button>
+            <button class="btn btn-danger btn-sm admin-only" style="display:none;" onclick="purgeExpiredBackups()">Purge expired</button>
+          </div>
+        </div>
+        <p id="retention-status" class="panel-note" role="status" aria-live="polite">Loading retention…</p>
+      </div>
     </div>
 
     <!-- Tab: Paired Products -->
     <div id="tab-pairing" class="tab-content">
+      <div class="page-heading"><h1>Paired products</h1><div class="heading-actions"><button class="btn btn-primary btn-sm" onclick="openPairingGenModal()">New pairing code</button></div></div>
       <div class="panel">
         <div class="panel-header">
-          <div class="panel-title">Paired products</div>
-          <button class="btn btn-primary btn-sm" onclick="openPairingGenModal()">New pairing code</button>
+
         </div>
         <div class="panel-note">
           <strong>Pairing.</strong> Enter a pairing code into any Ky Suite app or busnes.app service. The product seals each backup to the suite recovery public key and deposits the sealed capsule here; this server never sees the contents.
@@ -290,17 +285,18 @@
 
     <!-- Tab 3: Custodians -->
     <div id="tab-custodians" class="tab-content">
+      <div class="page-heading"><h1>Custodians &amp; quorum</h1><div class="heading-actions"><a id="ceremony-link" class="btn btn-primary btn-sm" href="/admin/ceremony" target="_blank" rel="noopener">Run recovery key ceremony</a></div></div>
       <div class="panel">
         <div class="panel-header">
-          <div class="panel-title">Recovery key</div>
-          <a id="ceremony-link" class="btn btn-primary btn-sm" href="/admin/ceremony" target="_blank" rel="noopener">Run recovery key ceremony</a>
+          <h2 class="panel-title">Recovery key</h2>
+
         </div>
         <div class="panel-body" id="recovery-key-status">Loading...</div>
       </div>
       <div class="panel">
         <div class="panel-header">
-          <div class="panel-title">Custodians</div>
-          <button class="btn btn-primary btn-sm" onclick="openCustodianModal()">+ Register Custodian</button>
+          <h2 class="panel-title">Custodians</h2>
+          <button class="btn btn-secondary btn-sm" onclick="openCustodianModal()">+ Register Custodian</button>
         </div>
         <div style="overflow-x: auto;">
           <table class="data-table">
@@ -322,13 +318,13 @@
 
     <!-- Tab: Offsite Replication -->
     <div id="tab-replication" class="tab-content">
-      <div class="overview-heading">
+      <div class="page-heading">
         <h1>Offsite replication</h1>
+        <div class="heading-actions"><button class="btn btn-primary btn-sm" onclick="openReplicationModal()">Add target</button></div>
       </div>
       <div class="panel">
         <div class="panel-header">
-          <div class="panel-title">Replication targets</div>
-          <button class="btn btn-primary btn-sm" onclick="openReplicationModal()">Add target</button>
+          <h2 class="panel-title">Replication targets</h2>
         </div>
         <div class="panel-note">
           <strong>Content-blind vaulting.</strong> Streams encrypted <code>.kycap</code> archives directly to AWS S3, Cloudflare R2, MinIO, SFTP servers, SMB shares or local offsite mounts. The remote destination only receives pre-encrypted ciphertext and never sees decryption keys or unencrypted master data.
@@ -357,7 +353,7 @@
       <!-- Recent Replication Transfers Panel -->
       <div class="panel" style="margin-top: 24px;">
         <div class="panel-header">
-          <div class="panel-title">Recent transfers</div>
+          <h2 class="panel-title">Recent transfers</h2>
         </div>
         <div style="overflow-x: auto;">
           <table class="data-table">
@@ -381,15 +377,16 @@
 
     <!-- Tab 5: Audit -->
     <div id="tab-audit" class="tab-content">
+      <div class="page-heading"><h1>Audit ledger</h1><div class="heading-actions"><button class="btn btn-secondary btn-sm" onclick="verifyAuditChain()">Verify Cryptographic Chain</button></div></div>
       <div class="panel">
         <div class="panel-header">
-          <div class="panel-title">Audit ledger</div>
           <div style="display: flex; align-items: center; gap: 12px;">
             <span id="chain-verify-status" style="font-size: 12px; font-family: var(--font-mono);"></span>
-            <button class="btn btn-secondary btn-sm" onclick="verifyAuditChain()">Verify Cryptographic Chain</button>
+
           </div>
         </div>
-        <div style="overflow-x: auto;">
+        <p class="table-scroll-hint">Scroll to view all ledger columns.</p>
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Audit ledger columns" style="overflow-x: auto;">
           <table class="data-table">
             <thead>
               <tr>
@@ -426,8 +423,8 @@
   <div id="pairing-gen-modal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="panel-title">New pairing code</div>
-        <button class="btn btn-secondary btn-sm" onclick="closePairingGenModal()">✕</button>
+        <h2 class="panel-title">New pairing code</h2>
+        <button class="btn btn-secondary btn-sm" aria-label="Close dialog" onclick="closePairingGenModal()"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button>
       </div>
       <form onsubmit="submitGeneratePairing(event)">
         <div class="modal-body">
@@ -435,16 +432,16 @@
             Generates a temporary pairing code. Enter this code into any Ky Suite app or busnes.app service to link it for automated, self-declaring backups.
           </p>
           <div class="form-group">
-            <label class="form-label">Expected Product / Service Name</label>
-            <input id="pairing-service" class="form-input" type="text" placeholder="e.g. kybookmarks, kynotes, kypost, custom-app" value="auto-declare">
+            <label class="form-label" for="pairing-service">Expected Product / Service Name</label>
+          <input id="pairing-service" class="form-input" type="text" placeholder="e.g. kybookmarks, kynotes, kypost, custom-app" value="auto-declare">
           </div>
           <div class="form-group">
-            <label class="form-label">App Instance Label</label>
-            <input id="pairing-app-name" class="form-input" type="text" placeholder="e.g. Primary Production Server" value="Production Server">
+            <label class="form-label" for="pairing-app-name">App Instance Label</label>
+          <input id="pairing-app-name" class="form-input" type="text" placeholder="e.g. Primary Production Server" value="Production Server">
           </div>
           <div class="form-group">
-            <label class="form-label">Pairing Window Expiration (Minutes)</label>
-            <input id="pairing-ttl" class="form-input" type="number" min="5" max="1440" value="15">
+            <label class="form-label" for="pairing-ttl">Pairing Window Expiration (Minutes)</label>
+          <input id="pairing-ttl" class="form-input" type="number" min="5" max="1440" value="15">
           </div>
         </div>
         <div class="modal-footer">
@@ -459,8 +456,8 @@
   <div id="pairing-code-display-modal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="panel-title">Pairing code</div>
-        <button class="btn btn-secondary btn-sm" onclick="closePairingDisplayModal()">✕</button>
+        <h2 class="panel-title">Pairing code</h2>
+        <button class="btn btn-secondary btn-sm" aria-label="Close dialog" onclick="closePairingDisplayModal()"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button>
       </div>
       <div class="modal-body" style="text-align: center;">
         <div style="font-size: 12px;  color: var(--text-muted); margin-bottom: 8px;">Enter this code in the Ky Suite app or busnes.app service to pair</div>
@@ -486,18 +483,18 @@
   <div id="custodian-modal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="panel-title">Add a custodian</div>
-        <button class="btn btn-secondary btn-sm" onclick="closeCustodianModal()">✕</button>
+        <h2 class="panel-title">Add a custodian</h2>
+        <button class="btn btn-secondary btn-sm" aria-label="Close dialog" onclick="closeCustodianModal()"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button>
       </div>
       <form onsubmit="submitCustodian(event)">
         <div class="modal-body">
           <div class="form-group">
-            <label class="form-label">Custodian Full Name</label>
-            <input id="custodian-name" class="form-input" type="text" placeholder="e.g. Alice Chief" required>
+            <label class="form-label" for="custodian-name">Custodian Full Name</label>
+          <input id="custodian-name" class="form-input" type="text" placeholder="e.g. Alice Chief" required>
           </div>
           <div class="form-group">
-            <label class="form-label">Custodian Email Address</label>
-            <input id="custodian-email" class="form-input" type="email" placeholder="alice@example.com" required>
+            <label class="form-label" for="custodian-email">Custodian Email Address</label>
+          <input id="custodian-email" class="form-input" type="email" placeholder="alice@example.com" required>
           </div>
         </div>
         <div class="modal-footer">
@@ -512,14 +509,15 @@
   <div id="replication-modal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="panel-title">Add a replication target</div>
-        <button class="btn btn-secondary btn-sm" onclick="closeReplicationModal()">✕</button>
+        <h2 class="panel-title">Add a replication target</h2>
+        <button class="btn btn-secondary btn-sm" aria-label="Close dialog" onclick="closeReplicationModal()"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button>
       </div>
       <form onsubmit="submitReplicationTarget(event)">
         <div class="modal-body">
+          <h3 class="form-section-heading">Destination</h3>
           <div class="form-group">
-            <label class="form-label">Storage Provider Preset</label>
-            <select id="repl-preset" class="form-input" onchange="applyReplicationPreset()">
+            <label class="form-label" for="repl-preset">Storage Provider Preset</label>
+              <select id="repl-preset" class="form-input" onchange="applyReplicationPreset()">
               <option value="s3">AWS S3 / S3-Compatible</option>
               <option value="r2">Cloudflare R2 Object Storage</option>
               <option value="minio">MinIO Self-Hosted S3</option>
@@ -529,29 +527,30 @@
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Target Name</label>
-            <input id="repl-name" class="form-input" type="text" placeholder="e.g. Cloudflare R2 EU Vault" required>
+            <label class="form-label" for="repl-name">Target Name</label>
+          <input id="repl-name" class="form-input" type="text" placeholder="e.g. Cloudflare R2 EU Vault" required>
           </div>
           <div class="form-group">
-            <label class="form-label" id="repl-endpoint-label">Endpoint URL</label>
-            <input id="repl-endpoint" class="form-input" type="text" placeholder="https://<account-id>.r2.cloudflarestorage.com" required>
+            <label class="form-label" id="repl-endpoint-label" for="repl-endpoint">Endpoint URL</label>
+          <input id="repl-endpoint" class="form-input" type="text" placeholder="https://<account-id>.r2.cloudflarestorage.com" required>
           </div>
           <div id="repl-s3-fields">
             <div class="form-group" id="repl-bucket-group">
-              <label class="form-label" id="repl-bucket-label">Bucket Name</label>
-              <input id="repl-bucket" class="form-input" type="text" placeholder="kyrecovery-offsite">
+              <label class="form-label" id="repl-bucket-label" for="repl-bucket">Bucket Name</label>
+          <input id="repl-bucket" class="form-input" type="text" placeholder="kyrecovery-offsite">
             </div>
             <div class="form-group" id="repl-region-group">
-              <label class="form-label">Region</label>
-              <input id="repl-region" class="form-input" type="text" placeholder="auto or us-east-1" value="auto">
+              <label class="form-label" for="repl-region">Region</label>
+          <input id="repl-region" class="form-input" type="text" placeholder="auto or us-east-1" value="auto">
             </div>
             <div class="form-group">
-              <label class="form-label" id="repl-access-key-label">Access Key ID</label>
-              <input id="repl-access-key" class="form-input" type="text" placeholder="Access key">
+              <h3 class="form-section-heading">Credentials</h3>
+              <label class="form-label" id="repl-access-key-label" for="repl-access-key">Access Key ID</label>
+          <input id="repl-access-key" class="form-input" type="text" placeholder="Access key">
             </div>
             <div class="form-group">
-              <label class="form-label" id="repl-secret-key-label">Secret Access Key</label>
-              <input id="repl-secret-key" class="form-input" type="password" placeholder="Secret access key">
+              <label class="form-label" id="repl-secret-key-label" for="repl-secret-key">Secret Access Key</label>
+          <input id="repl-secret-key" class="form-input" type="password" placeholder="Secret access key">
             </div>
           </div>
           <div id="repl-smb-warning" style="display: none; font-size: 13px; padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; background: var(--bg-input); color: var(--accent-yellow, #e0b040);">
@@ -563,13 +562,14 @@
             <a href="https://github.com/Busnes-app/KyRecovery-server/blob/main/docs/STRONG-CRYPTO.md" target="_blank" rel="noopener noreferrer">Risks and alternatives</a>.
           </div>
           <div class="form-group" id="repl-host-key-group" style="display: none;">
-            <label class="form-label">Server Host Key (SHA256 fingerprint)</label>
-            <input id="repl-host-key" class="form-input" type="text" placeholder="Press Test Connection to fetch, then confirm it matches the server">
+            <label class="form-label" for="repl-host-key">Server Host Key (SHA256 fingerprint)</label>
+          <input id="repl-host-key" class="form-input" type="text" placeholder="Press Test Connection to fetch, then confirm it matches the server">
           </div>
           <div class="form-group">
-            <label class="form-label" id="repl-prefix-label">Prefix / Subdirectory</label>
-            <input id="repl-prefix" class="form-input" type="text" placeholder="capsules/" value="capsules/">
+            <label class="form-label" id="repl-prefix-label" for="repl-prefix">Prefix / Subdirectory</label>
+          <input id="repl-prefix" class="form-input" type="text" placeholder="capsules/" value="capsules/">
           </div>
+          <h3 class="form-section-heading">Sync</h3>
           <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
             <input id="repl-auto-sync" type="checkbox" checked>
             <label for="repl-auto-sync" style="font-size: 13px; font-weight: normal; margin: 0;">Automatically replicate new capsules immediately upon deposit</label>
@@ -589,18 +589,18 @@
   <div id="diff-modal" class="modal-overlay">
     <div class="modal-card" style="max-width: 780px;">
       <div class="modal-header">
-        <div class="panel-title">Compare capsule versions</div>
-        <button class="btn btn-secondary btn-sm" onclick="closeDiffModal()">✕</button>
+        <h2 class="panel-title">Compare capsule versions</h2>
+        <button class="btn btn-secondary btn-sm" aria-label="Close dialog" onclick="closeDiffModal()"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button>
       </div>
       <div class="modal-body">
         <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: flex-end; margin-bottom: 16px;">
           <div class="form-group" style="margin: 0;">
-            <label class="form-label">Base Snapshot (Earlier)</label>
-            <select id="diff-base-select" class="form-input"></select>
+            <label class="form-label" for="diff-base-select">Base Snapshot (Earlier)</label>
+              <select id="diff-base-select" class="form-input"></select>
           </div>
           <div class="form-group" style="margin: 0;">
-            <label class="form-label">Target Snapshot (Later / Current)</label>
-            <select id="diff-target-select" class="form-input"></select>
+            <label class="form-label" for="diff-target-select">Target Snapshot (Later / Current)</label>
+              <select id="diff-target-select" class="form-input"></select>
           </div>
           <button class="btn btn-primary" onclick="executeSnapshotDiff()" style="height: 38px;">Compare</button>
         </div>
@@ -638,8 +638,8 @@
   <div id="sso-config-modal" class="modal-overlay">
     <div class="modal-card" style="max-width: 640px;">
       <div class="modal-header">
-        <div class="panel-title">KySignOn sign-in</div>
-        <button class="btn btn-secondary btn-sm" onclick="closeSSOConfigModal()">✕</button>
+        <h2 class="panel-title">KySignOn sign-in</h2>
+        <button class="btn btn-secondary btn-sm" aria-label="Close dialog" onclick="closeSSOConfigModal()"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button>
       </div>
       <form onsubmit="submitSSOConfig(event)">
         <div class="modal-body">
@@ -653,31 +653,31 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">KySignOn Issuer URL</label>
-            <input id="sso-issuer-input" class="form-input" type="url" placeholder="https://auth.example.com" required>
+            <label class="form-label" for="sso-issuer-input">KySignOn Issuer URL</label>
+          <input id="sso-issuer-input" class="form-input" type="url" placeholder="https://auth.example.com" required>
             <div class="metric-sub">Base URL of your KySignOn instance (e.g. http://localhost:8080 or https://auth.example.com)</div>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
             <div class="form-group">
-              <label class="form-label">OAuth Client ID</label>
-              <input id="sso-client-id-input" class="form-input" type="text" placeholder="kyrecovery-server" required>
+              <label class="form-label" for="sso-client-id-input">OAuth Client ID</label>
+          <input id="sso-client-id-input" class="form-input" type="text" placeholder="kyrecovery-server" required>
             </div>
             <div class="form-group">
-              <label class="form-label">OAuth Client Secret</label>
-              <input id="sso-client-secret-input" class="form-input" type="password" placeholder="••••••••">
+              <label class="form-label" for="sso-client-secret-input">OAuth Client Secret</label>
+          <input id="sso-client-secret-input" class="form-input" type="password" placeholder="••••••••">
             </div>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Callback / Redirect URI</label>
-            <input id="sso-redirect-input" class="form-input" type="text" placeholder="http://localhost:8095/api/auth/callback">
+            <label class="form-label" for="sso-redirect-input">Callback / Redirect URI</label>
+          <input id="sso-redirect-input" class="form-input" type="text" placeholder="http://localhost:8095/api/auth/callback">
             <div class="metric-sub">Must match the registered Redirect URI in KySignOn client settings</div>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Administrator Email (Grants ADMIN role)</label>
-            <input id="sso-admin-email-input" class="form-input" type="email" placeholder="admin@example.com">
+            <label class="form-label" for="sso-admin-email-input">Administrator Email (Grants ADMIN role)</label>
+          <input id="sso-admin-email-input" class="form-input" type="email" placeholder="admin@example.com">
           </div>
 
           <div id="sso-test-status" style="display: none; font-size: 13px; padding: 10px 14px; border-radius: 6px; margin-top: 12px;"></div>
@@ -695,25 +695,25 @@
   <div id="change-password-modal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="panel-title">Change password</div>
-        <button class="btn btn-secondary btn-sm" onclick="closeChangePasswordModal()">✕</button>
+        <h2 class="panel-title">Change password</h2>
+        <button class="btn btn-secondary btn-sm" aria-label="Close dialog" onclick="closeChangePasswordModal()"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button>
       </div>
       <form onsubmit="submitChangePassword(event)">
         <div class="modal-body">
           <div class="form-group">
-            <label class="form-label">Current Password</label>
-            <input id="pass-current" class="form-input" type="password" required autocomplete="current-password">
+            <label class="form-label" for="pass-current">Current Password</label>
+          <input id="pass-current" class="form-input" type="password" required autocomplete="current-password">
           </div>
           <div class="form-group">
-            <label class="form-label">New Password</label>
-            <input id="pass-new" class="form-input" type="password" minlength="8" required autocomplete="new-password">
+            <label class="form-label" for="pass-new">New Password</label>
+          <input id="pass-new" class="form-input" type="password" minlength="8" required autocomplete="new-password">
             <div class="metric-sub">Minimum 8 characters</div>
           </div>
           <div class="form-group">
-            <label class="form-label">Confirm New Password</label>
-            <input id="pass-confirm" class="form-input" type="password" minlength="8" required autocomplete="new-password">
+            <label class="form-label" for="pass-confirm">Confirm New Password</label>
+          <input id="pass-confirm" class="form-input" type="password" minlength="8" required autocomplete="new-password">
           </div>
-          <div id="change-pass-error" style="display: none; background: var(--accent-red-dim); border: 1px solid var(--accent-red); color: #ff8080; padding: 8px 12px; border-radius: 4px; font-size: 12px; margin-top: 10px;"></div>
+          <div id="change-pass-error" style="display: none; background: var(--accent-red-dim); border: 1px solid var(--accent-red); color: var(--accent-red); padding: 8px 12px; border-radius: 4px; font-size: 12px; margin-top: 10px;"></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" onclick="closeChangePasswordModal()">Cancel</button>

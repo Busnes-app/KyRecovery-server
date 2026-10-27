@@ -1,0 +1,60 @@
+Actual capture CLI regression: existing output, competing writer, build failure cleanup, successful 52-image capture.
+file:///home/yoshi/git/busnes.app/kyrecovery-server/.claude/worktrees/ui-recovery-eight/docs/ui-recovery-eight/capture.mjs:20
+catch (e) { if (e.code === 'EEXIST') throw new Error('Refusing to replace a frozen or reserved manifest', { cause: e }); throw e; }
+                                           ^
+
+Error: Refusing to replace a frozen or reserved manifest
+    at file:///home/yoshi/git/busnes.app/kyrecovery-server/.claude/worktrees/ui-recovery-eight/docs/ui-recovery-eight/capture.mjs:20:44 {
+  [cause]: Error: EEXIST: file already exists, open '/home/yoshi/git/busnes.app/kyrecovery-server/.claude/worktrees/ui-recovery-eight/docs/ui-recovery-eight/manifest-02-after.json'
+      at async open (node:internal/fs/promises:1345:25)
+      at async file:///home/yoshi/git/busnes.app/kyrecovery-server/.claude/worktrees/ui-recovery-eight/docs/ui-recovery-eight/capture.mjs:19:22 {
+    errno: -17,
+    code: 'EEXIST',
+    syscall: 'open',
+    path: '/home/yoshi/git/busnes.app/kyrecovery-server/.claude/worktrees/ui-recovery-eight/docs/ui-recovery-eight/manifest-02-after.json'
+  }
+}
+
+Node.js v24.22.0
+PASS: frozen stage refused before any capture writes.
+go: unsupported GOOS/GOARCH pair invalid-capture-test-os/amd64
+node:internal/errors:986
+  const err = new Error(message);
+              ^
+
+Error: Command failed: go build -o /tmp/kyrecovery-council-fDh1bh/kyrecovery ./cmd/kyrecovery
+    at genericNodeError (node:internal/errors:986:15)
+    at wrappedFn (node:internal/errors:540:14)
+    at checkExecSyncError (node:child_process:943:11)
+    at execFileSync (node:child_process:979:15)
+    at file:///home/yoshi/git/busnes.app/kyrecovery-server/.claude/worktrees/ui-recovery-eight/docs/ui-recovery-eight/capture.mjs:29:1 {
+  status: 2,
+  signal: null,
+  output: [ null, null, null ],
+  pid: 1849408,
+  stdout: null,
+  stderr: null
+}
+
+Node.js v24.22.0
+PASS: build failure removed only its incomplete reservation.
+file:///home/yoshi/git/busnes.app/kyrecovery-server/.claude/worktrees/ui-recovery-eight/docs/ui-recovery-eight/capture.mjs:20
+catch (e) { if (e.code === 'EEXIST') throw new Error('Refusing to replace a frozen or reserved manifest', { cause: e }); throw e; }
+                                           ^
+
+Error: Refusing to replace a frozen or reserved manifest
+    at file:///home/yoshi/git/busnes.app/kyrecovery-server/.claude/worktrees/ui-recovery-eight/docs/ui-recovery-eight/capture.mjs:20:44 {
+  [cause]: Error: EEXIST: file already exists, open '/home/yoshi/git/busnes.app/kyrecovery-server/.claude/worktrees/ui-recovery-eight/docs/ui-recovery-eight/manifest-99-after.json'
+      at async open (node:internal/fs/promises:1345:25)
+      at async file:///home/yoshi/git/busnes.app/kyrecovery-server/.claude/worktrees/ui-recovery-eight/docs/ui-recovery-eight/capture.mjs:19:22 {
+    errno: -17,
+    code: 'EEXIST',
+    syscall: 'open',
+    path: '/home/yoshi/git/busnes.app/kyrecovery-server/.claude/worktrees/ui-recovery-eight/docs/ui-recovery-eight/manifest-99-after.json'
+  }
+}
+
+Node.js v24.22.0
+PASS: competing writer refused the active reservation.
+{"manifest":"/home/yoshi/git/busnes.app/kyrecovery-server/.claude/worktrees/ui-recovery-eight/docs/ui-recovery-eight/manifest-99-after.json","shots":52,"overflows":[],"fixtureFile":"/tmp/kyrecovery-council-Jvc1Jc/fixture.json","base":"http://127.0.0.1:45691"}
+PASS: 52 images and manifest created; 159 frozen files unchanged.

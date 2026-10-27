@@ -16,6 +16,7 @@ for (const page of ['index.html', 'ceremony.html']) {
 assert(css.includes(':root:not([data-theme]):not([data-ky-theme])'), 'System alias specificity must match shared defaults');
 const declarations = text => Object.fromEntries([...text.matchAll(/--([a-z-]+):\s*([^;]+);/g)].map(m => [m[1], m[2].trim()]));
 const aliases = css.match(/:root\[data-theme="busnes-dark"\]\s*\{([^}]+)\}/)[1];
+const defaults = declarations(shared.match(/:root\s*\{([^}]+)\}/)[1]);
 assert(script.includes('busnes-dark') && script.includes('busnes-light'), 'Check selectors against the live theme script');
 const luminance = hex => {
   assert.match(hex, /^#[a-f0-9]{6}$/i);
@@ -24,7 +25,7 @@ const luminance = hex => {
 };
 for (const mode of ['light', 'dark']) {
   const block = shared.match(new RegExp(`:root\\[data-ky-theme="busnes-${mode}"\\] \\{([^}]+)`))[1];
-  const values = { ...declarations(block), ...declarations(aliases) };
+  const values = { ...defaults, ...declarations(block), ...declarations(aliases) };
   const resolve = name => {
     const value = values[name];
     assert(value, `Missing ${name}`);

@@ -1,0 +1,27 @@
+Command: scripts/verify-restic-overlay.sh
+ Network kyr-restic-verify-1836829_default Creating 
+ Network kyr-restic-verify-1836829_default Creating 
+ Network kyr-restic-verify-1836829_default Created 
+ Network kyr-restic-verify-1836829_default Created 
+ Container kyr-restic-verify-1836829-rest-server-1 Creating 
+ Container kyr-restic-verify-1836829-kyrecovery-1 Creating 
+ Container kyr-restic-verify-1836829-kyrecovery-1 Created 
+ Container kyr-restic-verify-1836829-rest-server-1 Created 
+ Container kyr-restic-verify-1836829-kyrecovery-1 Starting 
+ Container kyr-restic-verify-1836829-rest-server-1 Starting 
+ Container kyr-restic-verify-1836829-kyrecovery-1 Started 
+ Container kyr-restic-verify-1836829-rest-server-1 Started 
+rest-server file modes (count, owner, mode):
+      9 10002:10001 640
+    263 10002:10001 750
+ Container kyr-restic-verify-1836829-kyrecovery-1 Restarting 
+ Container kyr-restic-verify-1836829-kyrecovery-1 Started 
+ Network kyr-restic-verify-1836829-base_default Creating 
+ Network kyr-restic-verify-1836829-base_default Creating 
+ Network kyr-restic-verify-1836829-base_default Created 
+ Network kyr-restic-verify-1836829-base_default Created 
+ Container kyr-restic-verify-1836829-base-kyrecovery-1 Creating 
+ Container kyr-restic-verify-1836829-base-kyrecovery-1 Created 
+ Container kyr-restic-verify-1836829-base-kyrecovery-1 Starting 
+ Container kyr-restic-verify-1836829-base-kyrecovery-1 Started 
+restic overlay verified: modes, read-only access, scan, credential isolation, base install

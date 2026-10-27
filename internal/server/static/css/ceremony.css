@@ -1,8 +1,20 @@
 /* The ceremony page runs under a stricter CSP than the dashboard: no inline styles,
    so its handful of layout rules live here. */
 .ceremony { max-width: 900px; margin: 40px auto; padding: 0 20px; }
-.ceremony .panel { padding: 20px; margin-bottom: 20px; }
-.ceremony .form-label { display: block; margin-bottom: 12px; }
+.ceremony-header .brand { text-decoration: none; color: var(--paper); }
+.ceremony-header { background: var(--ink-raised); }
+.ceremony h1 { font-size: var(--ky-type-title); font-weight: 600; line-height: 1.25; margin-bottom: 24px; }
+.ceremony .panel { border: 0; border-radius: 0; background: transparent; padding: 0 0 24px; margin-bottom: 24px; border-bottom: 1px solid var(--rule); }
+.ceremony .panel > p { max-width: 72ch; }
+.ceremony #ceremony-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.ceremony #ceremony-form .btn { grid-column: 1 / -1; justify-self: start; }
+.ceremony .form-label { display: block; margin: 0; }
+.ceremony .form-input { display: block; margin-top: 8px; }
+@media (max-width: 680px) {
+  header.ceremony-header { display: flex; flex-wrap: wrap; padding: 16px; }
+  .ceremony { margin: 24px auto; padding: 0 16px; }
+  .ceremony #ceremony-form { grid-template-columns: 1fr; }
+}
 .card { padding: 20px; margin-bottom: 20px; border: 1px solid var(--border-color); page-break-inside: avoid; }
 .card .share { font-size: 1.1em; }
 
