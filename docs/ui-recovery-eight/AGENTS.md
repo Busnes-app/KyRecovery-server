@@ -7,6 +7,7 @@ Record the focused pass toward the owner's covered visual 8/10 gate and shared K
 ## Ownership
 
 - `capture.mjs` owns disposable synthetic fixtures, original PNGs and immutable manifests.
+- Raw report pairs preserve publisher bytes, including whitespace; root `.gitattributes` limits the end-of-line whitespace exception to `*-round*.md`. Derived artifacts and source retain normal checks.
 - Each reviewer owns its own report pair. The parent owns inventories, audits, score tables and spreadsheet exports.
 
 ## Local Contracts
