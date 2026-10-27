@@ -230,6 +230,17 @@ async function loadAudit() {
     const res = await fetch('/api/audit');
     if (!res.ok) return;
     const events = await res.json() || [];
+    document.getElementById('audit-phone-list').innerHTML = events.length === 0
+      ? '<li>No ledger entries yet.</li>'
+      : events.map(e => `<li>
+          <p class="audit-event"><strong>#${esc(e.sequence_num)}</strong><code>${esc(e.action)}</code></p>
+          <dl>
+            <dt>Actor</dt><dd>${esc(e.actor)}</dd>
+            <dt>Recorded</dt><dd><time datetime="${esc(e.created_at)}">${esc(new Date(e.created_at).toLocaleString())}</time></dd>
+            <dt>Target</dt><dd><code>${esc(e.target_id)}</code></dd>
+            <dt>Hash</dt><dd><code>${esc(e.event_hash)}</code></dd>
+          </dl>
+        </li>`).join('');
 
     if (events.length === 0) {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: var(--text-dim);">No ledger entries yet.</td></tr>';
@@ -866,6 +877,7 @@ function applyReplicationPreset() {
       document.getElementById('repl-region').value = 'us-east-1';
     }
   }
+  endpointLabel.textContent += ' (required)';
 }
 
 function getReplicationTargetPayload() {
@@ -1196,6 +1208,8 @@ function renderBackups({ report, scan, samples }) {
 
   document.getElementById('backups-service-names').innerHTML = services.map(s => `<option value="${esc(s.service_name)}">`).join('');
   const select = document.getElementById('restore-service');
+  document.getElementById('restore-controls').hidden = services.length === 0;
+  document.getElementById('restore-empty').hidden = services.length !== 0;
   const previous = select.value;
   select.innerHTML = services.map(s => `<option value="${esc(s.service_name)}">${esc(s.service_name)}</option>`).join('');
   if (services.some(s => s.service_name === previous)) select.value = previous;

@@ -383,7 +383,6 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--brass); }
 .backups-metrics { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-bottom: 32px; }
 .backups-metrics .metric-value { font-size: 28px; }
 .backups-metrics .metric-label { font-size: var(--ky-type-meta); }
-.table-scroll-hint { display: none; color: var(--paper-muted); font-size: var(--ky-type-meta); padding: 12px 0; }
 .empty-action { display: block; margin: 16px auto 0; }
 .retention-actions .btn-danger { margin-left: auto; }
 body:not(.signed-in) .header-meta { display: none; }
@@ -414,11 +413,8 @@ body:not(.signed-in) > footer { margin-top: auto; }
 }
 @media (max-width: 720px) {
   .page-heading { align-items: flex-start; margin-bottom: 24px; }
-  .page-heading .heading-actions { width: 100%; }
-  .panel-header { align-items: flex-start; gap: 12px; }
+  .panel-header { align-items: center; gap: 12px; }
   .panel-header > div:last-child { gap: 8px !important; }
-  .table-scroll-hint { display: block; }
-  .table-scroll { border-right: 1px solid var(--ky-field-border); }
   .backups-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; }
   .backups-metrics .metric-value { font-size: 24px; }
   .overview-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 24px; }
@@ -441,3 +437,18 @@ body:not(.signed-in) > footer { margin-top: auto; }
 #tab-backups .panel > .panel-note { padding: 0; margin: 8px 0; }
 #tab-backups .panel > .panel-header + .panel-note { margin-top: 16px; }
 #tab-backups .panel-note code { white-space: nowrap; }
+
+.retention-help { margin: 16px 0; max-width: 72ch; color: var(--paper-muted); font-size: var(--ky-type-meta); }
+.retention-help summary { cursor: pointer; min-height: 40px; padding: 8px 0; color: var(--paper); }
+.retention-help p { margin: 8px 0; }
+#login-gateway-view .metric-sub code { white-space: nowrap; }
+.audit-phone-list { display: none; list-style: none; padding: 0; margin: 0; }
+@media (max-width: 720px) {
+  .audit-desktop { display: none; }
+  .audit-phone-list { display: block; }
+  .audit-phone-list li { padding: 16px 0; border-bottom: 1px solid var(--rule); }
+  .audit-event { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; margin-bottom: 16px; }
+  .audit-phone-list dl { display: grid; grid-template-columns: 5rem minmax(0, 1fr); gap: 8px 16px; font-size: var(--ky-type-meta); }
+  .audit-phone-list dt { color: var(--paper-muted); }
+  .audit-phone-list dd, .audit-event code { min-width: 0; overflow-wrap: anywhere; }
+}

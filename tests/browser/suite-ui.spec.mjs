@@ -79,3 +79,53 @@ test('dialogs contain keyboard focus, close with Escape and restore their trigge
     await expect(returned).toBeFocused();
   }
 });
+
+
+test('empty restore, retention help and provider-required labels match available tasks', async ({ page, vault }) => {
+  await enter(page, vault);
+  await tab(page, 'Backups');
+  await expect(page.locator('#restore-empty')).toBeVisible();
+  await expect(page.locator('#restore-controls')).toBeHidden();
+  await tab(page, 'Capsules');
+  const save = page.getByRole('button', { name: 'Save retention', exact: true });
+  const box = await save.boundingBox();
+  expect(box.y + box.height).toBeLessThanOrEqual(page.viewportSize().height);
+  const help = page.locator('#retention-help');
+  await expect(help.locator('p')).toBeHidden();
+  await help.locator('summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(help.locator('p')).toBeVisible();
+  await expect(help).toContainText('Manual purge can remove the last backup');
+  await page.keyboard.press('Enter');
+  await expect(help.locator('p')).toBeHidden();
+  await tab(page, 'Offsite Replication');
+  await page.getByRole('button', { name: 'Add target', exact: true }).click();
+  for (const preset of ['s3', 'r2', 'minio', 'sftp', 'smb', 'local']) {
+    await page.locator('#repl-preset').selectOption(preset);
+    await expect(page.locator('#repl-endpoint-label')).toContainText('(required)');
+    await expect(page.locator('#repl-endpoint')).toHaveJSProperty('required', true);
+  }
+  await page.locator('#replication-modal').getByRole('button', { name: 'Cancel', exact: true }).click();
+});
+
+test('ledger layouts display untrusted values as text and keep all fields reachable', async ({ page, vault }) => {
+  await enter(page, vault);
+  const payload = '<img src=x onerror="window.auditMarkupExecuted=true">';
+  const hash = 'a'.repeat(64);
+  await page.route('**/api/audit', route => route.fulfill({ json: [{
+    sequence_num: 1, action: payload, actor: payload, target_id: payload,
+    event_hash: hash, created_at: '2026-10-27T12:00:00Z',
+  }] }));
+  await page.reload();
+  await tab(page, 'Audit Ledger');
+  const rendered = page.locator(page.viewportSize().width <= 720 ? '#audit-phone-list' : '#audit-table-body');
+  await expect(rendered).toBeVisible();
+  await expect(rendered).toContainText(payload);
+  await expect(rendered.locator('img, script')).toHaveCount(0);
+  expect(await page.evaluate(() => window.auditMarkupExecuted)).toBeUndefined();
+  if (page.viewportSize().width <= 720) {
+    for (const label of ['Actor', 'Recorded', 'Target', 'Hash']) await expect(rendered).toContainText(label);
+    await expect(rendered).toContainText(hash);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
+});

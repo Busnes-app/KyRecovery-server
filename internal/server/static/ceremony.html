@@ -26,8 +26,8 @@
     <p><strong>This is a key rotation.</strong> The store already holds recovery key <code id="current-key-id"></code>. Importing this ceremony's key makes it the current key: products must be re-paired and confirm the new key ID before they can deposit again. Backups already sealed to the current key still need its cards &mdash; keep them until the dashboard shows that key can be retired.</p>
   </div>
   <form id="ceremony-form" class="panel">
-    <label class="form-label">Custodians needed to recover (k) <input id="k" class="form-input" type="number" min="2" max="255" value="3" required></label>
-    <label class="form-label">Cards to print (n) <input id="n" class="form-input" type="number" min="2" max="255" value="5" required></label>
+    <label class="form-label">Custodians needed to recover (k) (required) <input id="k" class="form-input" type="number" min="2" max="255" value="3" required></label>
+    <label class="form-label">Cards to print (n) (required) <input id="n" class="form-input" type="number" min="2" max="255" value="5" required></label>
     <button class="btn btn-primary" type="submit">Generate and split</button>
   </form>
   <section id="cards" hidden>

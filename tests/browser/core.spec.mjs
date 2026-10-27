@@ -139,6 +139,10 @@ test('pairing requires ceremony, claims once, revokes and clears the registratio
   expect(replay.status()).toBe(409);
   expect((await replay.json()).error).toContain('already consumed');
   await page.goto(vault.url);
+  await tab(page, 'Backups');
+  await expect(page.locator('#restore-controls')).toBeVisible();
+  await expect(page.locator('#restore-service')).toHaveValue('browser-fixture');
+  await expect(page.locator('#restore-empty')).toBeHidden();
   await tab(page, 'Paired Products');
   const row = page.locator('#pairing-table-body tr').filter({ hasText: 'Disposable Browser Client' });
   await expect(row).toContainText('paired');
@@ -151,6 +155,10 @@ test('pairing requires ceremony, claims once, revokes and clears the registratio
   page.once('dialog', dialog => dialog.accept());
   await row.getByRole('button', { name: 'Clear', exact: true }).click();
   await expect(row).toHaveCount(0);
+  await tab(page, 'Backups');
+  await page.locator('#tab-backups').getByRole('button', { name: 'Refresh', exact: true }).click();
+  await expect(page.locator('#restore-controls')).toBeHidden();
+  await expect(page.locator('#restore-empty')).toBeVisible();
 });
 
 test('local replication form tests an owned directory, persists and deletes its target', async ({ page, vault }) => {
