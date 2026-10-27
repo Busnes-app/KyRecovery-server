@@ -1,0 +1,10 @@
+Command: mkdir -p "/tmp/kyrecovery-repeatable-d5c_0ddm/a/src"
+git archive HEAD | tar -x -C "/tmp/kyrecovery-repeatable-d5c_0ddm/a/src"
+(cd "/tmp/kyrecovery-repeatable-d5c_0ddm/a/src" && CGO_ENABLED=0 GOOS=linux go build -p 2 -trimpath -ldflags="-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=0.0.0" -o "/tmp/kyrecovery-repeatable-d5c_0ddm/a/kyrecovery" cmd/kyrecovery/main.go)
+mkdir -p "/tmp/kyrecovery-repeatable-d5c_0ddm/elsewhere/b/src"
+git archive HEAD | tar -x -C "/tmp/kyrecovery-repeatable-d5c_0ddm/elsewhere/b/src"
+(cd "/tmp/kyrecovery-repeatable-d5c_0ddm/elsewhere/b/src" && CGO_ENABLED=0 GOOS=linux go build -p 2 -trimpath -ldflags="-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=0.0.0" -o "/tmp/kyrecovery-repeatable-d5c_0ddm/elsewhere/b/kyrecovery" cmd/kyrecovery/main.go)
+sha256sum "/tmp/kyrecovery-repeatable-d5c_0ddm/a/kyrecovery" "/tmp/kyrecovery-repeatable-d5c_0ddm/elsewhere/b/kyrecovery"
+cmp "/tmp/kyrecovery-repeatable-d5c_0ddm/a/kyrecovery" "/tmp/kyrecovery-repeatable-d5c_0ddm/elsewhere/b/kyrecovery"
+a7ec784ca7f4a586f03f38390e68ba4f61572bb98612b2c11f27a121139ed41e  /tmp/kyrecovery-repeatable-d5c_0ddm/a/kyrecovery
+a7ec784ca7f4a586f03f38390e68ba4f61572bb98612b2c11f27a121139ed41e  /tmp/kyrecovery-repeatable-d5c_0ddm/elsewhere/b/kyrecovery

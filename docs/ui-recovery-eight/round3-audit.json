@@ -1,0 +1,51 @@
+{
+  "round": 3,
+  "raw_reports": {
+    "opus-round3.json": "c240fe443bc0052175c63c0f980d8289051e33d7d8e574292b00dc5357671ff7",
+    "opus-round3.md": "9a8c7d87dc45b868f1443fca349d52031d6ccfd340c0f029d0e5613b73e17404",
+    "sol-round3.json": "4a503504c6c21cbbee5314c84678fe08ac65e11805953538290e7c213db0c513",
+    "sol-round3.md": "7ad7596037f090dd183790faa20123a9634d771386154bead55c638def8276ab"
+  },
+  "arithmetic": "Both52-file reports and exact cohort means validated by build-report.py. No pooling or threshold rounding.",
+  "results": {
+    "opus": {
+      "console": "943/120",
+      "settings": "118/15",
+      "auth": "163/20",
+      "satisfied": false
+    },
+    "sol": {
+      "console": "203/24",
+      "settings": "257/30",
+      "auth": "44/5",
+      "satisfied": true
+    }
+  },
+  "spread_audit": "Eight coherence-dimension spreads>=2 in eight originals. Parent individually viewed all eight at original resolution: ceremony and replication form in both sizes/themes. Different severity judgments retained.",
+  "accepted_fixes": [
+    "Hide the empty Restore controls and show a truthful no-services state.",
+    "Keep retention Save visible at the section heading and retain full policy in a native disclosure.",
+    "Read the complete ledger on phones through flat labelled entries; retain the desktop table.",
+    "Center section-heading/action pairs and let short phone page headers share a row.",
+    "Mark endpoint required in static and all per-preset labels; reuse shared select style.",
+    "Use the same ceremony/sign-in header surface and remove the trailing empty rule."
+  ],
+  "optional_selected": "Size ceremony numeric controls to their content and keep the generated-password filename unbroken; no warning/claim removed.",
+  "rejected_or_reframed": [
+    {
+      "finding": "Replication gap caused by inline-code padding/margin",
+      "decision": "Incorrect mechanism; no code change.",
+      "evidence": "T3 Chromium154/DPR2 on pinned675c714: code padding0px,margin0px,displayinline,font-size13px,letter-spacingnormal. Source has one ordinary space and semantic monospace .kycap token. Do not treat nonexistent padding as a defect."
+    },
+    {
+      "finding": "Phone audit table is broken because it scrolls",
+      "decision": "Not a regression or inaccessible by itself: existing labelled keyboard-scroll region and hint were previously accepted. A stacked phone view is a chosen bounded readability improvement, not proof the prior table was unusable."
+    },
+    {
+      "finding": "Every primary must remain above the first viewport",
+      "decision": "Not a universal gate. Fix the unavailable empty Restore action and promote the relevant retention Save; preserve scrolling task sections for configured instances."
+    }
+  ],
+  "scope": "All prior required round2 fixes confirmed resolved. Keep styles local; no API/auth/custody/theme changes. Preserve optional taste separately and do not promote it into new behavior requirements without evidence.",
+  "gate": "Held; Opus main cohorts below8. Gemini deferred."
+}

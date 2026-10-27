@@ -1,0 +1,39 @@
+npm notice run test
+npm notice run node run.mjs
+
+Running 24 tests using 2 workers
+
+(node:1961639) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1961638) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [desktop] › suite-ui.spec.mjs:3:1 › navigation, account and dialog actions remain reachable at the shipped sizes (887ms)
+  ✓   2 [desktop] › core.spec.mjs:5:1 › real login, cookies, reload and logout enforce the session (1.1s)
+  ✓   3 [desktop] › suite-ui.spec.mjs:38:1 › dialogs contain keyboard focus, close with Escape and restore their triggers (1.7s)
+  ✓   4 [desktop] › core.spec.mjs:23:1 › password validation and replacement revoke another existing session (1.5s)
+  ✓   5 [desktop] › suite-ui.spec.mjs:84:1 › empty restore, retention help and provider-required labels match available tasks (808ms)
+  ✓   6 [desktop] › core.spec.mjs:50:1 › custodian values persist as literal text and update the directory count (836ms)
+  ✓   7 [desktop] › suite-ui.spec.mjs:111:1 › ledger layouts display untrusted values as text and keep all fields reachable (649ms)
+  ✓   8 [desktop] › core.spec.mjs:70:1 › retention validates fields, persists values and refuses a cross-origin write (788ms)
+(node:1962061) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   9 [desktop] › core.spec.mjs:94:1 › actual WASM ceremony refuses invalid topology, imports only public fields and rotates explicitly (1.1s)
+  ✓  10 [phone] › core.spec.mjs:5:1 › real login, cookies, reload and logout enforce the session (1.1s)
+  ✓  11 [desktop] › core.spec.mjs:120:1 › pairing requires ceremony, claims once, revokes and clears the registration (1.6s)
+  ✓  12 [phone] › core.spec.mjs:23:1 › password validation and replacement revoke another existing session (1.3s)
+  ✓  14 [phone] › core.spec.mjs:50:1 › custodian values persist as literal text and update the directory count (842ms)
+  ✓  13 [desktop] › core.spec.mjs:164:1 › local replication form tests an owned directory, persists and deletes its target (1.5s)
+  ✓  15 [phone] › core.spec.mjs:70:1 › retention validates fields, persists values and refuses a cross-origin write (1.0s)
+  ✓  16 [desktop] › core.spec.mjs:190:1 › Appearance follows the OS, persists across reload and synchronizes tabs (857ms)
+(node:1962467) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  17 [phone] › core.spec.mjs:94:1 › actual WASM ceremony refuses invalid topology, imports only public fields and rotates explicitly (1.1s)
+  ✓  18 [phone] › suite-ui.spec.mjs:3:1 › navigation, account and dialog actions remain reachable at the shipped sizes (767ms)
+  ✓  19 [phone] › core.spec.mjs:120:1 › pairing requires ceremony, claims once, revokes and clears the registration (1.3s)
+  ✓  20 [phone] › suite-ui.spec.mjs:38:1 › dialogs contain keyboard focus, close with Escape and restore their triggers (1.7s)
+  ✓  21 [phone] › core.spec.mjs:164:1 › local replication form tests an owned directory, persists and deletes its target (1.3s)
+  ✓  22 [phone] › suite-ui.spec.mjs:84:1 › empty restore, retention help and provider-required labels match available tasks (1.0s)
+  ✓  23 [phone] › core.spec.mjs:190:1 › Appearance follows the OS, persists across reload and synchronizes tabs (1.0s)
+  ✓  24 [phone] › suite-ui.spec.mjs:111:1 › ledger layouts display untrusted values as text and keep all fields reachable (726ms)
+
+  24 passed (14.7s)

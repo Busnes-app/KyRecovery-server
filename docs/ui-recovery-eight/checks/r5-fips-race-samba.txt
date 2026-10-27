@@ -1,0 +1,16 @@
+Command: go test -p 2 -race -count=1 ./...
+?   	github.com/Busnes-app/kyrecovery-server/cmd/kyrecovery	[no test files]
+ok  	github.com/Busnes-app/kyrecovery-server/cmd/kyrecovery/app	1.989s
+ok  	github.com/Busnes-app/kyrecovery-server/internal/appversion	1.010s
+ok  	github.com/Busnes-app/kyrecovery-server/internal/audit	1.819s
+ok  	github.com/Busnes-app/kyrecovery-server/internal/auth	2.562s
+ok  	github.com/Busnes-app/kyrecovery-server/internal/backupstatus	1.011s
+ok  	github.com/Busnes-app/kyrecovery-server/internal/crypto	1.104s
+ok  	github.com/Busnes-app/kyrecovery-server/internal/db	2.713s
+ok  	github.com/Busnes-app/kyrecovery-server/internal/diff	1.139s
+ok  	github.com/Busnes-app/kyrecovery-server/internal/pairing	1.141s
+ok  	github.com/Busnes-app/kyrecovery-server/internal/replication	7.430s
+ok  	github.com/Busnes-app/kyrecovery-server/internal/resticscan	1.014s
+ok  	github.com/Busnes-app/kyrecovery-server/internal/secrets	1.087s
+ok  	github.com/Busnes-app/kyrecovery-server/internal/server	25.174s
+ok  	github.com/Busnes-app/kyrecovery-server/pkg/client	1.153s

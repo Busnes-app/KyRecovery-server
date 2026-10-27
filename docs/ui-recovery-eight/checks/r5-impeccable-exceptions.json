@@ -1,0 +1,29 @@
+{
+  "source_commit": "b2cd2fb",
+  "raw_report": "r5-impeccable-raw.json",
+  "findings": 1,
+  "required_fixes": 0,
+  "exceptions": [
+    {
+      "rule": "overused-font",
+      "classification": "pinned-design",
+      "reason": "Space Grotesk is the explicit suite design-contract face; retain it for cohesion."
+    }
+  ],
+  "browser_supplement": {
+    "browser": "T3 Chrome154/DPR2; separate from scored Chromium153/DPR1",
+    "viewport": [
+      390,
+      844
+    ],
+    "fact_widths": [
+      358,
+      358,
+      358
+    ],
+    "value_font": "24px/600",
+    "page_overflow": 0,
+    "key_action_bottom": 817.390625,
+    "limit": "Scoped rendering evidence only; not full-product behavior/contrast acceptance."
+  }
+}

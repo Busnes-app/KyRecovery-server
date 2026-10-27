@@ -173,7 +173,8 @@
       <div class="panel">
         <div class="panel-header"><h2 class="panel-title">Restore</h2></div>
         <p class="panel-note">Finds the capsule and restic snapshot to restore from, by metadata only. Requires KyQuickStart with restore support.</p>
-        <div class="panel-body">
+        <p id="restore-empty" class="panel-note" hidden>No services to restore yet.</p>
+        <div id="restore-controls" class="panel-body" hidden>
           <div class="retention-fields">
             <div>
               <label class="form-label" for="restore-service">Service</label>
@@ -223,8 +224,8 @@
         </div>
       </div>
       <div class="panel">
-        <div class="panel-header"><h2 class="panel-title">Backup retention</h2></div>
-        <p class="panel-note">Keep all recent backups plus the newest per UTC calendar week and month for each paired product. Each window counts back from today and overlaps the others: for example, all backups for 14 days, weekly backups for 8 weeks, and monthly backups for 12 months. Daily 0 keeps everything forever; weekly/monthly 0 disables that tier. Saving does not delete anything. Manual purge can remove the last backup beyond all windows. Offsite copies require their own retention policy.</p>
+        <div class="panel-header"><h2 class="panel-title">Backup retention</h2><button class="btn btn-primary btn-sm admin-only" style="display:none;" onclick="saveRetention()">Save retention</button></div>
+        <p class="panel-note">Saving does not delete anything.</p>
         <div class="panel-body">
           <div class="admin-only" style="display:none;">
             <div class="retention-fields">
@@ -243,12 +244,12 @@
             </div>
           </div>
           <div class="retention-actions">
-            <button class="btn btn-primary btn-sm admin-only" style="display:none;" onclick="saveRetention()">Save retention</button>
             <button class="btn btn-secondary btn-sm" onclick="loadRetention()">Refresh preview</button>
             <button class="btn btn-danger btn-sm admin-only" style="display:none;" onclick="purgeExpiredBackups()">Purge expired</button>
           </div>
         </div>
         <p id="retention-status" class="panel-note" role="status" aria-live="polite">Loading retention…</p>
+        <details id="retention-help" class="retention-help"><summary>Retention rules and examples</summary><p>Keep all recent backups plus the newest per UTC calendar week and month for each paired product. Each window counts back from today and overlaps the others: for example, all backups for 14 days, weekly backups for 8 weeks, and monthly backups for 12 months. Daily 0 keeps everything forever; weekly/monthly 0 disables that tier. Saving does not delete anything. Manual purge can remove the last backup beyond all windows. Offsite copies require their own retention policy.</p></details>
       </div>
     </div>
 
@@ -385,8 +386,8 @@
 
           </div>
         </div>
-        <p class="table-scroll-hint">Scroll to view all ledger columns.</p>
-        <div class="table-scroll" tabindex="0" role="region" aria-label="Audit ledger columns" style="overflow-x: auto;">
+        <ol id="audit-phone-list" class="audit-phone-list" aria-label="Audit ledger entries"><li>Loading ledger entries…</li></ol>
+        <div class="audit-desktop" tabindex="0" role="region" aria-label="Audit ledger columns" style="overflow-x: auto;">
           <table class="data-table">
             <thead>
               <tr>
@@ -517,7 +518,7 @@
           <h3 class="form-section-heading">Destination</h3>
           <div class="form-group">
             <label class="form-label" for="repl-preset">Storage Provider Preset</label>
-              <select id="repl-preset" class="form-input" onchange="applyReplicationPreset()">
+              <select id="repl-preset" class="form-input form-select" onchange="applyReplicationPreset()">
               <option value="s3">AWS S3 / S3-Compatible</option>
               <option value="r2">Cloudflare R2 Object Storage</option>
               <option value="minio">MinIO Self-Hosted S3</option>
@@ -531,7 +532,7 @@
           <input id="repl-name" class="form-input" type="text" placeholder="e.g. Cloudflare R2 EU Vault" required>
           </div>
           <div class="form-group">
-            <label class="form-label" id="repl-endpoint-label" for="repl-endpoint">Endpoint URL</label>
+            <label class="form-label" id="repl-endpoint-label" for="repl-endpoint">Endpoint URL (required)</label>
           <input id="repl-endpoint" class="form-input" type="text" placeholder="https://<account-id>.r2.cloudflarestorage.com" required>
           </div>
           <div id="repl-s3-fields">

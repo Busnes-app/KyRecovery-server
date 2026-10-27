@@ -1,0 +1,2 @@
+# Frozen Council reports preserve publisher bytes, including end-of-line spaces.
+docs/ui-recovery-eight/*-round*.md whitespace=-blank-at-eol

@@ -1,0 +1,10 @@
+Command: mkdir -p "/tmp/kyrecovery-repeatable-lv06til8/a/src"
+git archive HEAD | tar -x -C "/tmp/kyrecovery-repeatable-lv06til8/a/src"
+(cd "/tmp/kyrecovery-repeatable-lv06til8/a/src" && CGO_ENABLED=0 GOOS=linux go build -p 2 -trimpath -ldflags="-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=0.0.0" -o "/tmp/kyrecovery-repeatable-lv06til8/a/kyrecovery" cmd/kyrecovery/main.go)
+mkdir -p "/tmp/kyrecovery-repeatable-lv06til8/elsewhere/b/src"
+git archive HEAD | tar -x -C "/tmp/kyrecovery-repeatable-lv06til8/elsewhere/b/src"
+(cd "/tmp/kyrecovery-repeatable-lv06til8/elsewhere/b/src" && CGO_ENABLED=0 GOOS=linux go build -p 2 -trimpath -ldflags="-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=0.0.0" -o "/tmp/kyrecovery-repeatable-lv06til8/elsewhere/b/kyrecovery" cmd/kyrecovery/main.go)
+sha256sum "/tmp/kyrecovery-repeatable-lv06til8/a/kyrecovery" "/tmp/kyrecovery-repeatable-lv06til8/elsewhere/b/kyrecovery"
+cmp "/tmp/kyrecovery-repeatable-lv06til8/a/kyrecovery" "/tmp/kyrecovery-repeatable-lv06til8/elsewhere/b/kyrecovery"
+6514b74787d4f025d08afe90f65706cd10e86ab928599e26a55a0cf98a33059a  /tmp/kyrecovery-repeatable-lv06til8/a/kyrecovery
+6514b74787d4f025d08afe90f65706cd10e86ab928599e26a55a0cf98a33059a  /tmp/kyrecovery-repeatable-lv06til8/elsewhere/b/kyrecovery

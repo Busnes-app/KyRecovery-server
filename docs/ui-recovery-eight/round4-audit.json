@@ -1,0 +1,31 @@
+{
+  "round": 4,
+  "raw_reports": {
+    "opus-round4.json": "4cb904af37e1b9c134b4fcfdf57bfa9391eae495053d3876c5f09e6903e5a70d",
+    "opus-round4.md": "16f301028cdc47862809d86e150079b1c31e340785908eb846ac49745a2f301a",
+    "sol-round4.json": "8222ffae1bf29b7bc2dbe56fa79e899854232c850328d3ae47e31dc8ed6c9e45",
+    "sol-round4.md": "2a8fe2c20d72185cfe94eeb2a9a03ea583d4d2fa0b980925cdc66fc327163d25"
+  },
+  "arithmetic": "Both 52-original reports validated by build-report.py; exact separate cohort means, no pooling or threshold rounding.",
+  "results": {
+    "opus": {
+      "console": "479/60",
+      "settings": "481/60",
+      "auth": "42/5",
+      "satisfied": false
+    },
+    "sol": {
+      "console": "25/3",
+      "settings": "127/15",
+      "auth": "87/10",
+      "satisfied": true
+    }
+  },
+  "spread_audit": "Four coherence spreads of 2 on Custodians. Parent individually inspected all four original desktop/phone light/dark images. Plus-prefixed title-case secondary exists beside a sentence-case primary; it is a minor consistency issue, not a broken hierarchy. Independent vectors remain unchanged. No averaging.",
+  "accepted_fixes": [
+    "Replace the phone Overview 2+1 summary grid with three equal full-width rows and consistent value type. Live measurements confirm 179/179/358px widths."
+  ],
+  "reviewer_variance": "Opus withdrew the earlier .kycap padding claim. Current phone Overview pixels match round3 yet density dropped one point: the shortfall is reviewer variance, not a regression. The layout finding itself is visible and worth the bounded fix. Sol changes on unchanged pictures likewise are not implementation progress.",
+  "scope": "Minor button capitalization, Credentials spacing, phone header offsets and optional taste are nonblocking. Do not promote them to new gates. Populated/role/state/non-Busnes/competitive and complete behavior coverage remain unproven.",
+  "gate": "Held. Opus console 479/60 remains below8; Gemini deferred."
+}

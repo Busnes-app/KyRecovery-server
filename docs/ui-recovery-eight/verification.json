@@ -1,5 +1,5 @@
 {
-  "runtime_source": "7f71f61",
+  "runtime_source": "b2cd2fb",
   "baseline": {
     "captures": 52,
     "unique": 52,
@@ -28,20 +28,23 @@
     },
     "current_browser": {
       "status": "pass",
-      "result": "20 passed,10.6seconds,exit0",
-      "evidence": "checks/r3-browser.txt"
+      "command": "GOMAXPROCS=2 npm test --prefix tests/browser",
+      "result": "24 passed (14.7s)",
+      "source_commit": "b2cd2fb",
+      "evidence": "checks/r5-browser.txt",
+      "limits": "Same 24 real-server cases; no new tests for CSS-only geometry change. Node NO_COLOR/FORCE_COLOR message is test-environment precedence, not a compiler/linter failure."
     },
     "full_required": {
       "status": "pass",
-      "results": "checks/r3-results.json",
+      "results": "checks/r5-results.json",
       "checks": [
         {
           "name": "toolchain",
           "command": "test -z \"$(gofmt -l $(git ls-files \"*.go\"))\"\ngo mod tidy\ngit diff --exit-code -- go.mod go.sum\ngo mod verify\ngo vet -p 2 ./...\ngo build -p 2 ./...",
           "exit_code": 0,
-          "seconds": 3.92,
-          "evidence": "docs/ui-recovery-eight/checks/r3-toolchain.txt",
-          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "seconds": 4.52,
+          "evidence": "docs/ui-recovery-eight/checks/r5-toolchain.txt",
+          "source_commit": "b2cd2fb112741f6edcf157f4edc93034d223951a",
           "environment": {
             "GOMAXPROCS": "2"
           }
@@ -50,34 +53,34 @@
           "name": "race-samba",
           "command": "go test -p 2 -race -count=1 ./...",
           "exit_code": 0,
-          "seconds": 31.64,
-          "evidence": "docs/ui-recovery-eight/checks/r3-race-samba.txt",
-          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "seconds": 38.89,
+          "evidence": "docs/ui-recovery-eight/checks/r5-race-samba.txt",
+          "source_commit": "b2cd2fb112741f6edcf157f4edc93034d223951a",
           "environment": {
             "GOMAXPROCS": "2"
           },
-          "fixture": "Disposable CI-pinned Samba image; owned random loopback port and share."
+          "fixture": "Owned random loopback Samba fixture using CI-pinned image."
         },
         {
           "name": "fips-race-samba",
           "command": "go test -p 2 -race -count=1 ./...",
           "exit_code": 0,
-          "seconds": 29.32,
-          "evidence": "docs/ui-recovery-eight/checks/r3-fips-race-samba.txt",
-          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "seconds": 39.11,
+          "evidence": "docs/ui-recovery-eight/checks/r5-fips-race-samba.txt",
+          "source_commit": "b2cd2fb112741f6edcf157f4edc93034d223951a",
           "environment": {
             "GOMAXPROCS": "2",
             "GODEBUG": "fips140=on"
           },
-          "fixture": "Disposable CI-pinned Samba image; owned random loopback port and share."
+          "fixture": "Owned random loopback Samba fixture using CI-pinned image."
         },
         {
           "name": "FuzzParseSMBEndpoint",
           "command": "go test -p 2 -parallel 2 -fuzz=FuzzParseSMBEndpoint -fuzztime=150000x -fuzzminimizetime=5s ./internal/replication",
           "exit_code": 0,
-          "seconds": 16.89,
-          "evidence": "docs/ui-recovery-eight/checks/r3-FuzzParseSMBEndpoint.txt",
-          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "seconds": 16.65,
+          "evidence": "docs/ui-recovery-eight/checks/r5-FuzzParseSMBEndpoint.txt",
+          "source_commit": "b2cd2fb112741f6edcf157f4edc93034d223951a",
           "environment": {
             "GOMAXPROCS": "2"
           }
@@ -86,9 +89,9 @@
           "name": "FuzzTargetLocation",
           "command": "go test -p 2 -parallel 2 -fuzz=FuzzTargetLocation -fuzztime=150000x -fuzzminimizetime=5s ./internal/replication",
           "exit_code": 0,
-          "seconds": 17.3,
-          "evidence": "docs/ui-recovery-eight/checks/r3-FuzzTargetLocation.txt",
-          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "seconds": 19.15,
+          "evidence": "docs/ui-recovery-eight/checks/r5-FuzzTargetLocation.txt",
+          "source_commit": "b2cd2fb112741f6edcf157f4edc93034d223951a",
           "environment": {
             "GOMAXPROCS": "2"
           }
@@ -97,9 +100,9 @@
           "name": "FuzzKeyringOpen",
           "command": "go test -p 2 -parallel 2 -fuzz=FuzzKeyringOpen -fuzztime=1000000x -fuzzminimizetime=5s ./internal/secrets",
           "exit_code": 0,
-          "seconds": 11.64,
-          "evidence": "docs/ui-recovery-eight/checks/r3-FuzzKeyringOpen.txt",
-          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "seconds": 11.24,
+          "evidence": "docs/ui-recovery-eight/checks/r5-FuzzKeyringOpen.txt",
+          "source_commit": "b2cd2fb112741f6edcf157f4edc93034d223951a",
           "environment": {
             "GOMAXPROCS": "2"
           }
@@ -108,9 +111,9 @@
           "name": "FuzzCapsuleNames",
           "command": "go test -p 2 -parallel 2 -fuzz=FuzzCapsuleNames -fuzztime=150000x -fuzzminimizetime=5s ./internal/server",
           "exit_code": 0,
-          "seconds": 18.65,
-          "evidence": "docs/ui-recovery-eight/checks/r3-FuzzCapsuleNames.txt",
-          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "seconds": 22.36,
+          "evidence": "docs/ui-recovery-eight/checks/r5-FuzzCapsuleNames.txt",
+          "source_commit": "b2cd2fb112741f6edcf157f4edc93034d223951a",
           "environment": {
             "GOMAXPROCS": "2"
           }
@@ -119,20 +122,20 @@
           "name": "wasm-node",
           "command": "scripts/build-wasm.sh\ngit diff --exit-code -- internal/server/static/wasm\nnode scripts/test-wasm.mjs\nnode scripts/test-overview.mjs\nnode internal/server/static/ky-ui/check-vendor.mjs\nnode scripts/check-contrast.mjs",
           "exit_code": 0,
-          "seconds": 0.62,
-          "evidence": "docs/ui-recovery-eight/checks/r3-wasm-node.txt",
-          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "seconds": 0.67,
+          "evidence": "docs/ui-recovery-eight/checks/r5-wasm-node.txt",
+          "source_commit": "b2cd2fb112741f6edcf157f4edc93034d223951a",
           "environment": {
             "GOMAXPROCS": "2"
           }
         },
         {
           "name": "repeatable",
-          "command": "mkdir -p \"/tmp/kyrecovery-repeatable-o_lmmwwi/a/src\"\ngit archive HEAD | tar -x -C \"/tmp/kyrecovery-repeatable-o_lmmwwi/a/src\"\n(cd \"/tmp/kyrecovery-repeatable-o_lmmwwi/a/src\" && CGO_ENABLED=0 GOOS=linux go build -p 2 -trimpath -ldflags=\"-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=0.0.0\" -o \"/tmp/kyrecovery-repeatable-o_lmmwwi/a/kyrecovery\" cmd/kyrecovery/main.go)\nmkdir -p \"/tmp/kyrecovery-repeatable-o_lmmwwi/elsewhere/b/src\"\ngit archive HEAD | tar -x -C \"/tmp/kyrecovery-repeatable-o_lmmwwi/elsewhere/b/src\"\n(cd \"/tmp/kyrecovery-repeatable-o_lmmwwi/elsewhere/b/src\" && CGO_ENABLED=0 GOOS=linux go build -p 2 -trimpath -ldflags=\"-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=0.0.0\" -o \"/tmp/kyrecovery-repeatable-o_lmmwwi/elsewhere/b/kyrecovery\" cmd/kyrecovery/main.go)\nsha256sum \"/tmp/kyrecovery-repeatable-o_lmmwwi/a/kyrecovery\" \"/tmp/kyrecovery-repeatable-o_lmmwwi/elsewhere/b/kyrecovery\"\ncmp \"/tmp/kyrecovery-repeatable-o_lmmwwi/a/kyrecovery\" \"/tmp/kyrecovery-repeatable-o_lmmwwi/elsewhere/b/kyrecovery\"",
+          "command": "mkdir -p \"/tmp/kyrecovery-repeatable-d5c_0ddm/a/src\"\ngit archive HEAD | tar -x -C \"/tmp/kyrecovery-repeatable-d5c_0ddm/a/src\"\n(cd \"/tmp/kyrecovery-repeatable-d5c_0ddm/a/src\" && CGO_ENABLED=0 GOOS=linux go build -p 2 -trimpath -ldflags=\"-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=0.0.0\" -o \"/tmp/kyrecovery-repeatable-d5c_0ddm/a/kyrecovery\" cmd/kyrecovery/main.go)\nmkdir -p \"/tmp/kyrecovery-repeatable-d5c_0ddm/elsewhere/b/src\"\ngit archive HEAD | tar -x -C \"/tmp/kyrecovery-repeatable-d5c_0ddm/elsewhere/b/src\"\n(cd \"/tmp/kyrecovery-repeatable-d5c_0ddm/elsewhere/b/src\" && CGO_ENABLED=0 GOOS=linux go build -p 2 -trimpath -ldflags=\"-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=0.0.0\" -o \"/tmp/kyrecovery-repeatable-d5c_0ddm/elsewhere/b/kyrecovery\" cmd/kyrecovery/main.go)\nsha256sum \"/tmp/kyrecovery-repeatable-d5c_0ddm/a/kyrecovery\" \"/tmp/kyrecovery-repeatable-d5c_0ddm/elsewhere/b/kyrecovery\"\ncmp \"/tmp/kyrecovery-repeatable-d5c_0ddm/a/kyrecovery\" \"/tmp/kyrecovery-repeatable-d5c_0ddm/elsewhere/b/kyrecovery\"",
           "exit_code": 0,
-          "seconds": 2.42,
-          "evidence": "docs/ui-recovery-eight/checks/r3-repeatable.txt",
-          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "seconds": 2.87,
+          "evidence": "docs/ui-recovery-eight/checks/r5-repeatable.txt",
+          "source_commit": "b2cd2fb112741f6edcf157f4edc93034d223951a",
           "environment": {
             "GOMAXPROCS": "2"
           }
@@ -141,20 +144,20 @@
           "name": "vulnerabilities",
           "command": "go run golang.org/x/vuln/cmd/govulncheck@latest ./...",
           "exit_code": 0,
-          "seconds": 6.08,
-          "evidence": "docs/ui-recovery-eight/checks/r3-vulnerabilities.txt",
-          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "seconds": 6.43,
+          "evidence": "docs/ui-recovery-eight/checks/r5-vulnerabilities.txt",
+          "source_commit": "b2cd2fb112741f6edcf157f4edc93034d223951a",
           "environment": {
             "GOMAXPROCS": "2"
           }
         },
         {
           "name": "docker-cli",
-          "command": "docker build -t kyrecovery-ui-r3:1864911 .\ndocker run --rm kyrecovery-ui-r3:1864911 help",
+          "command": "docker build -t kyrecovery-ui-r5:1958754 .\ndocker run --rm kyrecovery-ui-r5:1958754 help",
           "exit_code": 0,
-          "seconds": 20.86,
-          "evidence": "docs/ui-recovery-eight/checks/r3-docker-cli.txt",
-          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "seconds": 21.32,
+          "evidence": "docs/ui-recovery-eight/checks/r5-docker-cli.txt",
+          "source_commit": "b2cd2fb112741f6edcf157f4edc93034d223951a",
           "environment": {
             "GOMAXPROCS": "2"
           }
@@ -163,9 +166,9 @@
           "name": "restic-overlay",
           "command": "scripts/verify-restic-overlay.sh",
           "exit_code": 0,
-          "seconds": 33.66,
-          "evidence": "docs/ui-recovery-eight/checks/r3-restic-overlay.txt",
-          "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+          "seconds": 42.93,
+          "evidence": "docs/ui-recovery-eight/checks/r5-restic-overlay.txt",
+          "source_commit": "b2cd2fb112741f6edcf157f4edc93034d223951a",
           "environment": {
             "GOMAXPROCS": "2"
           }
@@ -174,9 +177,9 @@
     },
     "impeccable": {
       "status": "audited",
-      "raw": "checks/r3-impeccable-raw.json",
-      "exceptions": "checks/r3-impeccable-exceptions.json",
-      "findings": 17,
+      "raw": "checks/r5-impeccable-raw.json",
+      "exceptions": "checks/r5-impeccable-exceptions.json",
+      "findings": 1,
       "required_fixes": 0
     },
     "capture_reservation": {
@@ -184,21 +187,19 @@
       "command": "python3 docs/ui-recovery-eight/check-capture.py",
       "evidence": "checks/codeql-capture-regression.txt",
       "result": "Frozen stage and competing writer refused; failed build reservation removed; complete 52-image capture validated;159 frozen files unchanged.",
-      "product_checks_reused": "Only capture tooling and its docs changed; tested product code, dependencies, configuration and relevant runtime environment are unchanged."
+      "product_checks_reused": "Capture tooling and its contract are unchanged; its prior guard regression remains valid. Product checks rerun for the embedded CSS change."
     }
   },
   "pending": [
-    "Opus and Sol round3 reviews and arithmetic/spread audit",
-    "Updated Council workbook after terminal round3 reviews",
-    "Gemini advisory only after both primaries genuinely satisfied",
-    "Current-head hosted CI and autonomous reviewer"
+    "Current-head PR CI and autonomous security reviewer; no further visual redesign requested"
   ],
   "mySlop": "HTTP401 unknown or revoked token reconfirmed; no successful board post",
   "merge_deploy": "Not authorized",
   "implementation": {
-    "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
-    "evidence_commit": "9ae739e83b10a4b293f1fe3a6a088712a5c86c0d",
-    "manifest": "manifest-03-after.json",
+    "source_commit": "b2cd2fb",
+    "ui_commit": "b2cd2fb",
+    "evidence_commit": "247c10e",
+    "manifest": "manifest-05-after.json",
     "images": 52,
     "overflows": 0,
     "vendor": "0.4.3"
@@ -211,7 +212,16 @@
   "council": {
     "round1": "complete/not satisfied",
     "round2": "complete/Opus not satisfied,Sol satisfied for covered visual scope",
-    "round3": "Opus/Sol running",
-    "gemini": "deferred"
+    "round3": "complete/Opus not satisfied,Sol satisfied",
+    "gemini": "unused; no primary unanimity before owner directed progression",
+    "round4": "complete/Opus console479/60 below8; settings481/60 and auth42/5 pass; Sol25/3,127/15,87/10 satisfied for covered scope",
+    "round5": "complete; owner accepted progression despite Opus console159/20 below8; Sol satisfied"
+  },
+  "fixture_cleanup": "Stages01/02/03 retired; stage04 reviews complete and owned fixture retired; stage05 retained for round5 Computer Use.",
+  "owner_acceptance": {
+    "date": "2026-10-27",
+    "instruction": "Call KyRecovery Good, move on",
+    "status": "accepted for progression; preserve all original measured scores",
+    "whole_product_acceptance": false
   }
 }

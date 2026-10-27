@@ -1,0 +1,41 @@
+{
+  "round": 5,
+  "raw_reports": {
+    "opus-round5.json": "bf328285854f9ad84d7b464f7081c3cd7c0af0711dd4b528c32e4583e4f20dad",
+    "opus-round5.md": "cb56a8bdcd277e95eb613c1fed3d4b74d8370816ef344313970de063f3fed54d",
+    "sol-round5.json": "eddff64bcef1439126cbe23295fbd7d78c3de21c7c8891c52b3671dfcd3e7ac4",
+    "sol-round5.md": "bd206ceb83fd5f07e6ad8cec5fdf80135a01e66fc81f0a26269f2043e21c3c53"
+  },
+  "arithmetic": "Validated all52 originals, exact separate cohort means and unchanged rubric. No pooling or rounding into passage.",
+  "results": {
+    "opus": {
+      "console": "159/20",
+      "settings": "8",
+      "auth": "8",
+      "satisfied": false
+    },
+    "sol": {
+      "console": "41/5",
+      "settings": "83/10",
+      "auth": "43/5",
+      "satisfied": true
+    }
+  },
+  "spread_audit": "No per-dimension differences of two points or more. Parent viewed original phone and desktop Backups screenshots and all four updated Overview originals.",
+  "resolved": "Round4 phone Overview issue resolved by both primaries.",
+  "new_finding_audit": {
+    "finding": "Backups numeric hierarchy and fifth phone metric in a lone row",
+    "evidence": "Existing28px desktop/24px phone values,24px h1,phone2+2+1grid. The captures differ from round4 only in timestamp text.",
+    "decision": "Newly noticed refinement,not a regression. No implementation change: owner explicitly accepted KyRecovery and directed progression."
+  },
+  "report_corrections": "Sol refers to an owner phone Overview objection. That particular finding was Opus/parent,not a direct owner rejection; the earlier actual owner rejection concerned double navigation. Preserve raw report; do not silently adopt its attribution. Sol also discloses a late pinned-context cross-check.",
+  "owner_decision": {
+    "instruction": "Call KyRecovery Good, move on",
+    "date": "2026-10-27",
+    "status": "accepted by owner for progression",
+    "measured_gate": "Opus console159/20 remains below8; no reviewer score is changed.",
+    "gemini": "Unused: primary unanimity condition was not reached,and owner directed progression.",
+    "implementation": "No round6 fixes or review started."
+  },
+  "scope": "Covered initial-viewport visual evidence only; no whole-product accessibility/role/state/competitive acceptance claim."
+}
