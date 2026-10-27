@@ -13,8 +13,11 @@
   browser is still finishing that login, including a first login, stops the login from
   completing. SSO sessions are dated by the ID token's `iat`. Repeated logout requests
   never make KyRecovery re-run discovery or refetch the provider's keys more than once
-  every 30 seconds. Sessions created before this release carry no `sid` and end only when they expire or
-  the user signs out here. The event is audited as `user_logged_out_sso`.
+  every 30 seconds. The event is audited as `user_logged_out_sso`.
+- Upgrading signs out every SSO session created before this release, once, as the
+  `sessions.sso_sid` column is added. Those sessions carry no `sid` and no ID-token date,
+  so no KyIdentity logout could end them. Local password sessions are kept; SSO users
+  sign in once more.
 
 ### Changed
 

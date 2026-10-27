@@ -72,7 +72,9 @@ SSH/OIDC migration, preserved keys and explicit SMB compatibility limits.
   in KyIdentity: signing out there, or an administrator ending the login, then ends the
   matching KyRecovery sessions (OpenID Connect Back-Channel Logout 1.0). A logout naming
   only the subject ends that subject's logins whose ID token was issued before it, and
-  for ten minutes refuses a callback still in flight with such a token.
+  for ten minutes refuses a callback still in flight with such a token. Upgrading to the
+  release with back-channel logout signs out every earlier SSO session once, because none
+  carries a `sid` a logout could match; local password sessions are kept.
 
 ## Upgrading from the previous KyRecovery
 

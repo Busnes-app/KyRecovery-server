@@ -463,10 +463,17 @@ func (d *DB) migrate() error {
 	if err := d.addColumn("replication_targets", "host_key", "TEXT NOT NULL DEFAULT ''"); err != nil {
 		return err
 	}
-	for _, column := range []string{"identity_issuer", "identity_subject", "sso_issuer", "sso_subject", "sso_sid"} {
+	for _, column := range []string{"identity_issuer", "identity_subject", "sso_issuer", "sso_subject"} {
 		if err := d.addColumn("sessions", column, "TEXT NOT NULL DEFAULT ''"); err != nil {
 			return err
 		}
+	}
+	// A session from before sso_sid has no sid, issuer or ID-token date, so no back-channel
+	// logout can reach it. Sign out every session with no local users row (native or
+	// managed SSO) once, as the column is added; local password sessions stay.
+	if err := d.addColumn("sessions", "sso_sid", "TEXT NOT NULL DEFAULT ''",
+		`DELETE FROM sessions WHERE NOT EXISTS (SELECT 1 FROM users WHERE users.id = sessions.user_id)`); err != nil {
+		return err
 	}
 	if err := d.addColumn("capsules", "verified_at", "DATETIME"); err != nil {
 		return err
@@ -585,9 +592,16 @@ func (d *DB) hashStoredTokens() error {
 	return nil
 }
 
-// addColumn adds a column to a table created by an older schema, once.
-func (d *DB) addColumn(table, column, def string) error {
-	rows, err := d.conn.Query(`SELECT name FROM pragma_table_info(?)`, table)
+// addColumn adds a column to a table created by an older schema, once. The then
+// statements run in the same transaction, only when the column is added, so they run
+// exactly once per store and never on a later start.
+func (d *DB) addColumn(table, column, def string, then ...string) error {
+	tx, err := d.conn.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	rows, err := tx.Query(`SELECT name FROM pragma_table_info(?)`, table)
 	if err != nil {
 		return err
 	}
@@ -601,8 +615,15 @@ func (d *DB) addColumn(table, column, def string) error {
 			return nil
 		}
 	}
-	_, err = d.conn.Exec(fmt.Sprintf(`ALTER TABLE %s ADD COLUMN %s %s`, table, column, def))
-	return err
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	for _, q := range append([]string{fmt.Sprintf(`ALTER TABLE %s ADD COLUMN %s %s`, table, column, def)}, then...) {
+		if _, err := tx.Exec(q); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 // InsertCapsule saves a new capsule record.
