@@ -191,10 +191,7 @@
     }
   },
   "pending": [
-    "Opus/Sol round5 reports and parent audit",
-    "Rebuild shared scores only after terminal round5 reviews",
-    "Gemini only after both primaries satisfied",
-    "Current-head CI and autonomous security review"
+    "Current-head PR CI and autonomous security reviewer; no further visual redesign requested"
   ],
   "mySlop": "HTTP401 unknown or revoked token reconfirmed; no successful board post",
   "merge_deploy": "Not authorized",
@@ -216,9 +213,15 @@
     "round1": "complete/not satisfied",
     "round2": "complete/Opus not satisfied,Sol satisfied for covered visual scope",
     "round3": "complete/Opus not satisfied,Sol satisfied",
-    "gemini": "deferred",
+    "gemini": "unused; no primary unanimity before owner directed progression",
     "round4": "complete/Opus console479/60 below8; settings481/60 and auth42/5 pass; Sol25/3,127/15,87/10 satisfied for covered scope",
-    "round5": "Opus/Sol running"
+    "round5": "complete; owner accepted progression despite Opus console159/20 below8; Sol satisfied"
   },
-  "fixture_cleanup": "Stages01/02/03 retired; stage04 reviews complete and owned fixture retired; stage05 retained for round5 Computer Use."
+  "fixture_cleanup": "Stages01/02/03 retired; stage04 reviews complete and owned fixture retired; stage05 retained for round5 Computer Use.",
+  "owner_acceptance": {
+    "date": "2026-10-27",
+    "instruction": "Call KyRecovery Good, move on",
+    "status": "accepted for progression; preserve all original measured scores",
+    "whole_product_acceptance": false
+  }
 }

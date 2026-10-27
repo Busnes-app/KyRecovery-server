@@ -14,17 +14,17 @@
 - Fresh full required checks pass:24browser tests,ordinary/FIPSrace with owned Samba,four fixed fuzz counts,toolchain,repeatable binaries,WASM,overview/vendor/active-palette Node,govulncheck,Docker/CLI,restic overlay. checks/r5-results.json and verification.json hold exact commands/results. Detector only flags explicitly required Space Grotesk; audited as pinned design.
 - Offline gallery: /home/yoshi/Pictures/KyPost-UI-Councel/exports/2026-10-27-changes-gallery/KyRecovery-Round5-Changes.html.52 matched baseline/current pairs,R1–4scores,R5pending. Checker: self-contained,contrast passes. Earlier galleries remain.
 
-## Left
+## Progression decision and remaining delivery
 
-- R5 Opus task: node:delegated-task:command%3Amcp%3A27617469-e7a2-4680-8e45-a055c47cd9fd%3Adelegate-task%3Akyrecovery-overview-rows-opus-r5-20261027
-- R5 Sol task: node:delegated-task:command%3Amcp%3A27617469-e7a2-4680-8e45-a055c47cd9fd%3Adelegate-task%3Akyrecovery-overview-rows-sol-r5-20261027
-- Each writes only its own round5 report pair. Wait for terminal tasks; validate hashes/arithmetic,inspect dimension spreads>=2,preserve raw bytes. Only then regenerate build-report.py and shared tables/workbook. Do not commit partial reports.
-- Gate remains held. Gemini4Argon advisory only after both primaries genuinely pass every covered cohort. Current provider catalog offers antigravity/gemini-4-argon-high; audit advice against images/browser/code and preserve original findings/scores. No approval veto for off-base Gemini advice.
-- Handle current PR#81 against current head; check state before push because#78/#79 merged externally during earlier reviews. Link any follow-up if needed. No merge/deploy authority for follow-ups. Keep event-driven watcher while work remains; unwatch at final hand-back.
+- Owner: **“Call KyRecovery Good, move on.”** Accepted for progression on2026-10-27; do not start round6 or invoke Gemini. Preserve measured scores, including Opus console7.95 and unsatisfied verdict.
+- Round5 is terminal: Opus159/20 console,8 settings,8 auth; Sol41/5,83/10,43/5. Phone Overview resolved. Newly noticed Backups metrics issue is reviewer variance on unchanged layouts, not a regression. Parent audit records the finding and owner decision.
+- Both raw report pairs are frozen, arithmetic/spreads checked, workbook/CSV/COUNCIL updated through5. No dimension spread reaches2. No further product code change requested.
+- Next lowest historical active product is KyIdentity7.2; server base7.2 is a template, not a standalone active product. Inspect current source/browser state before scoring.
+- PR#81 still needs current-head CI and autonomous security clearance. Follow-up documentation push updates the owner acceptance; no merge/deploy authorization. Continue event-driven delivery checks separately from the next app; unwatch on hand-back.
 
 ## Careful
 
-- R5 fixture http://127.0.0.1:42523 ; private disposable credential /tmp/kyrecovery-council-vEtPd1/fixture.json. Never publish credential. Retain until primaries finish; retire via owned capture process SIGTERM. R4 fixture was retired through its owned capture process SIGTERM after both reviews completed. Never kill unrelated processes.
+- R5 fixture http://127.0.0.1:42523 ; private disposable credential /tmp/kyrecovery-council-vEtPd1/fixture.json. Never publish credential. Both primaries are complete; retire via owned capture process SIGTERM. R4 fixture was retired through its owned capture process SIGTERM after both reviews completed. Never kill unrelated processes.
 - Parent tab is its own incognito; delegates must create/close only their own tabs and pass tabId every call. Extra logins add audit rows after originals; never revise vectors from live differences.
 - Entire keyboard/focus/state/all-theme contrast and populated/other-role/competitive coverage remain unproven. This is scoped initial-viewport visual progression,not whole-product acceptance. No API/auth/custody/escaping/CSP/theme-storage changes. Preserve complete retention warning and server decrypt guard.
 - MySlop credential already returned401; user informed,no shared-board post succeeded. No further retry with unchanged credential. This checkpoint is repository/local only.
