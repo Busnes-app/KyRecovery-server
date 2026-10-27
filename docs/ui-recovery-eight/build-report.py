@@ -29,6 +29,7 @@ for path in sorted(ROOT.glob('*-round*.json')):
  m=re.fullmatch(r'(opus|sol|gemini)-round(\d+)\.json',path.name)
  if not m: continue
  who,number=m[1],int(m[2]);r=json.loads(path.read_text())
+ satisfied=r.get('verdict',{}).get('satisfied',r.get('verdict',{}).get('genuinely_satisfied'))
  assert r['schema']=='ky-ui-council-scores/2' and r['rubric']['version']=='ky-suite-v2'
  assert {k:Decimal(str(v)) for k,v in r['rubric']['weights'].items()}=={k:Decimal(v) for k,v in WEIGHTS.items()}
  files={normalized(f['file']):f for f in r['files']};assert len(files)==len(r['files'])
@@ -50,10 +51,10 @@ for path in sorted(ROOT.glob('*-round*.json')):
   score_rows.append([number,who,file,f['cohort'],*[f['scores'][k] for k in WEIGHTS],str(total) if total is not None else None,f.get('confidence'),f.get('caveat')])
   brand_rows.append([number,who,file,*[f['ky_fit']['scores'][k] for k in BRAND],str(fit) if fit is not None else None])
  means={} if no_score else {c:sum(v)/len(v) for c,v in groups.items()}
- reports[who,number]={'report':r,'files':files,'means':means}
+ reports[who,number]={'report':r,'files':files,'means':means,'satisfied':satisfied}
  for c,values in groups.items():
   mean=means.get(c);summed=None if no_score else sum(values)
-  round_rows.append([number,who,c,len(values),str(summed) if summed is not None else None,str(Fraction(summed)/len(values)) if summed is not None else None,str(rounded(mean)) if mean is not None else None,mean>=8 if mean is not None else None,r.get('verdict',{}).get('satisfied'),hashlib.sha256(path.read_bytes()).hexdigest()])
+  round_rows.append([number,who,c,len(values),str(summed) if summed is not None else None,str(Fraction(summed)/len(values)) if summed is not None else None,str(rounded(mean)) if mean is not None else None,mean>=8 if mean is not None else None,satisfied,hashlib.sha256(path.read_bytes()).hexdigest()])
 for number in sorted({n for _,n in reports}):
  a,b=reports.get(('opus',number)),reports.get(('sol',number))
  if a and b:
@@ -76,7 +77,7 @@ markdown=['# KyRecovery Council score history','','Independent cohort means. Dis
 for number in range(1,max(n for _,n in reports)+1):
  for who,label in [('opus','Claude Opus5.5'),('sol','GPT Sol'),('gemini','Gemini4Argon')]:
   r=reports.get((who,number));values=[f"{r['means'][c]:.4f}" if r and c in r['means'] else ('No score' if r else 'Deferred' if who=='gemini' else 'Pending') for c in ['admin-console','settings','auth']]
-  markdown.append(f"| {number} | {label} | {' | '.join(values)} | {r['report'].get('verdict',{}).get('satisfied') if r else '—'} |")
+  markdown.append(f"| {number} | {label} | {' | '.join(values)} | {r['satisfied'] if r else '—'} |")
 (ROOT/'COUNCIL.md').write_text('\n'.join(markdown)+'\n')
 for name,rows in [('rounds',round_rows),('scores',score_rows),('spreads',spread_rows)]:
  with (ROOT/f'{name}.csv').open('w',newline='') as f: csv.writer(f,lineterminator='\n').writerows(rows)
