@@ -1,7 +1,8 @@
 # KyRecovery UI checkpoint — 2026-10-27, round 3
 
 **Repo:** Busnes-app/KyRecovery-server
-**PR:** #78 — https://github.com/Busnes-app/KyRecovery-server/pull/78
+**PR:** #79 — https://github.com/Busnes-app/KyRecovery-server/pull/79
+**Prior PR:** #78 merged externally at13:14UTC; merge758cbdd. Its merge is not a Council8/10 acceptance.
 **Worktree:** /home/yoshi/git/busnes.app/kyrecovery-server/.claude/worktrees/ui-recovery-eight (`ui/recovery-eight`)
 
 ## Done
@@ -20,7 +21,7 @@
 - Sol R3 task: node:delegated-task:command%3Amcp%3A27617469-e7a2-4680-8e45-a055c47cd9fd%3Adelegate-task%3Akyrecovery-task-keyboard-sol-r3-20261027
 - Both review independently and write only their own round3 report pair. Read terminal results, validate arithmetic/hashes and inspect dimension spreads>=2; preserve raw scores. Only then regenerate shared report artifacts with build-report.py and update PR/gallery score tables.
 - Show prior/current scores after every round. No progression until both primaries genuinely support>=8 in every covered cohort. Gemini only afterward; audit its findings without making its approval a gate.
-- Current PR CI and autonomous reviewer need host verification; keep event watcher active while work remains. No merge/deploy authorized. Stop watching at final hand-back.
+- Follow-up PR79 is open and mergeable. Main also merged Go/Playwright/action dependency updates; hosted CI tests the merge result. Local source/captures remain pinned to675c714. Current PR CI and autonomous reviewer need host verification; keep event watcher active while work remains. No merge/deploy authorized. Stop watching at final hand-back.
 
 ## Careful
 
