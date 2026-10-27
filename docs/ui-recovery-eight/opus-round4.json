@@ -1,0 +1,3930 @@
+{
+ "schema": "ky-ui-council-scores/2",
+ "round": 4,
+ "stage": "04-after",
+ "reviewer": {
+  "model": "claude-opus-5-5",
+  "name": "Opus 5.5",
+  "role": "KyRecovery Council round-4 independent review sub-agent"
+ },
+ "rubric": {
+  "version": "ky-suite-v2",
+  "weights": {
+   "hierarchy": "0.20",
+   "typography": "0.15",
+   "density_layout": "0.20",
+   "color": "0.15",
+   "visible_affordances": "0.15",
+   "coherence": "0.15"
+  },
+  "rounding": "per image: Decimal(sum(weight*score)).quantize(Decimal('0.1'), ROUND_HALF_UP); cohort means exact over rounded per-file totals",
+  "ky_fit": {
+   "dimensions": [
+    "palette_tokens",
+    "type_geometry",
+    "shell",
+    "accent_discipline",
+    "suite_cohesion"
+   ],
+   "weight_each": "0.20",
+   "suite_cohesion_basis": "KyNotes 13-after brand references (second Ky product); brand-only, not quality inputs",
+   "per_file_mean": "exact mean of five integers, half-up to 0.1"
+  }
+ },
+ "source": {
+  "captured_source_commit": "2997f64052b57bb259ce1e7d9c86e7acbe1d152c",
+  "ui_implementation_commit": "100b682a73ec7841e252507445d15dff62cb07a6",
+  "captured_vs_implementation": "2997f64 adds only .gitattributes and docs/ui-recovery-eight/AGENTS.md lines over 100b682 (git diff --stat)",
+  "evidence_commit": "ecece91067ff81834d9ddc2fa7fe5f94b3b6122e",
+  "worktree_head_at_review": "ecece91 (untracked r4 check logs only)",
+  "uncommitted_source_sha256": null,
+  "source_pins_verified": "8 manifest-04 source_files sha256 equal git show 2997f64:<path> and ecece91:<path>; served_index_sha256 equals the index.html pin; all 52 screenshot files equal the ecece91 blobs and manifest sha256/bytes/PNG dimensions",
+  "ky_ui_runtime_vendor": "0.4.3; VERSION sha256 dfdf8f21203cf33b0a1f2cf8ed6128b216b3d9ad56807ffabc0bf87b5e31a5db; node internal/server/static/ky-ui/check-vendor.mjs: \"ky-ui 0.4.3: vendor files verified\"",
+  "design_authority": "ky-ui@639e5882cada099dd189197beb2a3e3b4c188658 (committed; local skill copies hash-equal; dirty root checkouts not used)"
+ },
+ "conditions": {
+  "driver": "Playwright 1.63.0; Chromium 153.0.8010.12; DPR1; normal service-worker behavior",
+  "captured_at": "2026-10-27T13:53:49.302Z",
+  "os": "Linux 7.2.10-1-cachyos",
+  "fixture": "Disposable administrator, no ceremony/key/capsules/pairings/custodians/targets; open forms are not submitted. Initial viewport only.",
+  "viewports": [
+   "1280x900",
+   "390x844"
+  ],
+  "theme_source": "OS light/dark, savedChoice null",
+  "viewing": "All 52 stage-04 originals viewed one at a time at original resolution (no contact sheets or thumbnails). Vectors frozen before opening opus-round3 or any other report."
+ },
+ "inputs": {
+  "rubric": {
+   "path": "ky-ui@639e5882:skills/ky-suite-ui/references/rubric.md",
+   "sha256": "ad3516620420fbdc30f5273f82b7c72c76e1365d1b6296fcaa56be3cbebf2c41"
+  },
+  "design_contract": {
+   "path": "ky-ui@639e5882:skills/ky-suite-ui/references/design-contract.md",
+   "sha256": "392afb88c51fb3cfad6c94d6b841804b194d107a0431c31f35ff81d3a7a444d3"
+  },
+  "skill": {
+   "path": "/home/yoshi/.codex-cpa/skills/ky-suite-ui/SKILL.md",
+   "sha256": "6010ea39ac6e4e21926eb2a45d8a5a4894cd9e5e6eec07aca4cf60423233dcc2"
+  },
+  "manifest": {
+   "path": "docs/ui-recovery-eight/manifest-04-after.json",
+   "sha256": "78c499d1e562c7edf0d48fee51de526c9185440a079358e52d2a3b7524ef1e47"
+  },
+  "inventory": {
+   "path": "docs/ui-recovery-eight/inventory-v4.json",
+   "sha256": "15f55288c0d28b439791ef3c062f7d7a6f42ce7f3112096627d8440e96d7c2a0"
+  },
+  "duplicate_audit": {
+   "path": "docs/ui-recovery-eight/duplicate-audit-v4.json",
+   "sha256": "b69d10f76a9293ea2600ebd1cc49d94fbe53904f056a3183e031b34ef1fc176f",
+   "result": "650 same-size pairs, 0 near duplicates; independently recomputed: 650 pairs, 0 exact, 0 near (closest pair 3.6% pixels changed)"
+  },
+  "prior_own_report": {
+   "path": "docs/ui-recovery-eight/opus-round3.json",
+   "sha256": "c240fe443bc0052175c63c0f980d8289051e33d7d8e574292b00dc5357671ff7",
+   "opened": "after freeze"
+  },
+  "brand_references": {
+   "index": "kyPulse-server@b64ad231f3608b184bcdd237522d27b981252844:docs/ui-pulse-eight/brand-references.json (local worktree copy byte-equal)",
+   "kynotes_commit": "1ab04e64de747f409d88b98f02682e85862defe1",
+   "files": [
+    {
+     "path": "/tmp/kyrecovery-sol-round1/kynotes-13-after-appearance-mobile-dark.png",
+     "sha256": "f77379a3fcef8de6ad3a2debef934f700605e9b398ca1d2268bf0bf89dc6c15b"
+    },
+    {
+     "path": "/tmp/kyrecovery-sol-round1/kynotes-13-after-appearance-mobile-light.png",
+     "sha256": "43accf28ed4061ec3747d6df7aca86e11f15813cb78f27d1511f8a979bfb9488"
+    },
+    {
+     "path": "/tmp/kyrecovery-sol-round1/kynotes-13-after-editor-desktop-dark.png",
+     "sha256": "e1585cc65bdba3dcd62c8c4caed04471c64dbf25395a24283025fb3459d6b568"
+    },
+    {
+     "path": "/tmp/kyrecovery-sol-round1/kynotes-13-after-editor-desktop-light.png",
+     "sha256": "ff94b5e57447ea81cb8346ffc28e9bd80002715029499914b3bc9611027c6154"
+    }
+   ],
+   "verification": "sha256 equal the Pulse index and git show 1ab04e6 in kynotes-server; 1280x900 / 390x844; viewed individually; brand cohesion only, not quality inputs"
+  }
+ },
+ "inventory": {
+  "total": 52,
+  "unique": 52,
+  "exact_duplicates": 0,
+  "near_duplicates": 0,
+  "verification": "sha256, bytes, PNG width/height and inventory-v4 membership matched for all 52 manifest-04 shots",
+  "by_cohort": {
+   "admin-console": 24,
+   "settings": 24,
+   "auth": 4
+  }
+ },
+ "files": [
+  {
+   "file": "screenshots/kyrecovery-04-after-appearance-desktop-dark.png",
+   "sha256": "665ce9d9fd6d15901d6bc9e0df5c764d00c2d937026d2697473af8b938fb3b7d",
+   "bytes": 84873,
+   "width": 1280,
+   "height": 900,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "appearance",
+   "filename_matches_content": true,
+   "state": "populated (fixed theme list)",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1, one-line explanation, \"Theme\" label, card grid; Match system selected.",
+    "typography": "Card names 15px/600, sublabels 13px; h1-to-lede gap (~57px) larger than other tabs.",
+    "density_layout": "Even 5-up (desktop) / 2-up (phone) grid; footer text clipped at the viewport edge.",
+    "color": "Swatches are theme previews; chrome neutral with accent selection.",
+    "visible_affordances": "Accent border plus filled radio marks selection; dark-theme idle radios are low-key grey discs.",
+    "coherence": "Matches the KyNotes picker geometry."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 9
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Radio-card picker is geometrically the KyNotes 13-after Appearance picker (same cards, swatches, labels, selected border)."
+    },
+    "mean_exact": "42/5",
+    "mean": "8.4"
+   },
+   "confidence": "high",
+   "caveat": "Saved-choice state not captured; keyboard radio behaviour not visible. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-appearance-desktop-dark.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "0.0",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {},
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1,
+     "suite_cohesion": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-appearance-desktop-light.png",
+   "sha256": "1ba642331c080051856e7f73135a2b67f97a7f116cf69fe06c52d3c621534708",
+   "bytes": 84163,
+   "width": 1280,
+   "height": 900,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "appearance",
+   "filename_matches_content": true,
+   "state": "populated (fixed theme list)",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1, one-line explanation, \"Theme\" label, card grid; Match system selected.",
+    "typography": "Card names 15px/600, sublabels 13px; h1-to-lede gap (~57px) larger than other tabs.",
+    "density_layout": "Even 5-up (desktop) / 2-up (phone) grid; footer text clipped at the viewport edge.",
+    "color": "Swatches are theme previews; chrome neutral with accent selection.",
+    "visible_affordances": "Accent border plus filled radio marks selection; dark-theme idle radios are low-key grey discs.",
+    "coherence": "Matches the KyNotes picker geometry."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 9
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Radio-card picker is geometrically the KyNotes 13-after Appearance picker (same cards, swatches, labels, selected border)."
+    },
+    "mean_exact": "42/5",
+    "mean": "8.4"
+   },
+   "confidence": "high",
+   "caveat": "Saved-choice state not captured; keyboard radio behaviour not visible. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-appearance-desktop-light.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "0.0",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {},
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1,
+     "suite_cohesion": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-appearance-mobile-dark.png",
+   "sha256": "46b7ac382a01154ec9c0ce2291aa057d0d1a06b4b51c23f738c04dd7f00d2aa8",
+   "bytes": 41545,
+   "width": 390,
+   "height": 844,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "appearance",
+   "filename_matches_content": true,
+   "state": "populated (fixed theme list)",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1, one-line explanation, \"Theme\" label, card grid; Match system selected.",
+    "typography": "Card names 15px/600, sublabels 13px; h1-to-lede gap (~57px) larger than other tabs.",
+    "density_layout": "Even 5-up (desktop) / 2-up (phone) grid; footer text clipped at the viewport edge.",
+    "color": "Swatches are theme previews; chrome neutral with accent selection.",
+    "visible_affordances": "Accent border plus filled radio marks selection; dark-theme idle radios are low-key grey discs.",
+    "coherence": "Matches the KyNotes picker geometry."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 9
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Radio-card picker is geometrically the KyNotes 13-after Appearance picker (same cards, swatches, labels, selected border)."
+    },
+    "mean_exact": "42/5",
+    "mean": "8.4"
+   },
+   "confidence": "high",
+   "caveat": "Saved-choice state not captured; keyboard radio behaviour not visible. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-appearance-mobile-dark.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "0.0",
+    "pixels_changed_fraction": 0.000109,
+    "max_channel_delta": 8,
+    "image_unchanged": true,
+    "dimension_deltas": {},
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1,
+     "suite_cohesion": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-appearance-mobile-light.png",
+   "sha256": "085376811d957c0660eca7723043bf31a6bf48e9671c0394a4f7d6dc7a099862",
+   "bytes": 40637,
+   "width": 390,
+   "height": 844,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "appearance",
+   "filename_matches_content": true,
+   "state": "populated (fixed theme list)",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1, one-line explanation, \"Theme\" label, card grid; Match system selected.",
+    "typography": "Card names 15px/600, sublabels 13px; h1-to-lede gap (~57px) larger than other tabs.",
+    "density_layout": "Even 5-up (desktop) / 2-up (phone) grid; footer text clipped at the viewport edge.",
+    "color": "Swatches are theme previews; chrome neutral with accent selection.",
+    "visible_affordances": "Accent border plus filled radio marks selection; dark-theme idle radios are low-key grey discs.",
+    "coherence": "Matches the KyNotes picker geometry."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 9
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Radio-card picker is geometrically the KyNotes 13-after Appearance picker (same cards, swatches, labels, selected border)."
+    },
+    "mean_exact": "42/5",
+    "mean": "8.4"
+   },
+   "confidence": "high",
+   "caveat": "Saved-choice state not captured; keyboard radio behaviour not visible. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-appearance-mobile-light.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "0.0",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {},
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1,
+     "suite_cohesion": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-audit-desktop-dark.png",
+   "sha256": "79649a676107558148d07eb87178e1179e7195c5ddc93a8304195bab642d9993",
+   "bytes": 58972,
+   "width": 1280,
+   "height": 900,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "audit",
+   "filename_matches_content": true,
+   "state": "sparse (1 event)",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 with quiet Verify Cryptographic Chain; one ledger entry.",
+    "typography": "Mono for action/target/hash, sans for actor/time; Title Case verify button.",
+    "density_layout": "D: one-line table row. M: flat labelled entry (Actor, Recorded, Target, full Hash) with aligned label column, no horizontal scroll.",
+    "color": "Neutral; no primary.",
+    "visible_affordances": "Verify button reads as secondary; desktop hash truncated with \"...\".",
+    "coherence": "Desktop table and phone entries share type and rules."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "One row only; how many rows scale is inferred from one entry. Hostile-string escaping is a browser-test claim, not visible here. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-audit-desktop-dark.png",
+    "total": "7.9",
+    "ky_fit": "8.0",
+    "delta": "0.1",
+    "pixels_changed_fraction": 0.004717,
+    "max_channel_delta": 218,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "typography": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-audit-desktop-light.png",
+   "sha256": "a92ee643f64ed3a5c35542cc88519d688b88def36901b65d47b17abe74a7471c",
+   "bytes": 58839,
+   "width": 1280,
+   "height": 900,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "audit",
+   "filename_matches_content": true,
+   "state": "sparse (1 event)",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 with quiet Verify Cryptographic Chain; one ledger entry.",
+    "typography": "Mono for action/target/hash, sans for actor/time; Title Case verify button.",
+    "density_layout": "D: one-line table row. M: flat labelled entry (Actor, Recorded, Target, full Hash) with aligned label column, no horizontal scroll.",
+    "color": "Neutral; no primary.",
+    "visible_affordances": "Verify button reads as secondary; desktop hash truncated with \"...\".",
+    "coherence": "Desktop table and phone entries share type and rules."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "One row only; how many rows scale is inferred from one entry. Hostile-string escaping is a browser-test claim, not visible here. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-audit-desktop-light.png",
+    "total": "7.9",
+    "ky_fit": "8.0",
+    "delta": "0.1",
+    "pixels_changed_fraction": 0.004732,
+    "max_channel_delta": 224,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "typography": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-audit-mobile-dark.png",
+   "sha256": "fc8bb035eecd44d63abb3bdf52f6c6879741333dc5ad5b49273b60776ec60764",
+   "bytes": 40539,
+   "width": 390,
+   "height": 844,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "audit",
+   "filename_matches_content": true,
+   "state": "sparse (1 event)",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 with quiet Verify Cryptographic Chain; one ledger entry.",
+    "typography": "Mono for action/target/hash, sans for actor/time; Title Case verify button.",
+    "density_layout": "D: one-line table row. M: flat labelled entry (Actor, Recorded, Target, full Hash) with aligned label column, no horizontal scroll.",
+    "color": "Neutral; no primary.",
+    "visible_affordances": "Verify button reads as secondary; desktop hash truncated with \"...\".",
+    "coherence": "Desktop table and phone entries share type and rules."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "One row only; how many rows scale is inferred from one entry. Hostile-string escaping is a browser-test claim, not visible here. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-audit-mobile-dark.png",
+    "total": "7.5",
+    "ky_fit": "8.0",
+    "delta": "0.5",
+    "pixels_changed_fraction": 0.04009,
+    "max_channel_delta": 218,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "typography": 1,
+     "density_layout": 1,
+     "visible_affordances": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-audit-mobile-light.png",
+   "sha256": "47edf6bcfe1d37a4e09eca3e83989f1040cea449c2d465c05c96216fcfa15b58",
+   "bytes": 40140,
+   "width": 390,
+   "height": 844,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "audit",
+   "filename_matches_content": true,
+   "state": "sparse (1 event)",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 with quiet Verify Cryptographic Chain; one ledger entry.",
+    "typography": "Mono for action/target/hash, sans for actor/time; Title Case verify button.",
+    "density_layout": "D: one-line table row. M: flat labelled entry (Actor, Recorded, Target, full Hash) with aligned label column, no horizontal scroll.",
+    "color": "Neutral; no primary.",
+    "visible_affordances": "Verify button reads as secondary; desktop hash truncated with \"...\".",
+    "coherence": "Desktop table and phone entries share type and rules."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "One row only; how many rows scale is inferred from one entry. Hostile-string escaping is a browser-test claim, not visible here. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-audit-mobile-light.png",
+    "total": "7.5",
+    "ky_fit": "8.0",
+    "delta": "0.5",
+    "pixels_changed_fraction": 0.040254,
+    "max_channel_delta": 224,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "typography": 1,
+     "density_layout": 1,
+     "visible_affordances": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-backups-desktop-dark.png",
+   "sha256": "753bf2d2629c37e98e787f661e3c9a72298aba417c4ff482de726e00c40d7570",
+   "bytes": 89472,
+   "width": 1280,
+   "height": 900,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "backups",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1, five facts, Backup health h2 with quiet Refresh; empty table offers Paired products as the next action; no filled primary, which suits an empty status page.",
+    "typography": "Facts numerals light 28px over 13px labels; notes 13px with unbroken mono env tokens.",
+    "density_layout": "Facts strip, notes and sections on an even 8px-based rhythm; phone facts 2x2+1 with simple one-line labels; section h2/Refresh centred (live dy 0).",
+    "color": "Neutral; no orange in content (no primary); status not colour-coded in empty state.",
+    "visible_affordances": "Restore shows the truthful \"No services to restore yet.\" line instead of a blank select (live: restore controls hidden).",
+    "coherence": "Flat sections with quiet rules; one outline button style."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Restore section is below the phone fold; populated health rows and stale/corrupt states not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-backups-desktop-dark.png",
+    "total": "7.5",
+    "ky_fit": "8.0",
+    "delta": "0.5",
+    "pixels_changed_fraction": 0.029161,
+    "max_channel_delta": 231,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "hierarchy": 1,
+     "density_layout": 1,
+     "visible_affordances": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-backups-desktop-light.png",
+   "sha256": "75c57c8b3a16a3db6ebff2026de47fda3e3ce4a6a3e5df4bda69f9344c68309b",
+   "bytes": 89247,
+   "width": 1280,
+   "height": 900,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "backups",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1, five facts, Backup health h2 with quiet Refresh; empty table offers Paired products as the next action; no filled primary, which suits an empty status page.",
+    "typography": "Facts numerals light 28px over 13px labels; notes 13px with unbroken mono env tokens.",
+    "density_layout": "Facts strip, notes and sections on an even 8px-based rhythm; phone facts 2x2+1 with simple one-line labels; section h2/Refresh centred (live dy 0).",
+    "color": "Neutral; no orange in content (no primary); status not colour-coded in empty state.",
+    "visible_affordances": "Restore shows the truthful \"No services to restore yet.\" line instead of a blank select (live: restore controls hidden).",
+    "coherence": "Flat sections with quiet rules; one outline button style."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Restore section is below the phone fold; populated health rows and stale/corrupt states not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-backups-desktop-light.png",
+    "total": "7.5",
+    "ky_fit": "8.0",
+    "delta": "0.5",
+    "pixels_changed_fraction": 0.02919,
+    "max_channel_delta": 248,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "hierarchy": 1,
+     "density_layout": 1,
+     "visible_affordances": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-backups-mobile-dark.png",
+   "sha256": "5015e023f671bcdd08352ac095496182f2e99c0a9e6ef07f9dd3a619bed60872",
+   "bytes": 46582,
+   "width": 390,
+   "height": 844,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "backups",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1, five facts, Backup health h2 with quiet Refresh; empty table offers Paired products as the next action; no filled primary, which suits an empty status page.",
+    "typography": "Facts numerals light 28px over 13px labels; notes 13px with unbroken mono env tokens.",
+    "density_layout": "Facts strip, notes and sections on an even 8px-based rhythm; phone facts 2x2+1 with simple one-line labels; section h2/Refresh centred (live dy 0).",
+    "color": "Neutral; no orange in content (no primary); status not colour-coded in empty state.",
+    "visible_affordances": "Restore shows the truthful \"No services to restore yet.\" line instead of a blank select (live: restore controls hidden).",
+    "coherence": "Flat sections with quiet rules; one outline button style."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Restore section is below the phone fold; populated health rows and stale/corrupt states not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-backups-mobile-dark.png",
+    "total": "7.6",
+    "ky_fit": "8.0",
+    "delta": "0.4",
+    "pixels_changed_fraction": 0.005386,
+    "max_channel_delta": 218,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "hierarchy": 1,
+     "density_layout": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-backups-mobile-light.png",
+   "sha256": "6da096a00737157c3fa0665d9e135e42bac5226721072b85e217e0bb36af0624",
+   "bytes": 46533,
+   "width": 390,
+   "height": 844,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "backups",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1, five facts, Backup health h2 with quiet Refresh; empty table offers Paired products as the next action; no filled primary, which suits an empty status page.",
+    "typography": "Facts numerals light 28px over 13px labels; notes 13px with unbroken mono env tokens.",
+    "density_layout": "Facts strip, notes and sections on an even 8px-based rhythm; phone facts 2x2+1 with simple one-line labels; section h2/Refresh centred (live dy 0).",
+    "color": "Neutral; no orange in content (no primary); status not colour-coded in empty state.",
+    "visible_affordances": "Restore shows the truthful \"No services to restore yet.\" line instead of a blank select (live: restore controls hidden).",
+    "coherence": "Flat sections with quiet rules; one outline button style."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Restore section is below the phone fold; populated health rows and stale/corrupt states not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-backups-mobile-light.png",
+    "total": "7.6",
+    "ky_fit": "8.0",
+    "delta": "0.4",
+    "pixels_changed_fraction": 0.005526,
+    "max_channel_delta": 224,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "hierarchy": 1,
+     "density_layout": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-capsules-desktop-dark.png",
+   "sha256": "f13c6487c35f360055df446b712fb6d15e9c165325a821824739e5ab52d2da9e",
+   "bytes": 74357,
+   "width": 1280,
+   "height": 900,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "capsules",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 with quiet Compare versions; Save retention is the single filled primary beside its h2, visible in the first viewport on desktop and phone.",
+    "typography": "Labels read \"Keep every backup (days) (required)\" - double parentheticals; otherwise contract steps.",
+    "density_layout": "D: three equal field columns, Refresh preview left / Purge expired right, policy in a closed disclosure. M: stacked fields, primary at the h2.",
+    "color": "Orange only on Save; Purge expired uses danger outline set apart from Save.",
+    "visible_affordances": "Destructive outline distinct; native disclosure triangle reads as expandable; Compare versions enabled on an empty list (outcome unknown from image).",
+    "coherence": "One control vocabulary; the native disclosure marker is the only off-vocabulary element."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Empty capsule list has guidance but no direct pairing action; populated capsule rows not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-capsules-desktop-dark.png",
+    "total": "7.9",
+    "ky_fit": "8.0",
+    "delta": "0.1",
+    "pixels_changed_fraction": 0.10309,
+    "max_channel_delta": 231,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "typography": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-capsules-desktop-light.png",
+   "sha256": "a7a19e7aa1cb2700b64f916478cbd70ea55cf1e3fd9528d2bc58ccbd33e2051d",
+   "bytes": 74178,
+   "width": 1280,
+   "height": 900,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "capsules",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 with quiet Compare versions; Save retention is the single filled primary beside its h2, visible in the first viewport on desktop and phone.",
+    "typography": "Labels read \"Keep every backup (days) (required)\" - double parentheticals; otherwise contract steps.",
+    "density_layout": "D: three equal field columns, Refresh preview left / Purge expired right, policy in a closed disclosure. M: stacked fields, primary at the h2.",
+    "color": "Orange only on Save; Purge expired uses danger outline set apart from Save.",
+    "visible_affordances": "Destructive outline distinct; native disclosure triangle reads as expandable; Compare versions enabled on an empty list (outcome unknown from image).",
+    "coherence": "One control vocabulary; the native disclosure marker is the only off-vocabulary element."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Empty capsule list has guidance but no direct pairing action; populated capsule rows not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-capsules-desktop-light.png",
+    "total": "7.9",
+    "ky_fit": "8.0",
+    "delta": "0.1",
+    "pixels_changed_fraction": 0.103352,
+    "max_channel_delta": 231,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "typography": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-capsules-mobile-dark.png",
+   "sha256": "dd36dc1c190084fd06dc1488e669a9215a91105786ebc2f42590c3232769810c",
+   "bytes": 45465,
+   "width": 390,
+   "height": 844,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "capsules",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 with quiet Compare versions; Save retention is the single filled primary beside its h2, visible in the first viewport on desktop and phone.",
+    "typography": "Labels read \"Keep every backup (days) (required)\" - double parentheticals; otherwise contract steps.",
+    "density_layout": "D: three equal field columns, Refresh preview left / Purge expired right, policy in a closed disclosure. M: stacked fields, primary at the h2.",
+    "color": "Orange only on Save; Purge expired uses danger outline set apart from Save.",
+    "visible_affordances": "Destructive outline distinct; native disclosure triangle reads as expandable; Compare versions enabled on an empty list (outcome unknown from image).",
+    "coherence": "One control vocabulary; the native disclosure marker is the only off-vocabulary element."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Empty capsule list has guidance but no direct pairing action; populated capsule rows not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-capsules-mobile-dark.png",
+    "total": "7.5",
+    "ky_fit": "8.0",
+    "delta": "0.5",
+    "pixels_changed_fraction": 0.270321,
+    "max_channel_delta": 231,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "hierarchy": 1,
+     "typography": 1,
+     "density_layout": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-capsules-mobile-light.png",
+   "sha256": "266a7857948a4afe2985a37b2f647d651c495ad96486b58b791fadc6809524df",
+   "bytes": 44778,
+   "width": 390,
+   "height": 844,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "capsules",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 with quiet Compare versions; Save retention is the single filled primary beside its h2, visible in the first viewport on desktop and phone.",
+    "typography": "Labels read \"Keep every backup (days) (required)\" - double parentheticals; otherwise contract steps.",
+    "density_layout": "D: three equal field columns, Refresh preview left / Purge expired right, policy in a closed disclosure. M: stacked fields, primary at the h2.",
+    "color": "Orange only on Save; Purge expired uses danger outline set apart from Save.",
+    "visible_affordances": "Destructive outline distinct; native disclosure triangle reads as expandable; Compare versions enabled on an empty list (outcome unknown from image).",
+    "coherence": "One control vocabulary; the native disclosure marker is the only off-vocabulary element."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Empty capsule list has guidance but no direct pairing action; populated capsule rows not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-capsules-mobile-light.png",
+    "total": "7.5",
+    "ky_fit": "8.0",
+    "delta": "0.5",
+    "pixels_changed_fraction": 0.270929,
+    "max_channel_delta": 231,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "hierarchy": 1,
+     "typography": 1,
+     "density_layout": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-ceremony-desktop-dark.png",
+   "sha256": "15b72009624cf8aea874077a7ad4e9c85065841776659e87ca973d62fc0655cb",
+   "bytes": 44477,
+   "width": 1280,
+   "height": 900,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "ceremony",
+   "filename_matches_content": true,
+   "state": "empty (initial ceremony form)",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 9,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1, mandatory custody warning, k/n fields, one filled primary; Back to console quiet in the header.",
+    "typography": "Warning uses five bold run-ins (meaningful but busy); labels \"(k) (required)\" double parentheticals.",
+    "density_layout": "Content-sized numeric inputs; the rule above the fields extends past the paragraph measure; trailing rule gone.",
+    "color": "Only the primary is orange; header surface matches sign-in.",
+    "visible_affordances": "Inputs and primary unambiguous; required marked.",
+    "coherence": "Same header surface and control vocabulary as sign-in."
+   },
+   "total": "8.2",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 9,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Signed-out/standalone: wordmark/stamp top bar on the page surface (login adds a quiet \"Recovery vault\" subtitle; ceremony adds Back to console); no sidebar by design.",
+     "accent_discipline": "Orange only on the single primary; no status tint on this page.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "42/5",
+    "mean": "8.4"
+   },
+   "confidence": "high",
+   "caveat": "Generated cards, print and import states not captured (and must not be by this review). Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-ceremony-desktop-dark.png",
+    "total": "7.5",
+    "ky_fit": "7.8",
+    "delta": "0.7",
+    "pixels_changed_fraction": 0.103628,
+    "max_channel_delta": 221,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "typography": 1,
+     "density_layout": 1,
+     "color": 1,
+     "coherence": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1,
+     "type_geometry": 1,
+     "accent_discipline": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-ceremony-desktop-light.png",
+   "sha256": "7c10705a8a173fbe265927bdf2173fabdfa62e9991ac1ac04b8b112fb64f4b0a",
+   "bytes": 44326,
+   "width": 1280,
+   "height": 900,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "ceremony",
+   "filename_matches_content": true,
+   "state": "empty (initial ceremony form)",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 9,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1, mandatory custody warning, k/n fields, one filled primary; Back to console quiet in the header.",
+    "typography": "Warning uses five bold run-ins (meaningful but busy); labels \"(k) (required)\" double parentheticals.",
+    "density_layout": "Content-sized numeric inputs; the rule above the fields extends past the paragraph measure; trailing rule gone.",
+    "color": "Only the primary is orange; header surface matches sign-in.",
+    "visible_affordances": "Inputs and primary unambiguous; required marked.",
+    "coherence": "Same header surface and control vocabulary as sign-in."
+   },
+   "total": "8.2",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 9,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Signed-out/standalone: wordmark/stamp top bar on the page surface (login adds a quiet \"Recovery vault\" subtitle; ceremony adds Back to console); no sidebar by design.",
+     "accent_discipline": "Orange only on the single primary; no status tint on this page.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "42/5",
+    "mean": "8.4"
+   },
+   "confidence": "high",
+   "caveat": "Generated cards, print and import states not captured (and must not be by this review). Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-ceremony-desktop-light.png",
+    "total": "7.5",
+    "ky_fit": "7.8",
+    "delta": "0.7",
+    "pixels_changed_fraction": 0.103649,
+    "max_channel_delta": 231,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "typography": 1,
+     "density_layout": 1,
+     "color": 1,
+     "coherence": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1,
+     "type_geometry": 1,
+     "accent_discipline": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-ceremony-mobile-dark.png",
+   "sha256": "bb47b85fb5656c595fe3f6b7a87557ef0458edd8b812dcd268cee57604454408",
+   "bytes": 40281,
+   "width": 390,
+   "height": 844,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "ceremony",
+   "filename_matches_content": true,
+   "state": "empty (initial ceremony form)",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 9,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1, mandatory custody warning, k/n fields, one filled primary; Back to console quiet in the header.",
+    "typography": "Warning uses five bold run-ins (meaningful but busy); labels \"(k) (required)\" double parentheticals.",
+    "density_layout": "Content-sized numeric inputs; the rule above the fields extends past the paragraph measure; trailing rule gone.",
+    "color": "Only the primary is orange; header surface matches sign-in.",
+    "visible_affordances": "Inputs and primary unambiguous; required marked.",
+    "coherence": "Same header surface and control vocabulary as sign-in."
+   },
+   "total": "8.2",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 9,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Signed-out/standalone: wordmark/stamp top bar on the page surface (login adds a quiet \"Recovery vault\" subtitle; ceremony adds Back to console); no sidebar by design.",
+     "accent_discipline": "Orange only on the single primary; no status tint on this page.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "42/5",
+    "mean": "8.4"
+   },
+   "confidence": "high",
+   "caveat": "Generated cards, print and import states not captured (and must not be by this review). Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-ceremony-mobile-dark.png",
+    "total": "7.7",
+    "ky_fit": "7.8",
+    "delta": "0.5",
+    "pixels_changed_fraction": 0.177026,
+    "max_channel_delta": 221,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "typography": 1,
+     "color": 1,
+     "coherence": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1,
+     "type_geometry": 1,
+     "accent_discipline": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-ceremony-mobile-light.png",
+   "sha256": "475d706dc97622610f726593ee519d97eb917e28855cae5fd9bd38276987797c",
+   "bytes": 40301,
+   "width": 390,
+   "height": 844,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "ceremony",
+   "filename_matches_content": true,
+   "state": "empty (initial ceremony form)",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 9,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1, mandatory custody warning, k/n fields, one filled primary; Back to console quiet in the header.",
+    "typography": "Warning uses five bold run-ins (meaningful but busy); labels \"(k) (required)\" double parentheticals.",
+    "density_layout": "Content-sized numeric inputs; the rule above the fields extends past the paragraph measure; trailing rule gone.",
+    "color": "Only the primary is orange; header surface matches sign-in.",
+    "visible_affordances": "Inputs and primary unambiguous; required marked.",
+    "coherence": "Same header surface and control vocabulary as sign-in."
+   },
+   "total": "8.2",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 9,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Signed-out/standalone: wordmark/stamp top bar on the page surface (login adds a quiet \"Recovery vault\" subtitle; ceremony adds Back to console); no sidebar by design.",
+     "accent_discipline": "Orange only on the single primary; no status tint on this page.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "42/5",
+    "mean": "8.4"
+   },
+   "confidence": "high",
+   "caveat": "Generated cards, print and import states not captured (and must not be by this review). Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-ceremony-mobile-light.png",
+    "total": "7.7",
+    "ky_fit": "7.8",
+    "delta": "0.5",
+    "pixels_changed_fraction": 0.177108,
+    "max_channel_delta": 231,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "typography": 1,
+     "color": 1,
+     "coherence": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1,
+     "type_geometry": 1,
+     "accent_discipline": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-custodian-form-desktop-dark.png",
+   "sha256": "55944dfecaad8dfc1470a13d8170c8e768b995ce88e169f4e294a21f37dbd347",
+   "bytes": 83490,
+   "width": 1280,
+   "height": 900,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "custodian-form",
+   "filename_matches_content": true,
+   "state": "empty (unsubmitted form)",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "native dialog backdrop dim/blur over the console",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "Native dialog \"Add a custodian\"; Register Custodian primary right, Cancel beside it.",
+    "typography": "Title Case labels/button vs sentence-case title; title verb \"Add\" vs button \"Register\".",
+    "density_layout": "Two labelled inputs, even spacing, divided footer; phone footer one line.",
+    "color": "Backdrop dim; only the primary is orange.",
+    "visible_affordances": "Both fields marked (required); placeholders read as examples.",
+    "coherence": "Same dialog vocabulary as pairing/replication."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Backdrop blur obscures background; validation state not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-custodian-form-desktop-dark.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "0.0",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {},
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-custodian-form-desktop-light.png",
+   "sha256": "99dd098dcbadef3e9775e91bf6ebf14b710ab4ba446fa9c758dba6a8962449b2",
+   "bytes": 84404,
+   "width": 1280,
+   "height": 900,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "custodian-form",
+   "filename_matches_content": true,
+   "state": "empty (unsubmitted form)",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "native dialog backdrop dim/blur over the console",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "Native dialog \"Add a custodian\"; Register Custodian primary right, Cancel beside it.",
+    "typography": "Title Case labels/button vs sentence-case title; title verb \"Add\" vs button \"Register\".",
+    "density_layout": "Two labelled inputs, even spacing, divided footer; phone footer one line.",
+    "color": "Backdrop dim; only the primary is orange.",
+    "visible_affordances": "Both fields marked (required); placeholders read as examples.",
+    "coherence": "Same dialog vocabulary as pairing/replication."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Backdrop blur obscures background; validation state not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-custodian-form-desktop-light.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "0.0",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {},
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-custodian-form-mobile-dark.png",
+   "sha256": "5a0bea6a33fc9159235b5e9379d4b3d1612c1ccff9520c896618d8ad6f207236",
+   "bytes": 47739,
+   "width": 390,
+   "height": 844,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "custodian-form",
+   "filename_matches_content": true,
+   "state": "empty (unsubmitted form)",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "native dialog backdrop dim/blur over the console",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "Native dialog \"Add a custodian\"; Register Custodian primary right, Cancel beside it.",
+    "typography": "Title Case labels/button vs sentence-case title; title verb \"Add\" vs button \"Register\".",
+    "density_layout": "Two labelled inputs, even spacing, divided footer; phone footer one line.",
+    "color": "Backdrop dim; only the primary is orange.",
+    "visible_affordances": "Both fields marked (required); placeholders read as examples.",
+    "coherence": "Same dialog vocabulary as pairing/replication."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Backdrop blur obscures background; validation state not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-custodian-form-mobile-dark.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "0.0",
+    "pixels_changed_fraction": 0.000437,
+    "max_channel_delta": 9,
+    "image_unchanged": false,
+    "dimension_deltas": {},
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-custodian-form-mobile-light.png",
+   "sha256": "1bf004221ed2ff9138c10cad83be8136969018b69ead265e63a7a5b3bb6205ac",
+   "bytes": 48574,
+   "width": 390,
+   "height": 844,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "custodian-form",
+   "filename_matches_content": true,
+   "state": "empty (unsubmitted form)",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "native dialog backdrop dim/blur over the console",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "Native dialog \"Add a custodian\"; Register Custodian primary right, Cancel beside it.",
+    "typography": "Title Case labels/button vs sentence-case title; title verb \"Add\" vs button \"Register\".",
+    "density_layout": "Two labelled inputs, even spacing, divided footer; phone footer one line.",
+    "color": "Backdrop dim; only the primary is orange.",
+    "visible_affordances": "Both fields marked (required); placeholders read as examples.",
+    "coherence": "Same dialog vocabulary as pairing/replication."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Backdrop blur obscures background; validation state not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-custodian-form-mobile-light.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "0.0",
+    "pixels_changed_fraction": 0.000547,
+    "max_channel_delta": 9,
+    "image_unchanged": false,
+    "dimension_deltas": {},
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-custodians-desktop-dark.png",
+   "sha256": "50d51329c3ab3efa1c49bdeb5c4d6089fe493c1e7292e0fac826ef88e90f7700",
+   "bytes": 59659,
+   "width": 1280,
+   "height": 900,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "custodians",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 7
+   },
+   "observations": {
+    "hierarchy": "h1 and Run recovery key ceremony primary (phone: primary on its own row under h1); Recovery key and Custodians sections.",
+    "typography": "Contract steps; key status line has no full stop.",
+    "density_layout": "Section rows centred (live dy 0 on phone); empty custodian table header with one centred line.",
+    "color": "Orange only on the primary.",
+    "visible_affordances": "Primary vs \"+ Register Custodian\" outline clear.",
+    "coherence": "\"+ Register Custodian\" is the only \"+\"-prefixed, Title Case button, beside a sentence-case primary; h1 \"quorum\" vs nav \"Quorum\"."
+   },
+   "total": "7.9",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "No key/custodian rows captured; empty custodian line gives no guidance beyond the button. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-custodians-desktop-dark.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "-0.1",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {
+     "coherence": -1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-custodians-desktop-light.png",
+   "sha256": "9520f7e5558f4122bbd1a355d3e76bcd24a2416c1766c666d92404af9a9a6ae9",
+   "bytes": 59519,
+   "width": 1280,
+   "height": 900,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "custodians",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 7
+   },
+   "observations": {
+    "hierarchy": "h1 and Run recovery key ceremony primary (phone: primary on its own row under h1); Recovery key and Custodians sections.",
+    "typography": "Contract steps; key status line has no full stop.",
+    "density_layout": "Section rows centred (live dy 0 on phone); empty custodian table header with one centred line.",
+    "color": "Orange only on the primary.",
+    "visible_affordances": "Primary vs \"+ Register Custodian\" outline clear.",
+    "coherence": "\"+ Register Custodian\" is the only \"+\"-prefixed, Title Case button, beside a sentence-case primary; h1 \"quorum\" vs nav \"Quorum\"."
+   },
+   "total": "7.9",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "No key/custodian rows captured; empty custodian line gives no guidance beyond the button. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-custodians-desktop-light.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "-0.1",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {
+     "coherence": -1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-custodians-mobile-dark.png",
+   "sha256": "892a5dfbf6a747482dd87c7e717c857e01469901bf7c70c8e3ea83c642f614de",
+   "bytes": 35909,
+   "width": 390,
+   "height": 844,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "custodians",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 7
+   },
+   "observations": {
+    "hierarchy": "h1 and Run recovery key ceremony primary (phone: primary on its own row under h1); Recovery key and Custodians sections.",
+    "typography": "Contract steps; key status line has no full stop.",
+    "density_layout": "Section rows centred (live dy 0 on phone); empty custodian table header with one centred line.",
+    "color": "Orange only on the primary.",
+    "visible_affordances": "Primary vs \"+ Register Custodian\" outline clear.",
+    "coherence": "\"+ Register Custodian\" is the only \"+\"-prefixed, Title Case button, beside a sentence-case primary; h1 \"quorum\" vs nav \"Quorum\"."
+   },
+   "total": "7.9",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "No key/custodian rows captured; empty custodian line gives no guidance beyond the button. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-custodians-mobile-dark.png",
+    "total": "7.8",
+    "ky_fit": "8.0",
+    "delta": "0.1",
+    "pixels_changed_fraction": 0.003324,
+    "max_channel_delta": 218,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "density_layout": 1,
+     "coherence": -1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-custodians-mobile-light.png",
+   "sha256": "f4068a637d32fa665cbd784a2693fa3c4ad3a44588a9bbe52b8c3cd503978ca5",
+   "bytes": 35622,
+   "width": 390,
+   "height": 844,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "custodians",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 7
+   },
+   "observations": {
+    "hierarchy": "h1 and Run recovery key ceremony primary (phone: primary on its own row under h1); Recovery key and Custodians sections.",
+    "typography": "Contract steps; key status line has no full stop.",
+    "density_layout": "Section rows centred (live dy 0 on phone); empty custodian table header with one centred line.",
+    "color": "Orange only on the primary.",
+    "visible_affordances": "Primary vs \"+ Register Custodian\" outline clear.",
+    "coherence": "\"+ Register Custodian\" is the only \"+\"-prefixed, Title Case button, beside a sentence-case primary; h1 \"quorum\" vs nav \"Quorum\"."
+   },
+   "total": "7.9",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "No key/custodian rows captured; empty custodian line gives no guidance beyond the button. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-custodians-mobile-light.png",
+    "total": "7.8",
+    "ky_fit": "8.0",
+    "delta": "0.1",
+    "pixels_changed_fraction": 0.003324,
+    "max_channel_delta": 224,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "density_layout": 1,
+     "coherence": -1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-login-desktop-dark.png",
+   "sha256": "aad53d493742b059edc305d9b5c6bfdfee0dd8163306036e44546c9624843000",
+   "bytes": 39626,
+   "width": 1280,
+   "height": 900,
+   "cohort": "auth",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "login",
+   "filename_matches_content": true,
+   "state": "empty (signed-out form)",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 9,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 9,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "\"Sign in to the vault\" h1, two fields, one full-width Sign In primary; nothing competes.",
+    "typography": "Clean steps; helper keeps initial-admin-password unbroken in mono; \"Sign In\" Title Case.",
+    "density_layout": "Centred 440px column on desktop, 20px phone gutters (shell uses 16px); footer visible.",
+    "color": "Neutral page; orange only on Sign In.",
+    "visible_affordances": "Required labels in text; inputs and primary unambiguous.",
+    "coherence": "Header surface shared with ceremony."
+   },
+   "total": "8.4",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 9,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Signed-out/standalone: wordmark/stamp top bar on the page surface (login adds a quiet \"Recovery vault\" subtitle; ceremony adds Back to console); no sidebar by design.",
+     "accent_discipline": "Orange only on the single primary; no status tint on this page.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "42/5",
+    "mean": "8.4"
+   },
+   "confidence": "high",
+   "caveat": "Error, SSO and lockout states not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-login-desktop-dark.png",
+    "total": "8.2",
+    "ky_fit": "8.0",
+    "delta": "0.2",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {
+     "color": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1,
+     "accent_discipline": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-login-desktop-light.png",
+   "sha256": "e70bea3e6847571b0c89e9815f2b0ebe715f3004868052f0c874713994368877",
+   "bytes": 39528,
+   "width": 1280,
+   "height": 900,
+   "cohort": "auth",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "login",
+   "filename_matches_content": true,
+   "state": "empty (signed-out form)",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 9,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 9,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "\"Sign in to the vault\" h1, two fields, one full-width Sign In primary; nothing competes.",
+    "typography": "Clean steps; helper keeps initial-admin-password unbroken in mono; \"Sign In\" Title Case.",
+    "density_layout": "Centred 440px column on desktop, 20px phone gutters (shell uses 16px); footer visible.",
+    "color": "Neutral page; orange only on Sign In.",
+    "visible_affordances": "Required labels in text; inputs and primary unambiguous.",
+    "coherence": "Header surface shared with ceremony."
+   },
+   "total": "8.4",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 9,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Signed-out/standalone: wordmark/stamp top bar on the page surface (login adds a quiet \"Recovery vault\" subtitle; ceremony adds Back to console); no sidebar by design.",
+     "accent_discipline": "Orange only on the single primary; no status tint on this page.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "42/5",
+    "mean": "8.4"
+   },
+   "confidence": "high",
+   "caveat": "Error, SSO and lockout states not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-login-desktop-light.png",
+    "total": "8.2",
+    "ky_fit": "8.0",
+    "delta": "0.2",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {
+     "color": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1,
+     "accent_discipline": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-login-mobile-dark.png",
+   "sha256": "accbf8dcdddfb328a396264cd402202ceec504c168fbcdcfb793ed399a0a646f",
+   "bytes": 32980,
+   "width": 390,
+   "height": 844,
+   "cohort": "auth",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "login",
+   "filename_matches_content": true,
+   "state": "empty (signed-out form)",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 9,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 9,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "\"Sign in to the vault\" h1, two fields, one full-width Sign In primary; nothing competes.",
+    "typography": "Clean steps; helper keeps initial-admin-password unbroken in mono; \"Sign In\" Title Case.",
+    "density_layout": "Centred 440px column on desktop, 20px phone gutters (shell uses 16px); footer visible.",
+    "color": "Neutral page; orange only on Sign In.",
+    "visible_affordances": "Required labels in text; inputs and primary unambiguous.",
+    "coherence": "Header surface shared with ceremony."
+   },
+   "total": "8.4",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 9,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Signed-out/standalone: wordmark/stamp top bar on the page surface (login adds a quiet \"Recovery vault\" subtitle; ceremony adds Back to console); no sidebar by design.",
+     "accent_discipline": "Orange only on the single primary; no status tint on this page.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "42/5",
+    "mean": "8.4"
+   },
+   "confidence": "high",
+   "caveat": "Error, SSO and lockout states not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-login-mobile-dark.png",
+    "total": "8.1",
+    "ky_fit": "8.0",
+    "delta": "0.3",
+    "pixels_changed_fraction": 0.04736,
+    "max_channel_delta": 221,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "typography": 1,
+     "color": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1,
+     "accent_discipline": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-login-mobile-light.png",
+   "sha256": "91eb82e8e774b749bf4a6d96898006bed74a5c31b135573a305e9dc38db53b46",
+   "bytes": 32567,
+   "width": 390,
+   "height": 844,
+   "cohort": "auth",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "login",
+   "filename_matches_content": true,
+   "state": "empty (signed-out form)",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 9,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 9,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "\"Sign in to the vault\" h1, two fields, one full-width Sign In primary; nothing competes.",
+    "typography": "Clean steps; helper keeps initial-admin-password unbroken in mono; \"Sign In\" Title Case.",
+    "density_layout": "Centred 440px column on desktop, 20px phone gutters (shell uses 16px); footer visible.",
+    "color": "Neutral page; orange only on Sign In.",
+    "visible_affordances": "Required labels in text; inputs and primary unambiguous.",
+    "coherence": "Header surface shared with ceremony."
+   },
+   "total": "8.4",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 9,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Signed-out/standalone: wordmark/stamp top bar on the page surface (login adds a quiet \"Recovery vault\" subtitle; ceremony adds Back to console); no sidebar by design.",
+     "accent_discipline": "Orange only on the single primary; no status tint on this page.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "42/5",
+    "mean": "8.4"
+   },
+   "confidence": "high",
+   "caveat": "Error, SSO and lockout states not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-login-mobile-light.png",
+    "total": "8.1",
+    "ky_fit": "8.0",
+    "delta": "0.3",
+    "pixels_changed_fraction": 0.047521,
+    "max_channel_delta": 231,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "typography": 1,
+     "color": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1,
+     "accent_discipline": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-overview-desktop-dark.png",
+   "sha256": "4df42c23a36fa8f4262d59704cae257e72b8a32afa71d75ef4c2b1a1810cdae7",
+   "bytes": 100216,
+   "width": 1280,
+   "height": 900,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "overview",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 \"Recovery overview\", one filled primary (View custodians & quorum) on the first recovery-path row; other rows outline secondaries.",
+    "typography": "Clear 24/17/15/13 steps; facts mix 28px/400 numerals with a 17px/600 text value (\"Accepting entries\").",
+    "density_layout": "D: three-column facts strip and ruled recovery-path rows on an even rhythm; blind-store note floats above the footer. M: facts become two 179px cells with four-line wraps plus a full-width third cell (live-measured), a visible 2+1 rhythm break.",
+    "color": "Neutral surfaces; orange only on the primary and nav selection; warning-tint vault pill in the shell.",
+    "visible_affordances": "Primary vs outline secondaries read at a glance; scroll nav shows a cut-off next tab on phone.",
+    "coherence": "One flat surface, one button vocabulary; no nested cards."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Initial viewport only; lower rows below the phone fold are not scored. Populated/key-present priority (backup-first) not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-overview-desktop-dark.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "0.0",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {},
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-overview-desktop-light.png",
+   "sha256": "2f25fa268b226de855136c1fd660c7c2c4b3d1c9ebc8edb136eaad7b5c025979",
+   "bytes": 100058,
+   "width": 1280,
+   "height": 900,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "overview",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 \"Recovery overview\", one filled primary (View custodians & quorum) on the first recovery-path row; other rows outline secondaries.",
+    "typography": "Clear 24/17/15/13 steps; facts mix 28px/400 numerals with a 17px/600 text value (\"Accepting entries\").",
+    "density_layout": "D: three-column facts strip and ruled recovery-path rows on an even rhythm; blind-store note floats above the footer. M: facts become two 179px cells with four-line wraps plus a full-width third cell (live-measured), a visible 2+1 rhythm break.",
+    "color": "Neutral surfaces; orange only on the primary and nav selection; warning-tint vault pill in the shell.",
+    "visible_affordances": "Primary vs outline secondaries read at a glance; scroll nav shows a cut-off next tab on phone.",
+    "coherence": "One flat surface, one button vocabulary; no nested cards."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Initial viewport only; lower rows below the phone fold are not scored. Populated/key-present priority (backup-first) not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-overview-desktop-light.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "0.0",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {},
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-overview-mobile-dark.png",
+   "sha256": "c8578465fd28fde36b97f217549050af2163dbc1dd18932acff737d78d2bc91a",
+   "bytes": 48834,
+   "width": 390,
+   "height": 844,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "overview",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 7,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 \"Recovery overview\", one filled primary (View custodians & quorum) on the first recovery-path row; other rows outline secondaries.",
+    "typography": "Clear 24/17/15/13 steps; facts mix 28px/400 numerals with a 17px/600 text value (\"Accepting entries\").",
+    "density_layout": "D: three-column facts strip and ruled recovery-path rows on an even rhythm; blind-store note floats above the footer. M: facts become two 179px cells with four-line wraps plus a full-width third cell (live-measured), a visible 2+1 rhythm break.",
+    "color": "Neutral surfaces; orange only on the primary and nav selection; warning-tint vault pill in the shell.",
+    "visible_affordances": "Primary vs outline secondaries read at a glance; scroll nav shows a cut-off next tab on phone.",
+    "coherence": "One flat surface, one button vocabulary; no nested cards."
+   },
+   "total": "7.8",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Initial viewport only; lower rows below the phone fold are not scored. Populated/key-present priority (backup-first) not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-overview-mobile-dark.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "-0.2",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {
+     "density_layout": -1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-overview-mobile-light.png",
+   "sha256": "b778f0955693d157fbf22d4a33bc1bf6b5d4ecfaa75f28f847237b180985eca9",
+   "bytes": 47918,
+   "width": 390,
+   "height": 844,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "overview",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 7,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 \"Recovery overview\", one filled primary (View custodians & quorum) on the first recovery-path row; other rows outline secondaries.",
+    "typography": "Clear 24/17/15/13 steps; facts mix 28px/400 numerals with a 17px/600 text value (\"Accepting entries\").",
+    "density_layout": "D: three-column facts strip and ruled recovery-path rows on an even rhythm; blind-store note floats above the footer. M: facts become two 179px cells with four-line wraps plus a full-width third cell (live-measured), a visible 2+1 rhythm break.",
+    "color": "Neutral surfaces; orange only on the primary and nav selection; warning-tint vault pill in the shell.",
+    "visible_affordances": "Primary vs outline secondaries read at a glance; scroll nav shows a cut-off next tab on phone.",
+    "coherence": "One flat surface, one button vocabulary; no nested cards."
+   },
+   "total": "7.8",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Initial viewport only; lower rows below the phone fold are not scored. Populated/key-present priority (backup-first) not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-overview-mobile-light.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "-0.2",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {
+     "density_layout": -1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-pairing-desktop-dark.png",
+   "sha256": "a258e77a7cb8e6ae8c968a0dedc9d5be4d95d741f7c38b648aa55aa8070f99d2",
+   "bytes": 64363,
+   "width": 1280,
+   "height": 900,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "pairing",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 and New pairing code primary share the header row; empty state points to that action.",
+    "typography": "Bold \"Pairing.\" run-in lead restates the page title; otherwise clean steps.",
+    "density_layout": "Header, rule, note, table header and centred empty line; footer visible on phone.",
+    "color": "Orange only on the primary and nav selection.",
+    "visible_affordances": "Primary unambiguous; phone nav reveals the active tab.",
+    "coherence": "Flat table on the page surface; one button style."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "No pairing rows, codes or revoke actions captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-pairing-desktop-dark.png",
+    "total": "8.2",
+    "ky_fit": "8.0",
+    "delta": "-0.2",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {
+     "hierarchy": -1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-pairing-desktop-light.png",
+   "sha256": "23716d4fa5d42cf3ce79503ad49379d69b8d5e9065b45d96e74a54613def0977",
+   "bytes": 64150,
+   "width": 1280,
+   "height": 900,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "pairing",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 and New pairing code primary share the header row; empty state points to that action.",
+    "typography": "Bold \"Pairing.\" run-in lead restates the page title; otherwise clean steps.",
+    "density_layout": "Header, rule, note, table header and centred empty line; footer visible on phone.",
+    "color": "Orange only on the primary and nav selection.",
+    "visible_affordances": "Primary unambiguous; phone nav reveals the active tab.",
+    "coherence": "Flat table on the page surface; one button style."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "No pairing rows, codes or revoke actions captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-pairing-desktop-light.png",
+    "total": "8.2",
+    "ky_fit": "8.0",
+    "delta": "-0.2",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {
+     "hierarchy": -1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-pairing-form-desktop-dark.png",
+   "sha256": "426cf788f12b5237f3a2cc9d7ff7357f7bc512b8d0e1f9b4fa1ccc0414d1b2d1",
+   "bytes": 96656,
+   "width": 1280,
+   "height": 900,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "pairing-form",
+   "filename_matches_content": true,
+   "state": "empty (unsubmitted form)",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "native dialog backdrop dim/blur over the console",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "Native dialog titled \"New pairing code\"; Generate primary right, Cancel beside it, 40px close button.",
+    "typography": "Title Case labels (\"Pairing Window Expiration (Minutes)\") and button (\"Generate Pairing Code\") beside a sentence-case title.",
+    "density_layout": "Labels above inputs on a 16px rhythm; footer divided; phone footer one line.",
+    "color": "Backdrop dims and blurs the console; only the primary is orange.",
+    "visible_affordances": "Inputs, close and footer buttons read clearly; fields not marked optional/required (none HTML-required, live).",
+    "coherence": "Same field and button vocabulary as the page."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Dialog backdrop blur obscures the background (scored as captured). Validation and generated-code states not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-pairing-form-desktop-dark.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "0.0",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {},
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-pairing-form-desktop-light.png",
+   "sha256": "2ed922f8e72265e5e7cb3ac1ab90664212516794204a66b8f7c94a3c11ac26c8",
+   "bytes": 97439,
+   "width": 1280,
+   "height": 900,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "pairing-form",
+   "filename_matches_content": true,
+   "state": "empty (unsubmitted form)",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "native dialog backdrop dim/blur over the console",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "Native dialog titled \"New pairing code\"; Generate primary right, Cancel beside it, 40px close button.",
+    "typography": "Title Case labels (\"Pairing Window Expiration (Minutes)\") and button (\"Generate Pairing Code\") beside a sentence-case title.",
+    "density_layout": "Labels above inputs on a 16px rhythm; footer divided; phone footer one line.",
+    "color": "Backdrop dims and blurs the console; only the primary is orange.",
+    "visible_affordances": "Inputs, close and footer buttons read clearly; fields not marked optional/required (none HTML-required, live).",
+    "coherence": "Same field and button vocabulary as the page."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Dialog backdrop blur obscures the background (scored as captured). Validation and generated-code states not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-pairing-form-desktop-light.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "0.0",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {},
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-pairing-form-mobile-dark.png",
+   "sha256": "555e98fdec470fd97a363a86b840001bb0fb712571a4a475f32aa85158e3ab5a",
+   "bytes": 48717,
+   "width": 390,
+   "height": 844,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "pairing-form",
+   "filename_matches_content": true,
+   "state": "empty (unsubmitted form)",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "native dialog backdrop dim/blur over the console",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "Native dialog titled \"New pairing code\"; Generate primary right, Cancel beside it, 40px close button.",
+    "typography": "Title Case labels (\"Pairing Window Expiration (Minutes)\") and button (\"Generate Pairing Code\") beside a sentence-case title.",
+    "density_layout": "Labels above inputs on a 16px rhythm; footer divided; phone footer one line.",
+    "color": "Backdrop dims and blurs the console; only the primary is orange.",
+    "visible_affordances": "Inputs, close and footer buttons read clearly; fields not marked optional/required (none HTML-required, live).",
+    "coherence": "Same field and button vocabulary as the page."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Dialog backdrop blur obscures the background (scored as captured). Validation and generated-code states not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-pairing-form-mobile-dark.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "0.0",
+    "pixels_changed_fraction": 0.003466,
+    "max_channel_delta": 29,
+    "image_unchanged": false,
+    "dimension_deltas": {},
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-pairing-form-mobile-light.png",
+   "sha256": "a67a08cb6517c839c910c5eea171dccb93c1f149ac71b2594d2917643bdc5ebf",
+   "bytes": 49081,
+   "width": 390,
+   "height": 844,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "pairing-form",
+   "filename_matches_content": true,
+   "state": "empty (unsubmitted form)",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "native dialog backdrop dim/blur over the console",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "Native dialog titled \"New pairing code\"; Generate primary right, Cancel beside it, 40px close button.",
+    "typography": "Title Case labels (\"Pairing Window Expiration (Minutes)\") and button (\"Generate Pairing Code\") beside a sentence-case title.",
+    "density_layout": "Labels above inputs on a 16px rhythm; footer divided; phone footer one line.",
+    "color": "Backdrop dims and blurs the console; only the primary is orange.",
+    "visible_affordances": "Inputs, close and footer buttons read clearly; fields not marked optional/required (none HTML-required, live).",
+    "coherence": "Same field and button vocabulary as the page."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Dialog backdrop blur obscures the background (scored as captured). Validation and generated-code states not captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-pairing-form-mobile-light.png",
+    "total": "8.0",
+    "ky_fit": "8.0",
+    "delta": "0.0",
+    "pixels_changed_fraction": 0.004882,
+    "max_channel_delta": 29,
+    "image_unchanged": false,
+    "dimension_deltas": {},
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-pairing-mobile-dark.png",
+   "sha256": "ce8eaf3779b452cc667a5e83824a7e99bf16c7a8b74c2907bad6275b1589d3e8",
+   "bytes": 36399,
+   "width": 390,
+   "height": 844,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "pairing",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 and New pairing code primary share the header row; empty state points to that action.",
+    "typography": "Bold \"Pairing.\" run-in lead restates the page title; otherwise clean steps.",
+    "density_layout": "Header, rule, note, table header and centred empty line; footer visible on phone.",
+    "color": "Orange only on the primary and nav selection.",
+    "visible_affordances": "Primary unambiguous; phone nav reveals the active tab.",
+    "coherence": "Flat table on the page surface; one button style."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "No pairing rows, codes or revoke actions captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-pairing-mobile-dark.png",
+    "total": "8.2",
+    "ky_fit": "8.0",
+    "delta": "-0.2",
+    "pixels_changed_fraction": 0.082413,
+    "max_channel_delta": 221,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "hierarchy": -1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-pairing-mobile-light.png",
+   "sha256": "e1d32ee1fcf9c4815b2475098a8f114fca33107b0a5ef59ea7ea25521634c34f",
+   "bytes": 36029,
+   "width": 390,
+   "height": 844,
+   "cohort": "admin-console",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "pairing",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 and New pairing code primary share the header row; empty state points to that action.",
+    "typography": "Bold \"Pairing.\" run-in lead restates the page title; otherwise clean steps.",
+    "density_layout": "Header, rule, note, table header and centred empty line; footer visible on phone.",
+    "color": "Orange only on the primary and nav selection.",
+    "visible_affordances": "Primary unambiguous; phone nav reveals the active tab.",
+    "coherence": "Flat table on the page surface; one button style."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "No pairing rows, codes or revoke actions captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-pairing-mobile-light.png",
+    "total": "8.2",
+    "ky_fit": "8.0",
+    "delta": "-0.2",
+    "pixels_changed_fraction": 0.083336,
+    "max_channel_delta": 224,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "hierarchy": -1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-replication-desktop-dark.png",
+   "sha256": "6cbc8f355cbf272197f56375073c6602bd90b0bc5d8f060c48d00af0e0e5a031",
+   "bytes": 77546,
+   "width": 1280,
+   "height": 900,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "replication",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 with Add target primary; Replication targets and Recent transfers sections with empty lines.",
+    "typography": "Bold run-in \"Content-blind vaulting.\"; inline mono \".kycap\" shows wider apparent spacing from the monospace glyph advance (live: code box 47px, no padding claim made).",
+    "density_layout": "Header, sections and empty tables on an even rhythm; phone h1/button share a row.",
+    "color": "Orange only on the primary.",
+    "visible_affordances": "Empty states name the next action.",
+    "coherence": "Flat tables, one button vocabulary."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "No targets, sync history or failure states captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-replication-desktop-dark.png",
+    "total": "7.9",
+    "ky_fit": "8.0",
+    "delta": "0.1",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {
+     "typography": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-replication-desktop-light.png",
+   "sha256": "f3d217d9ceb8da701132e78d9a132a56c2e967b79171b8d1bb0953f9954baf89",
+   "bytes": 77282,
+   "width": 1280,
+   "height": 900,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "replication",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 with Add target primary; Replication targets and Recent transfers sections with empty lines.",
+    "typography": "Bold run-in \"Content-blind vaulting.\"; inline mono \".kycap\" shows wider apparent spacing from the monospace glyph advance (live: code box 47px, no padding claim made).",
+    "density_layout": "Header, sections and empty tables on an even rhythm; phone h1/button share a row.",
+    "color": "Orange only on the primary.",
+    "visible_affordances": "Empty states name the next action.",
+    "coherence": "Flat tables, one button vocabulary."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "No targets, sync history or failure states captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-replication-desktop-light.png",
+    "total": "7.9",
+    "ky_fit": "8.0",
+    "delta": "0.1",
+    "pixels_changed_fraction": 0.0,
+    "max_channel_delta": 0,
+    "image_unchanged": true,
+    "dimension_deltas": {
+     "typography": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "correction (reviewer variance on an effectively unchanged image)"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-replication-form-desktop-dark.png",
+   "sha256": "4dc582a677dcbaa316e03e690bb596d5c9df650c77e4c762208d751f4c1c7fde",
+   "bytes": 102000,
+   "width": 1280,
+   "height": 900,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "replication-form",
+   "filename_matches_content": true,
+   "state": "empty (unsubmitted form)",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "native dialog backdrop dim/blur over the console",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "Native dialog; Save Target primary right of Cancel and Test Connection; Destination/Credentials headings.",
+    "typography": "17px section headings; Title Case labels and buttons.",
+    "density_layout": "Scrolling body with fixed header/footer; Credentials heading sits 16px under the Region field, the same as a field gap (live), so the section break is weak.",
+    "color": "Only the primary is orange; prefilled Region value distinct from placeholders.",
+    "visible_affordances": "Required fields marked (live: every HTML-required label carries \"(required)\"); preset select uses the shared select style; cut-off field signals scroll.",
+    "coherence": "One field/select/button vocabulary."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Other provider presets, connection-test results and validation not captured; phone footer stacks Test Connection above Cancel/Save. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-replication-form-desktop-dark.png",
+    "total": "7.9",
+    "ky_fit": "8.0",
+    "delta": "0.1",
+    "pixels_changed_fraction": 0.023182,
+    "max_channel_delta": 211,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "coherence": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-replication-form-desktop-light.png",
+   "sha256": "cc54b7c7daf7820e7ea8d34eda3d4ff82c67da70fa3d3a87980bb1973e41caf7",
+   "bytes": 101873,
+   "width": 1280,
+   "height": 900,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "replication-form",
+   "filename_matches_content": true,
+   "state": "empty (unsubmitted form)",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "desktop 1280x900 CSS px, DPR1",
+   "artifacts": "native dialog backdrop dim/blur over the console",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "Native dialog; Save Target primary right of Cancel and Test Connection; Destination/Credentials headings.",
+    "typography": "17px section headings; Title Case labels and buttons.",
+    "density_layout": "Scrolling body with fixed header/footer; Credentials heading sits 16px under the Region field, the same as a field gap (live), so the section break is weak.",
+    "color": "Only the primary is orange; prefilled Region value distinct from placeholders.",
+    "visible_affordances": "Required fields marked (live: every HTML-required label carries \"(required)\"); preset select uses the shared select style; cut-off field signals scroll.",
+    "coherence": "One field/select/button vocabulary."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Other provider presets, connection-test results and validation not captured; phone footer stacks Test Connection above Cancel/Save. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-replication-form-desktop-light.png",
+    "total": "7.9",
+    "ky_fit": "8.0",
+    "delta": "0.1",
+    "pixels_changed_fraction": 0.023253,
+    "max_channel_delta": 231,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "coherence": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-replication-form-mobile-dark.png",
+   "sha256": "8be7adfb3c8385ee2ae1062403bad5116ef8fc8ad277425d12f95d3c1e3a7a34",
+   "bytes": 43585,
+   "width": 390,
+   "height": 844,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "replication-form",
+   "filename_matches_content": true,
+   "state": "empty (unsubmitted form)",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "native dialog backdrop dim/blur over the console",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "Native dialog; Save Target primary right of Cancel and Test Connection; Destination/Credentials headings.",
+    "typography": "17px section headings; Title Case labels and buttons.",
+    "density_layout": "Scrolling body with fixed header/footer; Credentials heading sits 16px under the Region field, the same as a field gap (live), so the section break is weak.",
+    "color": "Only the primary is orange; prefilled Region value distinct from placeholders.",
+    "visible_affordances": "Required fields marked (live: every HTML-required label carries \"(required)\"); preset select uses the shared select style; cut-off field signals scroll.",
+    "coherence": "One field/select/button vocabulary."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Other provider presets, connection-test results and validation not captured; phone footer stacks Test Connection above Cancel/Save. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-replication-form-mobile-dark.png",
+    "total": "7.7",
+    "ky_fit": "8.0",
+    "delta": "0.3",
+    "pixels_changed_fraction": 0.056185,
+    "max_channel_delta": 211,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "density_layout": 1,
+     "coherence": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-replication-form-mobile-light.png",
+   "sha256": "ab579533d6ce953eee1085b5f419198defa66a053f1165c2be4a111c0c1b8021",
+   "bytes": 43420,
+   "width": 390,
+   "height": 844,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "replication-form",
+   "filename_matches_content": true,
+   "state": "empty (unsubmitted form)",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "native dialog backdrop dim/blur over the console",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "Native dialog; Save Target primary right of Cancel and Test Connection; Destination/Credentials headings.",
+    "typography": "17px section headings; Title Case labels and buttons.",
+    "density_layout": "Scrolling body with fixed header/footer; Credentials heading sits 16px under the Region field, the same as a field gap (live), so the section break is weak.",
+    "color": "Only the primary is orange; prefilled Region value distinct from placeholders.",
+    "visible_affordances": "Required fields marked (live: every HTML-required label carries \"(required)\"); preset select uses the shared select style; cut-off field signals scroll.",
+    "coherence": "One field/select/button vocabulary."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "Other provider presets, connection-test results and validation not captured; phone footer stacks Test Connection above Cancel/Save. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-replication-form-mobile-light.png",
+    "total": "7.7",
+    "ky_fit": "8.0",
+    "delta": "0.3",
+    "pixels_changed_fraction": 0.058327,
+    "max_channel_delta": 231,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "density_layout": 1,
+     "coherence": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-replication-mobile-dark.png",
+   "sha256": "bde70f5b8030b869c5e69e58bcf1ee2ae2fbeabc59798c223eba7a0bfe4ff9aa",
+   "bytes": 46518,
+   "width": 390,
+   "height": 844,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "replication",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-dark (OS dark, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 with Add target primary; Replication targets and Recent transfers sections with empty lines.",
+    "typography": "Bold run-in \"Content-blind vaulting.\"; inline mono \".kycap\" shows wider apparent spacing from the monospace glyph advance (live: code box 47px, no padding claim made).",
+    "density_layout": "Header, sections and empty tables on an even rhythm; phone h1/button share a row.",
+    "color": "Orange only on the primary.",
+    "visible_affordances": "Empty states name the next action.",
+    "coherence": "Flat tables, one button vocabulary."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "No targets, sync history or failure states captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-replication-mobile-dark.png",
+    "total": "7.9",
+    "ky_fit": "8.0",
+    "delta": "0.1",
+    "pixels_changed_fraction": 0.100346,
+    "max_channel_delta": 221,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "typography": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  },
+  {
+   "file": "screenshots/kyrecovery-04-after-replication-mobile-light.png",
+   "sha256": "a0dd039adb1b7fb242d3757e56941aac66eefe436e3183cb1278074ff619206e",
+   "bytes": 46109,
+   "width": 390,
+   "height": 844,
+   "cohort": "settings",
+   "duplicate_of": null,
+   "observed_product": "KyRecovery",
+   "observed_surface": "replication",
+   "filename_matches_content": true,
+   "state": "empty",
+   "theme": "busnes-light (OS light, no saved choice)",
+   "viewport": "mobile 390x844 CSS px, DPR1",
+   "artifacts": "none",
+   "scores": {
+    "hierarchy": 8,
+    "typography": 8,
+    "density_layout": 8,
+    "color": 8,
+    "visible_affordances": 8,
+    "coherence": 8
+   },
+   "observations": {
+    "hierarchy": "h1 with Add target primary; Replication targets and Recent transfers sections with empty lines.",
+    "typography": "Bold run-in \"Content-blind vaulting.\"; inline mono \".kycap\" shows wider apparent spacing from the monospace glyph advance (live: code box 47px, no padding claim made).",
+    "density_layout": "Header, sections and empty tables on an even rhythm; phone h1/button share a row.",
+    "color": "Orange only on the primary.",
+    "visible_affordances": "Empty states name the next action.",
+    "coherence": "Flat tables, one button vocabulary."
+   },
+   "total": "8.0",
+   "ky_fit": {
+    "scores": {
+     "palette_tokens": 9,
+     "type_geometry": 8,
+     "shell": 8,
+     "accent_discipline": 8,
+     "suite_cohesion": 8
+    },
+    "observations": {
+     "palette_tokens": "Cream #f8f6f0 / charcoal #182326 surfaces, ink and orange read as the vendored ky-ui 0.4.3 Busnes tokens; no off-palette hue.",
+     "type_geometry": "Space Grotesk; 24px h1, 17px section, 15px body, 13px labels; 40px controls with 8px radii (live: text inputs/select 41px box).",
+     "shell": "Desktop: 240px left nav with wordmark/stamp, vault status pill, 40px icon rows, account region pinned bottom (name, role, sign-out). Phone: wordmark, Account button, horizontally scrolling nav with the active tab revealed.",
+     "accent_discipline": "Orange on the single primary, selected nav row and focus; the amber/peach \"No capsules stored\" status pill is a warm warning tint beside it.",
+     "suite_cohesion": "Buttons, inputs, selected-row rail and type match the KyNotes 13-after references; KyNotes keeps a top bar above its sidebar, KyRecovery is sidebar-only."
+    },
+    "mean_exact": "41/5",
+    "mean": "8.2"
+   },
+   "confidence": "high",
+   "caveat": "No targets, sync history or failure states captured. Light/dark vectors are identical: no theme-specific defect was visible.",
+   "prior": {
+    "file": "screenshots/kyrecovery-03-after-replication-mobile-light.png",
+    "total": "7.9",
+    "ky_fit": "8.0",
+    "delta": "0.1",
+    "pixels_changed_fraction": 0.101045,
+    "max_channel_delta": 224,
+    "image_unchanged": false,
+    "dimension_deltas": {
+     "typography": 1
+    },
+    "ky_fit_dimension_deltas": {
+     "palette_tokens": 1
+    },
+    "cause": "image change (implementation) plus any listed re-reading"
+   }
+  }
+ ],
+ "cohort_rankings": {
+  "note": "KyRecovery only; no competitor captures, so no ranking or Ky gap. No pooled cross-cohort score.",
+  "cohorts": {
+   "admin-console": {
+    "n": 24,
+    "quality_sum": "191.6",
+    "quality_fraction": "479/60",
+    "quality_mean_exact": "7.983333",
+    "quality_min": "7.8",
+    "quality_max": "8.0",
+    "files_ge_8": 22,
+    "meets_8_exact": false,
+    "deficit_to_8": "0.4",
+    "ky_fit_sum": "196.8",
+    "ky_fit_fraction": "41/5",
+    "ky_fit_mean_exact": "8.200000",
+    "round3_quality_mean_exact": "7.858333",
+    "matched": true,
+    "coverage": "empty/initial-viewport unconfigured admin (audit sparse, open forms unsubmitted); KyRecovery only, no competitor, so no ranking or Ky gap"
+   },
+   "settings": {
+    "n": 24,
+    "quality_sum": "192.4",
+    "quality_fraction": "481/60",
+    "quality_mean_exact": "8.016667",
+    "quality_min": "7.9",
+    "quality_max": "8.2",
+    "files_ge_8": 20,
+    "meets_8_exact": true,
+    "deficit_to_8": "0",
+    "ky_fit_sum": "198.4",
+    "ky_fit_fraction": "124/15",
+    "ky_fit_mean_exact": "8.266667",
+    "round3_quality_mean_exact": "7.866667",
+    "matched": true,
+    "coverage": "empty/initial-viewport unconfigured admin (audit sparse, open forms unsubmitted); KyRecovery only, no competitor, so no ranking or Ky gap"
+   },
+   "auth": {
+    "n": 4,
+    "quality_sum": "33.6",
+    "quality_fraction": "42/5",
+    "quality_mean_exact": "8.400000",
+    "quality_min": "8.4",
+    "quality_max": "8.4",
+    "files_ge_8": 4,
+    "meets_8_exact": true,
+    "deficit_to_8": "0",
+    "ky_fit_sum": "33.6",
+    "ky_fit_fraction": "42/5",
+    "ky_fit_mean_exact": "8.400000",
+    "round3_quality_mean_exact": "8.150000",
+    "matched": true,
+    "coverage": "empty/initial-viewport unconfigured admin (audit sparse, open forms unsubmitted); KyRecovery only, no competitor, so no ranking or Ky gap"
+   }
+  }
+ },
+ "drift": {
+  "basis": "Matched by surface/device/theme against own round 3 (stage 03). Images with <0.1% pixels changed and max channel delta <=8 are treated as unchanged originals; their deltas are reviewer variance, not product change.",
+  "unchanged_images": {
+   "n": 20,
+   "mean_delta": "0.0 (exact -1/50 = -0.02)",
+   "mean_delta_exact": "-1/50",
+   "surfaces": [
+    "appearance-desktop",
+    "appearance-mobile",
+    "custodian-form-desktop",
+    "custodians-desktop",
+    "login-desktop",
+    "overview-desktop",
+    "overview-mobile",
+    "pairing-desktop",
+    "pairing-form-desktop",
+    "replication-desktop"
+   ]
+  },
+  "changed_images": {
+   "n": 32,
+   "mean_delta": "0.3",
+   "mean_delta_exact": "1/4"
+  },
+  "ky_fit_drift": "Console/standalone palette_tokens 8->9 and standalone accent_discipline 8->9 on unchanged and changed images alike: reviewer variance (round 3 named no palette defect); appearance suite_cohesion back to 9. Brand drift is not product improvement."
+ },
+ "round3_findings": {
+  "resolved": [
+   "R3-1 Backups Restore blank select / primary below fold: truthful \"No services to restore yet.\" line, controls hidden (image; live DOM restore-at hidden, text present).",
+   "R3-2 Capsules retention prose / primary below phone fold: Save retention at its h2 and visible on phone; one-line \"Saving does not delete anything.\"; policy in closed native disclosure (image).",
+   "R3-3 Audit phone hidden columns: flat labelled entry with actor, recorded, target and full hash; no horizontal scroll (image; live scrollWidth 390).",
+   "R3-4 Backups/Custodians phone h2/button offset: section rows centred (live dy 0 on Backups, Capsules, Custodians).",
+   "R3-5 Replication form required endpoint + select style: \"S3 Endpoint URL (required)\" and shared select style (image; live label and appearance:none/8px radius).",
+   "R3-7 Ceremony trailing rule / header surface: trailing rule gone, header surface matches sign-in, k/n inputs content-sized (image).",
+   "Login phone token wrap: initial-admin-password unbroken (image)."
+  ],
+  "withdrawn": [
+   "R3-6 \".kycap\" gap attributed to inline-code padding: parent audit shows padding/margin 0; the remaining apparent spacing is the monospace glyph advance. Not deducted this round and no padding change requested."
+  ],
+  "unresolved_optional_from_r3": [
+   "Title Case labels/buttons",
+   "capsules empty state without pairing action",
+   "appearance h1-to-lede gap",
+   "Overview metric style for the audit status (now part of the phone blocker below)",
+   "upstream accent/danger hue and mono font"
+  ]
+ },
+ "priorities": {
+  "required_visible_defects": [
+   {
+    "rank": 1,
+    "surfaces": "overview mobile (x2, admin-console)",
+    "effect": "Phone facts render as two 179px cells (four-line wraps) plus a full-width third cell whose value is 17px/600 text beside 28px/400 numerals (live-measured grid \"179px 179px\"). This is the only deduction that keeps admin-console below 8.",
+    "fix": "Below the breakpoint, stack the three facts as equal single-column rows (label, value, note) or give all three the same cell width and value style.",
+    "note": "The image is pixel-identical to round 3, which scored it 8.0. This is reviewer variance on an unchanged image, not a regression; it is listed because the frozen vector deducts it and it alone accounts for the 0.4 summed deficit."
+   }
+  ],
+  "minor_not_blocking": [
+   "custodians (x4, settings): \"+ Register Custodian\" is the only +-prefixed Title Case button beside a sentence-case primary; h1 \"quorum\" vs nav \"Quorum\". Settings still meets 8 (481/60) but by 0.4 summed points.",
+   "replication-form: Credentials heading 16px under the Region field, same as a field gap (live).",
+   "Phone page headers: h1 centre 5px above its button centre on Capsules, Paired products, Offsite replication, Audit ledger (live)."
+  ],
+  "optional_taste": [
+   "Sentence case for Title Case labels/buttons (Generate Pairing Code, Register Custodian, Save Target, Test Connection, Verify Cryptographic Chain, Sign In/Out).",
+   "Capsules empty state: add the pairing action as Backups does; Compare versions on an empty list.",
+   "Double parentheticals in retention and k/n labels.",
+   "Ceremony: fewer bold run-ins; rule width to the paragraph measure.",
+   "Appearance h1-to-lede gap.",
+   "Shell status pill warm tint next to accent selection.",
+   "Upstream ky-ui: field focus is accent border + 3px accent-soft shadow rather than the 2px outline (live), and controls measure 41px; mono stack lacks IBM Plex Mono."
+  ]
+ },
+ "gates": {
+  "keyboard": {
+   "result": "untested",
+   "evidence": "Live, own incognito tab, fixture 127.0.0.1:35627, source 2997f64: sign-in submitted with Enter; replication dialog :modal (aria-labelledby replication-modal-title), Tab moved focus to the preset select inside the dialog with :focus-visible; elementFromPoint on three background nav rows did not hit them (backdrop/inert); Escape closed and focus returned to Add target with :focus-visible. Parent reports 24 real-server browser tests. Not every task path walked by keyboard alone; no failure observed."
+  },
+  "focus": {
+   "result": "untested",
+   "evidence": "Samples: Add target 2px solid rgb(191,63,24), 2px offset; repl-preset select focus = 1px rgb(191,63,24) border + 3px rgb(251,240,236) box-shadow, outline none (light). Contrast of that ring not measured; no per-element or dark sweep."
+  },
+  "contrast": {
+   "result": "untested",
+   "evidence": "No computed contrast sweep."
+  },
+  "states": {
+   "result": "untested",
+   "evidence": "Empty states only; loading/error states not captured."
+  },
+  "responsive": {
+   "result": "untested",
+   "evidence": "Partial pass: 390x844 all eight tabs scrollWidth 390; 1280x900 all eight tabs scrollWidth 1280, one h1 each, one 240px <nav aria-label=Primary> with eight 40px items. Not a full path sweep."
+  },
+  "required_labels_contract": {
+   "result": "pass",
+   "evidence": "Live DOM on the dashboard: every HTML-required input (login 2, retention 3, custodian 2, replication name/endpoint 2, SSO issuer/client 2, password 3) has \"(required)\" in its label; ceremony k/n marked in the frozen images. Source 2997f64."
+  }
+ },
+ "supplement": {
+  "when": "after freeze",
+  "tool": "T3 preview, own Incognito tab tab_35_2e419d46-... opened with reuseExistingTab:false, closed afterwards; no other tab driven",
+  "conditions": "Chrome 154, DPR2, freeform 1280x900 then 390x844, system appearance light; differs from Chromium 153/DPR1 captures, so it changes no score",
+  "actions": "Signed in as fixture admin (password read privately, not recorded); clicked the eight nav items; opened the replication dialog and closed it with Escape without submitting; no theme change (kyrecovery-theme null), no data change, no key/share generation or import, no sign-out.",
+  "findings": [
+   "One <nav aria-label=Primary>, 240px, eight 40px items; one h1 per tab; one filled primary on Overview, Capsules, Paired products, Custodians, Replication; none on Backups, Audit, Appearance.",
+   "Backups Restore: \"No services to restore yet.\" with restore controls hidden.",
+   "Replication dialog: native :modal, background not hittable, Escape returns focus to Add target; footer buttons 40px; inputs/select 41px.",
+   "Overview phone facts grid 179px+179px with a spanning third cell (28px/400 vs 17px/600 values).",
+   "Phone section h2/button centre offset 0; page-header h1 5px above button centre on four tabs.",
+   "The DPR2 preview screenshot of the open dialog showed a mirrored ghost of the sidebar inside the blurred backdrop (::backdrop backdrop-filter blur(3px)); not present in the frozen captures; cause unproven; not scored.",
+   "Console showed 401 responses from the pre-login polling before sign-in; all post-login API calls returned 200."
+  ]
+ },
+ "unscored": [],
+ "verdict": {
+  "satisfied": false,
+  "cohorts_meeting_8": [
+   "settings",
+   "auth"
+  ],
+  "reason": "Exact means: admin-console 479/60 (7.983333), settings 481/60 (8.016667), auth 42/5 (8.4). admin-console stays 0.4 summed points short; the shortfall is entirely the overview-mobile density deduction on an image unchanged since round 3.",
+  "not_claimed": [
+   "whole-product 8 or 9",
+   "populated-state quality",
+   "role/state coverage",
+   "competitive standing",
+   "accessibility gates",
+   "security/CI/deploy status"
+  ]
+ },
+ "limitations": [
+  "MySlop: credential returned 401 per parent; nothing posted or retried.",
+  "Initial-viewport, empty/sparse evidence only; no competitor captures, populated, role, error or loading states.",
+  "Cohort assignment follows manifest-04 (as in rounds 2-3) for matched comparison; ceremony is in settings.",
+  "Parent-reported tests and required checks (r4-results.json etc.) were not re-run by this review."
+ ],
+ "freeze": {
+  "scores_file": "/tmp/opus-r4-scripts/frozen_vectors.py",
+  "scores_sha256": "5d372f96bb7298f53f0c240e37b2d51fe9ae1debdcc9718edeb36343b113787f",
+  "frozen_at": "2026-10-27T14:05:53Z",
+  "state": "vectors frozen before reading opus-round3, any peer report, COUNCIL.md, CSV/XLSX, or the live supplement; unchanged afterwards"
+ }
+}

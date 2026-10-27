@@ -8,6 +8,9 @@ Round,Reviewer,Cohort,n,Sum,Exact mean,Display mean,At least 8,Satisfied,Report 
 3,opus,settings,24,188.8,118/15,7.9,False,False,c240fe443bc0052175c63c0f980d8289051e33d7d8e574292b00dc5357671ff7
 3,opus,admin-console,24,188.6,943/120,7.9,False,False,c240fe443bc0052175c63c0f980d8289051e33d7d8e574292b00dc5357671ff7
 3,opus,auth,4,32.6,163/20,8.2,True,False,c240fe443bc0052175c63c0f980d8289051e33d7d8e574292b00dc5357671ff7
+4,opus,settings,24,192.4,481/60,8.0,True,False,4cb904af37e1b9c134b4fcfdf57bfa9391eae495053d3876c5f09e6903e5a70d
+4,opus,admin-console,24,191.6,479/60,8.0,False,False,4cb904af37e1b9c134b4fcfdf57bfa9391eae495053d3876c5f09e6903e5a70d
+4,opus,auth,4,33.6,42/5,8.4,True,False,4cb904af37e1b9c134b4fcfdf57bfa9391eae495053d3876c5f09e6903e5a70d
 1,sol,settings,24,176.4,147/20,7.4,False,False,c98d50ea2c086d42692d0868c680eef7f9ba9db1015bd7b5ef4833df782c4e4b
 1,sol,admin-console,24,172.8,36/5,7.2,False,False,c98d50ea2c086d42692d0868c680eef7f9ba9db1015bd7b5ef4833df782c4e4b
 1,sol,auth,4,30.0,15/2,7.5,False,False,c98d50ea2c086d42692d0868c680eef7f9ba9db1015bd7b5ef4833df782c4e4b
@@ -17,3 +20,6 @@ Round,Reviewer,Cohort,n,Sum,Exact mean,Display mean,At least 8,Satisfied,Report 
 3,sol,settings,24,205.6,257/30,8.6,True,True,4a503504c6c21cbbee5314c84678fe08ac65e11805953538290e7c213db0c513
 3,sol,admin-console,24,203.0,203/24,8.5,True,True,4a503504c6c21cbbee5314c84678fe08ac65e11805953538290e7c213db0c513
 3,sol,auth,4,35.2,44/5,8.8,True,True,4a503504c6c21cbbee5314c84678fe08ac65e11805953538290e7c213db0c513
+4,sol,settings,24,203.2,127/15,8.5,True,,8222ffae1bf29b7bc2dbe56fa79e899854232c850328d3ae47e31dc8ed6c9e45
+4,sol,admin-console,24,200.0,25/3,8.3,True,,8222ffae1bf29b7bc2dbe56fa79e899854232c850328d3ae47e31dc8ed6c9e45
+4,sol,auth,4,34.8,87/10,8.7,True,,8222ffae1bf29b7bc2dbe56fa79e899854232c850328d3ae47e31dc8ed6c9e45

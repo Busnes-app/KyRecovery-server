@@ -13,3 +13,6 @@ Independent cohort means. Display values do not round a mean below8 into passage
 | 3 | Claude Opus5.5 | 7.8583 | 7.8667 | 8.1500 | False |
 | 3 | GPT Sol | 8.4583 | 8.5667 | 8.8000 | True |
 | 3 | Gemini4Argon | Deferred | Deferred | Deferred | — |
+| 4 | Claude Opus5.5 | 7.9833 | 8.0167 | 8.4000 | False |
+| 4 | GPT Sol | 8.3333 | 8.4667 | 8.7000 | None |
+| 4 | Gemini4Argon | Deferred | Deferred | Deferred | — |
