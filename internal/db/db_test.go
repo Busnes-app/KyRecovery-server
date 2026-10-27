@@ -166,3 +166,27 @@ func TestClaimPairingCodeIsSingleUseUnderRace(t *testing.T) {
 		t.Fatalf("expected exactly 1 successful claim, got %d", claimed)
 	}
 }
+
+func TestInsertSessionHonoursSSOLogoutFence(t *testing.T) {
+	ctx := context.Background()
+	database, err := db.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	if err := database.EndSSOSession(ctx, "https://idp.example", "sid-1", time.Now().Add(time.Minute)); err != nil {
+		t.Fatal(err)
+	}
+	s := db.SessionRecord{ID: "fenced", UserID: "alice", Role: "viewer", SSOIssuer: "https://idp.example", SSOSubject: "alice",
+		SSOSID: "sid-1", ExpiresAt: time.Now().Add(time.Hour), CreatedAt: time.Now()}
+	if err := database.InsertSession(ctx, s); err != db.ErrSSOSessionEnded {
+		t.Fatalf("fenced login: got %v, want ErrSSOSessionEnded", err)
+	}
+	if got, err := database.GetSession(ctx, s.ID); err != nil || got != nil {
+		t.Fatalf("fenced login left its row behind: %+v %v", got, err)
+	}
+	s.ID, s.SSOIssuer = "other-issuer", "https://other.example"
+	if err := database.InsertSession(ctx, s); err != nil {
+		t.Fatalf("another issuer's sid was fenced: %v", err)
+	}
+}

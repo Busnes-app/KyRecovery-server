@@ -67,7 +67,10 @@ SSH/OIDC migration, preserved keys and explicit SMB compatibility limits.
   and signing keys come from discovery. Outbound issuer requests refuse
   link-local destinations at connect time. A callback carrying the provider's
   `error` (for example `access_denied`) is answered 401, naming the code when it is well formed;
-  the provider's `error_description` is never shown.
+  the provider's `error_description` is never shown. Register
+  `<KyRecovery URL>/api/auth/backchannel-logout` as the client's back-channel logout URI
+  in KyIdentity: signing out there, or an administrator ending the login, then ends the
+  matching KyRecovery sessions (OpenID Connect Back-Channel Logout 1.0).
 
 ## Upgrading from the previous KyRecovery
 

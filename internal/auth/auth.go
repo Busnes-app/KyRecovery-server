@@ -57,6 +57,8 @@ type UserInfo struct {
 	Email   string `json:"email"`
 	Name    string `json:"name"`
 	Role    string `json:"role"` // "admin", "operator", "viewer"
+	// SessionID is the ID token's sid; a back-channel logout names the login by it.
+	SessionID string `json:"-"`
 	// Local is set only by password login; every other login is fenced as native SSO.
 	Local bool `json:"-"`
 }
@@ -552,6 +554,7 @@ func (m *Manager) verifyIDToken(ctx context.Context, verifier *oidc.IDTokenVerif
 	}
 
 	var claims struct {
+		SID   string   `json:"sid"`
 		Email string   `json:"email"`
 		Name  string   `json:"name"`
 		Role  string   `json:"role"`
@@ -567,11 +570,12 @@ func (m *Manager) verifyIDToken(ctx context.Context, verifier *oidc.IDTokenVerif
 	}
 
 	return &UserInfo{
-		Issuer:  idToken.Issuer,
-		Subject: idToken.Subject,
-		Email:   claims.Email,
-		Name:    claims.Name,
-		Role:    role,
+		Issuer:    idToken.Issuer,
+		Subject:   idToken.Subject,
+		Email:     claims.Email,
+		Name:      claims.Name,
+		Role:      role,
+		SessionID: claims.SID,
 	}, nil
 }
 
@@ -594,6 +598,7 @@ func (m *Manager) CreateSession(ctx context.Context, u *UserInfo, secure bool) (
 		CreatedAt: now,
 	}
 	if u.Issuer != "" {
+		rec.SSOIssuer, rec.SSOSubject, rec.SSOSID = u.Issuer, u.Subject, u.SessionID
 		b, managed, err := m.db.InstallerConfiguration(ctx)
 		if err != nil {
 			return nil, err

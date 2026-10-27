@@ -62,6 +62,9 @@ ceremony and deployment guidance, not by the software.
    also requires direct HTTPS discovery/endpoints and refuses redirects. Issuer
    requests retain connect-time refusal of unspecified, link-local and multicast
    addresses (`internal/auth/auth.go`, `strong_crypto.go`, `jwks_strength.go`).
+   The provider's back-channel logout token passes the same verifier plus the logout-token
+   claim rules before it ends the sessions of that issuer's `sid` or subject; it can only end
+   sessions, never create or widen one (`internal/auth/backchannel.go`).
 5. **KyRecovery → offsite targets** (S3, R2, MinIO, SFTP, SMB, local mounts). The targets are
    configured by an admin and receive only ciphertext; S3 endpoints must be `https`
    (`internal/replication/offsite.go`).

@@ -125,6 +125,9 @@ var ErrCapsuleExists = errors.New("a capsule with this ID is already stored")
 // ErrSessionRefused means the session lost its authority before it could be stored.
 var ErrSessionRefused = errors.New("session authority unavailable")
 
+// ErrSSOSessionEnded means the identity provider already ended the login being signed in.
+var ErrSSOSessionEnded = errors.New("SSO session already ended")
+
 // UserRecord represents a local user account.
 type UserRecord struct {
 	ID           string    `json:"id"`
@@ -151,6 +154,10 @@ type SessionRecord struct {
 	Role            string    `json:"role"`
 	ExpiresAt       time.Time `json:"expires_at"`
 	CreatedAt       time.Time `json:"created_at"`
+	// SSOIssuer, SSOSubject and SSOSID name the provider login, for back-channel logout.
+	SSOIssuer  string `json:"-"`
+	SSOSubject string `json:"-"`
+	SSOSID     string `json:"-"`
 }
 
 // ReplicationTargetRecord defines an offsite backup target (S3, Cloudflare R2, MinIO, Local).
@@ -324,6 +331,14 @@ func (d *DB) migrate() error {
 		created_at DATETIME NOT NULL
 	);
 
+	-- Back-channel logout fences a provider login's sid so a callback in flight cannot revive it.
+	CREATE TABLE IF NOT EXISTS sso_logouts (
+		issuer TEXT NOT NULL,
+		sid TEXT NOT NULL,
+		expires_at DATETIME NOT NULL,
+		PRIMARY KEY (issuer, sid)
+	);
+
 	CREATE TABLE IF NOT EXISTS replication_targets (
 		id TEXT PRIMARY KEY,
 		name TEXT NOT NULL,
@@ -439,7 +454,7 @@ func (d *DB) migrate() error {
 	if err := d.addColumn("replication_targets", "host_key", "TEXT NOT NULL DEFAULT ''"); err != nil {
 		return err
 	}
-	for _, column := range []string{"identity_issuer", "identity_subject"} {
+	for _, column := range []string{"identity_issuer", "identity_subject", "sso_issuer", "sso_subject", "sso_sid"} {
 		if err := d.addColumn("sessions", column, "TEXT NOT NULL DEFAULT ''"); err != nil {
 			return err
 		}
@@ -1043,9 +1058,9 @@ func (d *DB) ListRecoveryKeys(ctx context.Context) ([]RecoveryKeyRecord, error) 
 
 // InsertSession stores a new user session.
 func (d *DB) InsertSession(ctx context.Context, s SessionRecord) error {
-	q := `INSERT INTO sessions (id, user_id, email, name, role, expires_at, created_at,identity_issuer,identity_subject)
-	      SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?`
-	args := []any{tokenHash(s.ID), s.UserID, s.Email, s.Name, s.Role, s.ExpiresAt.UTC(), s.CreatedAt.UTC(), s.IdentityIssuer, s.IdentitySubject}
+	q := `INSERT INTO sessions (id, user_id, email, name, role, expires_at, created_at,identity_issuer,identity_subject,sso_issuer,sso_subject,sso_sid)
+	      SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?`
+	args := []any{tokenHash(s.ID), s.UserID, s.Email, s.Name, s.Role, s.ExpiresAt.UTC(), s.CreatedAt.UTC(), s.IdentityIssuer, s.IdentitySubject, s.SSOIssuer, s.SSOSubject, s.SSOSID}
 	if strings.HasPrefix(s.UserID, "installer-") || s.IdentityIssuer != "" {
 		if s.UserID != InstallerIdentityID(s.IdentityIssuer, s.IdentitySubject) || s.Role != "admin" {
 			return errors.New("invalid managed session binding")
@@ -1069,7 +1084,42 @@ func (d *DB) InsertSession(ctx context.Context, s SessionRecord) error {
 	if n != 1 {
 		return ErrSessionRefused
 	}
+	if s.SSOSID == "" {
+		return nil
+	}
+	// Checked only after the insert: EndSSOSession writes its fence before deleting, so
+	// one of the two always sees the other.
+	var fenced bool
+	err = d.conn.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM sso_logouts WHERE issuer = ? AND sid = ? AND expires_at > ?)`,
+		s.SSOIssuer, s.SSOSID, time.Now().UTC()).Scan(&fenced)
+	if err != nil || fenced {
+		_ = d.DeleteSession(ctx, s.ID)
+		if err != nil {
+			return err
+		}
+		return ErrSSOSessionEnded
+	}
 	return nil
+}
+
+// EndSSOSession ends every session of one provider login and fences its sid until
+// fenceUntil, so a login callback still in flight cannot revive it.
+func (d *DB) EndSSOSession(ctx context.Context, issuer, sid string, fenceUntil time.Time) error {
+	if _, err := d.conn.ExecContext(ctx, `DELETE FROM sso_logouts WHERE expires_at <= ?`, time.Now().UTC()); err != nil {
+		return err
+	}
+	if _, err := d.conn.ExecContext(ctx, `INSERT INTO sso_logouts (issuer, sid, expires_at) VALUES (?, ?, ?)
+	      ON CONFLICT (issuer, sid) DO UPDATE SET expires_at = excluded.expires_at`, issuer, sid, fenceUntil.UTC()); err != nil {
+		return err
+	}
+	_, err := d.conn.ExecContext(ctx, `DELETE FROM sessions WHERE sso_issuer = ? AND sso_sid = ?`, issuer, sid)
+	return err
+}
+
+// EndSSOSubjectSessions ends a provider subject's sessions created before t.
+func (d *DB) EndSSOSubjectSessions(ctx context.Context, issuer, subject string, before time.Time) error {
+	_, err := d.conn.ExecContext(ctx, `DELETE FROM sessions WHERE sso_issuer = ? AND sso_subject = ? AND created_at < ?`, issuer, subject, before.UTC())
+	return err
 }
 
 // GetSession retrieves an active session by its raw session ID, looked up by hash.

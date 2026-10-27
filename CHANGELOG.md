@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Added
+
+- KyIdentity back-channel logout. Signing out of KyIdentity, or an administrator ending a
+  login there, now ends the matching KyRecovery sessions. KyIdentity POSTs a signed
+  `logout_token` to `POST /api/auth/backchannel-logout`; register
+  `<KyRecovery URL>/api/auth/backchannel-logout` as the client's back-channel logout URI.
+  Sessions created before this release carry no `sid` and end only when they expire or
+  the user signs out here. The event is audited as `user_logged_out_sso`.
+
 ### Changed
 
 - The dashboard has an Appearance tab with the shared ky-ui 0.4.1 theme cards: Match
