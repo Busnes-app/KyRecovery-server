@@ -172,6 +172,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("/api/auth/sso/config", s.handleSSOConfig)
 	s.mux.HandleFunc("/api/auth/sso/test", s.handleSSOTest)
 	s.mux.HandleFunc("/api/auth/callback", s.handleAuthCallback)
+	s.mux.HandleFunc("POST /api/auth/backchannel-logout", s.handleBackchannelLogout)
 	s.mux.HandleFunc("/api/auth/me", s.handleAuthMe)
 	s.mux.HandleFunc("/api/auth/logout", s.handleAuthLogout)
 
@@ -257,6 +258,8 @@ var apiPolicy = map[string]string{
 	"GET /api/auth/sso/config":      rolePublic, // the sign-in page must know whether SSO is offered
 	"* /api/pairing/claim":          rolePublic, // one-time pairing code
 	"* /api/backup/deposit":         rolePublic, // product API token
+
+	"POST /api/auth/backchannel-logout": rolePublic, // provider-signed logout token
 
 	"* /api/auth/password":          auth.RoleViewer,
 	"GET /api/readiness":            auth.RoleViewer,
@@ -1131,6 +1134,10 @@ func (s *Server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusUnauthorized, "Sign-in is no longer authorized; sign in again")
 		return
 	}
+	if errors.Is(err, db.ErrSSOSessionEnded) {
+		writeError(w, http.StatusUnauthorized, "This sign-in was already ended at the identity provider; sign in again")
+		return
+	}
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "Failed creating session")
 		return
@@ -1149,6 +1156,36 @@ func (s *Server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	})
 
 	http.Redirect(w, r, "/", http.StatusFound)
+}
+
+// ssoLogoutFence outlasts the 10-minute login cookies, so a logout that lands while the
+// browser is still finishing that login also ends it.
+const ssoLogoutFence = 10 * time.Minute
+
+// handleBackchannelLogout is the OpenID Connect Back-Channel Logout receiver: KyIdentity
+// POSTs a signed logout_token when a login ends, and every local session of it ends here.
+// Not rate limited: a KyIdentity restore sends a burst, and a 429 spends its five retries.
+func (s *Server) handleBackchannelLogout(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-store")
+	r.Body = http.MaxBytesReader(w, r.Body, 16<<10)
+	claims, err := s.authMgr.VerifyLogoutToken(r.Context(), r.PostFormValue("logout_token"))
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_request")
+		return
+	}
+	fenceUntil := time.Now().Add(ssoLogoutFence)
+	if claims.SessionID != "" {
+		err = s.db.EndSSOSession(r.Context(), claims.Issuer, claims.SessionID, fenceUntil)
+	} else {
+		// iat has whole-second precision: round up so a login from that same second ends too.
+		err = s.db.EndSSOSubject(r.Context(), claims.Issuer, claims.Subject, claims.IssuedAt.Add(time.Second), fenceUntil)
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "logout failed")
+		return
+	}
+	_, _ = s.ledger.Record(r.Context(), "user_logged_out_sso", claims.Issuer, claims.Subject, nil)
+	w.WriteHeader(http.StatusOK)
 }
 
 // 18. Auth Me (Current User)

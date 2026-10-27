@@ -28,6 +28,8 @@ func TestRequiredRolePolicy(t *testing.T) {
 		{http.MethodGet, "/api/auth/login", rolePublic},
 		{http.MethodPost, "/api/auth/login/local", rolePublic},
 		{http.MethodGet, "/api/auth/callback", rolePublic},
+		{http.MethodPost, "/api/auth/backchannel-logout", rolePublic},
+		{http.MethodGet, "/api/auth/backchannel-logout", auth.RoleAdmin},
 		{http.MethodPost, "/api/auth/logout", rolePublic},
 		{http.MethodGet, "/api/auth/sso/config", rolePublic},
 		{http.MethodPost, "/api/pairing/claim", rolePublic},

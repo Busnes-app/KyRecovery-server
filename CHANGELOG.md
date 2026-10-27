@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+### Added
+
+- KyIdentity back-channel logout. Signing out of KyIdentity, or an administrator ending a
+  login there, now ends the matching KyRecovery sessions. KyIdentity POSTs a signed
+  `logout_token` to `POST /api/auth/backchannel-logout`; register
+  `<KyRecovery URL>/api/auth/backchannel-logout` as the client's back-channel logout URI.
+  A token naming a `sid` ends that login; one naming only the subject ends every login
+  of the subject whose ID token predates the logout. A logout that arrives while the
+  browser is still finishing that login, including a first login, stops the login from
+  completing. SSO sessions are dated by the ID token's `iat`. Repeated logout requests
+  never make KyRecovery re-run discovery or refetch the provider's keys more than once
+  every 30 seconds. The event is audited as `user_logged_out_sso`.
+- Upgrading signs out every SSO session created before this release, once, as the
+  `sessions.sso_sid` column is added. Those sessions carry no `sid` and no ID-token date,
+  so no KyIdentity logout could end them. Local password sessions are kept; SSO users
+  sign in once more.
+
 ### Changed
 
 - The dashboard has an Appearance tab with the shared ky-ui 0.4.1 theme cards: Match
