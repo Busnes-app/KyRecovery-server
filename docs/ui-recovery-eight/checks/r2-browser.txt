@@ -1,0 +1,25 @@
+npm notice run test
+npm notice run node run.mjs
+
+Running 18 tests using 2 workers
+
+  ✓   2 [desktop] › suite-ui.spec.mjs:3:1 › navigation, account and dialog actions remain reachable at the shipped sizes (704ms)
+  ✓   1 [desktop] › core.spec.mjs:5:1 › real login, cookies, reload and logout enforce the session (901ms)
+  ✓   3 [desktop] › core.spec.mjs:23:1 › password validation and replacement revoke another existing session (1.2s)
+  ✓   4 [phone] › core.spec.mjs:5:1 › real login, cookies, reload and logout enforce the session (872ms)
+  ✓   5 [desktop] › core.spec.mjs:50:1 › custodian values persist as literal text and update the directory count (855ms)
+  ✓   6 [phone] › core.spec.mjs:23:1 › password validation and replacement revoke another existing session (1.1s)
+  ✓   7 [desktop] › core.spec.mjs:70:1 › retention validates fields, persists values and refuses a cross-origin write (795ms)
+  ✓   8 [phone] › core.spec.mjs:50:1 › custodian values persist as literal text and update the directory count (667ms)
+  ✓  10 [phone] › core.spec.mjs:70:1 › retention validates fields, persists values and refuses a cross-origin write (888ms)
+  ✓   9 [desktop] › core.spec.mjs:94:1 › actual WASM ceremony refuses invalid topology, imports only public fields and rotates explicitly (1.2s)
+  ✓  11 [phone] › core.spec.mjs:94:1 › actual WASM ceremony refuses invalid topology, imports only public fields and rotates explicitly (970ms)
+  ✓  12 [desktop] › core.spec.mjs:116:1 › pairing requires ceremony, claims once, revokes and clears the registration (1.1s)
+  ✓  13 [phone] › core.spec.mjs:116:1 › pairing requires ceremony, claims once, revokes and clears the registration (913ms)
+  ✓  14 [desktop] › core.spec.mjs:152:1 › local replication form tests an owned directory, persists and deletes its target (1.1s)
+  ✓  15 [phone] › core.spec.mjs:152:1 › local replication form tests an owned directory, persists and deletes its target (842ms)
+  ✓  16 [desktop] › core.spec.mjs:178:1 › Appearance follows the OS, persists across reload and synchronizes tabs (893ms)
+  ✓  17 [phone] › core.spec.mjs:178:1 › Appearance follows the OS, persists across reload and synchronizes tabs (834ms)
+  ✓  18 [phone] › suite-ui.spec.mjs:3:1 › navigation, account and dialog actions remain reachable at the shipped sizes (810ms)
+
+  18 passed (9.7s)

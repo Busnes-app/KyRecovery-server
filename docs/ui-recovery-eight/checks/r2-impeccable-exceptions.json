@@ -1,0 +1,51 @@
+{
+  "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61",
+  "raw_report": "r2-impeccable-raw.json",
+  "findings": 21,
+  "required_fixes": 0,
+  "exceptions": [
+    {
+      "rule": "overused-font",
+      "count": 3,
+      "classification": "pinned-design",
+      "reason": "Space Grotesk is the explicit suite design-contract typeface."
+    },
+    {
+      "rule": "cramped-padding",
+      "count": 17,
+      "classification": "static-context-false-positive",
+      "reason": "Panel source classes are flattened by .tab-content > .panel and ceremony overrides; section rules and table scrollers intentionally run to the content edge. Rendered body copy and dialog fields have separate insets. The audit table edge is a scroll boundary, not text padding."
+    },
+    {
+      "rule": "low-contrast",
+      "count": 1,
+      "classification": "theme-resolution-false-positive",
+      "reason": "The standalone static scan pairs dark secondary text with a light panel. The classic theme adapter applies a complete Busnes palette before paint. Live ceremony measurements: light text rgb(24,35,38) on rgb(248,246,240); dark text rgb(242,239,232) on rgb(24,35,38). Existing active-palette checks pass for body, secondary and semantic text across surfaces. This is not an all-theme/control contrast gate."
+    }
+  ],
+  "browser_supplement": {
+    "browser": "T3 collaborative browser Chromium154/DPR2; separate from scored Chromium153/DPR1 captures",
+    "viewport": [
+      768,
+      900
+    ],
+    "ceremony": {
+      "light": {
+        "foreground": "#182326",
+        "background": "#f8f6f0"
+      },
+      "dark": {
+        "foreground": "#f2efe8",
+        "background": "#182326"
+      },
+      "h1_px": 24,
+      "compact_pickers": 0,
+      "horizontal_overflow": 0
+    },
+    "tablet_replication": {
+      "footer_within_viewport": true,
+      "body_overflow_y": "auto"
+    },
+    "limits": "No ceremony submitted; synthetic fixture only. Native dialog keyboard focus remains outside this scoped geometry check."
+  }
+}

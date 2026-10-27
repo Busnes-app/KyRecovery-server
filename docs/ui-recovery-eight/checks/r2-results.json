@@ -1,0 +1,98 @@
+[
+  {
+    "name": "toolchain",
+    "command": "test -z \"$(gofmt -l $(git ls-files \"*.go\"))\"\ngo mod tidy\ngit diff --exit-code -- go.mod go.sum\ngo mod verify\ngo vet -p 2 ./...\ngo build -p 2 ./...",
+    "exit_code": 0,
+    "seconds": 5.02,
+    "evidence": "docs/ui-recovery-eight/checks/r2-toolchain.txt",
+    "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+  },
+  {
+    "name": "race-samba",
+    "command": "go test -p 2 -race -count=1 ./...",
+    "exit_code": 0,
+    "seconds": 34.05,
+    "evidence": "docs/ui-recovery-eight/checks/r2-race-samba.txt",
+    "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+  },
+  {
+    "name": "fips-race-samba",
+    "command": "go test -p 2 -race -count=1 ./...",
+    "exit_code": 0,
+    "seconds": 31.88,
+    "evidence": "docs/ui-recovery-eight/checks/r2-fips-race-samba.txt",
+    "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+  },
+  {
+    "name": "FuzzParseSMBEndpoint",
+    "command": "go test -p 2 -parallel 2 -fuzz=FuzzParseSMBEndpoint -fuzztime=150000x -fuzzminimizetime=5s ./internal/replication",
+    "exit_code": 0,
+    "seconds": 17.1,
+    "evidence": "docs/ui-recovery-eight/checks/r2-FuzzParseSMBEndpoint.txt",
+    "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+  },
+  {
+    "name": "FuzzTargetLocation",
+    "command": "go test -p 2 -parallel 2 -fuzz=FuzzTargetLocation -fuzztime=150000x -fuzzminimizetime=5s ./internal/replication",
+    "exit_code": 0,
+    "seconds": 18.15,
+    "evidence": "docs/ui-recovery-eight/checks/r2-FuzzTargetLocation.txt",
+    "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+  },
+  {
+    "name": "FuzzKeyringOpen",
+    "command": "go test -p 2 -parallel 2 -fuzz=FuzzKeyringOpen -fuzztime=1000000x -fuzzminimizetime=5s ./internal/secrets",
+    "exit_code": 0,
+    "seconds": 11.24,
+    "evidence": "docs/ui-recovery-eight/checks/r2-FuzzKeyringOpen.txt",
+    "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+  },
+  {
+    "name": "FuzzCapsuleNames",
+    "command": "go test -p 2 -parallel 2 -fuzz=FuzzCapsuleNames -fuzztime=150000x -fuzzminimizetime=5s ./internal/server",
+    "exit_code": 0,
+    "seconds": 21.91,
+    "evidence": "docs/ui-recovery-eight/checks/r2-FuzzCapsuleNames.txt",
+    "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+  },
+  {
+    "name": "wasm-node",
+    "command": "scripts/build-wasm.sh\ngit diff --exit-code -- internal/server/static/wasm\nnode scripts/test-wasm.mjs\nnode scripts/test-overview.mjs\nnode internal/server/static/ky-ui/check-vendor.mjs\nnode scripts/check-contrast.mjs",
+    "exit_code": 0,
+    "seconds": 0.62,
+    "evidence": "docs/ui-recovery-eight/checks/r2-wasm-node.txt",
+    "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+  },
+  {
+    "name": "repeatable",
+    "command": "mkdir -p \"/tmp/kyrecovery-repeatable-3lj9lblb/a/src\"\ngit archive HEAD | tar -x -C \"/tmp/kyrecovery-repeatable-3lj9lblb/a/src\"\n(cd \"/tmp/kyrecovery-repeatable-3lj9lblb/a/src\" && CGO_ENABLED=0 GOOS=linux go build -p 2 -trimpath -ldflags=\"-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=0.0.0\" -o \"/tmp/kyrecovery-repeatable-3lj9lblb/a/kyrecovery\" cmd/kyrecovery/main.go)\nmkdir -p \"/tmp/kyrecovery-repeatable-3lj9lblb/elsewhere/b/src\"\ngit archive HEAD | tar -x -C \"/tmp/kyrecovery-repeatable-3lj9lblb/elsewhere/b/src\"\n(cd \"/tmp/kyrecovery-repeatable-3lj9lblb/elsewhere/b/src\" && CGO_ENABLED=0 GOOS=linux go build -p 2 -trimpath -ldflags=\"-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=0.0.0\" -o \"/tmp/kyrecovery-repeatable-3lj9lblb/elsewhere/b/kyrecovery\" cmd/kyrecovery/main.go)\nsha256sum \"/tmp/kyrecovery-repeatable-3lj9lblb/a/kyrecovery\" \"/tmp/kyrecovery-repeatable-3lj9lblb/elsewhere/b/kyrecovery\"\ncmp \"/tmp/kyrecovery-repeatable-3lj9lblb/a/kyrecovery\" \"/tmp/kyrecovery-repeatable-3lj9lblb/elsewhere/b/kyrecovery\"",
+    "exit_code": 0,
+    "seconds": 2.12,
+    "evidence": "docs/ui-recovery-eight/checks/r2-repeatable.txt",
+    "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+  },
+  {
+    "name": "vulnerabilities",
+    "command": "go run golang.org/x/vuln/cmd/govulncheck@latest ./...",
+    "exit_code": 0,
+    "seconds": 5.88,
+    "evidence": "docs/ui-recovery-eight/checks/r2-vulnerabilities.txt",
+    "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+  },
+  {
+    "name": "docker-cli",
+    "command": "docker build -t kyrecovery-ui-r2:1829418 .\ndocker run --rm kyrecovery-ui-r2:1829418 help",
+    "exit_code": 0,
+    "seconds": 20.54,
+    "evidence": "docs/ui-recovery-eight/checks/r2-docker-cli.txt",
+    "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+  },
+  {
+    "name": "restic-overlay",
+    "command": "scripts/verify-restic-overlay.sh",
+    "exit_code": 0,
+    "seconds": 28.33,
+    "evidence": "docs/ui-recovery-eight/checks/r2-restic-overlay.txt",
+    "source_commit": "4cec46dbd9a635cfbaec2247d31e310df26def61"
+  }
+]
