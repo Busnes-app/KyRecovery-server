@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -51,6 +52,8 @@ type fakeKyIdentity struct {
 	idToken string
 	// discoveries and jwksFetches count the provider's outbound fetches.
 	discoveries, jwksFetches atomic.Int32
+	// beforeDiscovery, when set, runs before the discovery document is served.
+	beforeDiscovery func()
 }
 
 func newFakeKyIdentity(t *testing.T) *fakeKyIdentity {
@@ -65,6 +68,9 @@ func newFakeKyIdentity(t *testing.T) *fakeKyIdentity {
 		switch r.URL.Path {
 		case "/.well-known/openid-configuration":
 			f.discoveries.Add(1)
+			if f.beforeDiscovery != nil {
+				f.beforeDiscovery()
+			}
 			_ = json.NewEncoder(w).Encode(map[string]any{
 				"issuer": f.issuer, "authorization_endpoint": f.issuer + "/authorize",
 				"token_endpoint": f.issuer + "/token", "jwks_uri": f.issuer + "/keys",
@@ -166,6 +172,24 @@ func postLogout(srv *server.Server, token string) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 	srv.ServeHTTP(w, req)
 	return w
+}
+
+// newSSOServer is a server whose SSO issuer is issuer.
+func newSSOServer(t *testing.T, issuer string) *server.Server {
+	t.Helper()
+	database, err := db.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { database.Close() })
+	srv, err := server.New(server.Config{Port: 8095, DataDir: t.TempDir(), Auth: auth.OIDCConfig{
+		Enabled: true, IssuerURL: issuer, ClientID: "kyrecovery", RedirectURL: "http://localhost:8095/api/auth/callback",
+	}}, database, audit.NewLedger(database))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(srv.Close)
+	return srv
 }
 
 func TestBackchannelLogoutEndsTheSSOLogin(t *testing.T) {
@@ -298,21 +322,6 @@ func TestBackchannelLogoutFetchesNothingPerRequest(t *testing.T) {
 		http.Error(w, "down", http.StatusInternalServerError)
 	}))
 	t.Cleanup(failing.Close)
-	newServer := func(issuer string) *server.Server {
-		database, err := db.Open(":memory:")
-		if err != nil {
-			t.Fatal(err)
-		}
-		t.Cleanup(func() { database.Close() })
-		srv, err := server.New(server.Config{Port: 8095, DataDir: t.TempDir(), Auth: auth.OIDCConfig{
-			Enabled: true, IssuerURL: issuer, ClientID: "kyrecovery", RedirectURL: "http://localhost:8095/api/auth/callback",
-		}}, database, audit.NewLedger(database))
-		if err != nil {
-			t.Fatal(err)
-		}
-		t.Cleanup(srv.Close)
-		return srv
-	}
 	// forged carries valid claims under a key ID the provider never published.
 	forged := func(i int) string {
 		h, _ := json.Marshal(map[string]string{"alg": "RS256", "kid": "unknown-" + string(rune('a'+i%26)), "typ": "logout+jwt"})
@@ -323,7 +332,7 @@ func TestBackchannelLogoutFetchesNothingPerRequest(t *testing.T) {
 	}
 
 	const n = 20
-	srv := newServer(f.issuer)
+	srv := newSSOServer(t, f.issuer)
 	for i := range n {
 		if w := postLogout(srv, forged(i)); w.Code != http.StatusBadRequest {
 			t.Fatalf("forged logout %d: got %d", i, w.Code)
@@ -337,7 +346,7 @@ func TestBackchannelLogoutFetchesNothingPerRequest(t *testing.T) {
 		t.Fatalf("genuine logout after forged ones: got %d", w.Code)
 	}
 
-	down := newServer(failing.URL)
+	down := newSSOServer(t, failing.URL)
 	for i := range n {
 		if w := postLogout(down, f.logoutToken(t, "alice", "")); w.Code != http.StatusBadRequest {
 			t.Fatalf("logout with a failing issuer %d: got %d", i, w.Code)
@@ -345,5 +354,49 @@ func TestBackchannelLogoutFetchesNothingPerRequest(t *testing.T) {
 	}
 	if d := failedDiscoveries.Load(); d > 1 {
 		t.Fatalf("%d logouts retried a failing discovery %d times, want at most 1", n, d)
+	}
+}
+
+// TestCancelledDiscoveryIsNotCachedAsIssuerFailure: the first request to need the provider
+// runs the shared discovery. Its caller hanging up must not block logins and logouts for
+// the failure-retry interval while the issuer is healthy.
+func TestCancelledDiscoveryIsNotCachedAsIssuerFailure(t *testing.T) {
+	f := newFakeKyIdentity(t)
+	started, release := make(chan struct{}), make(chan struct{})
+	var once sync.Once
+	f.beforeDiscovery = func() {
+		once.Do(func() {
+			close(started)
+			<-release
+		})
+	}
+	srv := newSSOServer(t, f.issuer)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		req := httptest.NewRequestWithContext(ctx, http.MethodPost, "/api/auth/backchannel-logout",
+			strings.NewReader(url.Values{"logout_token": {f.logoutToken(t, "alice", "")}}.Encode()))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		srv.ServeHTTP(httptest.NewRecorder(), req)
+	}()
+	<-started
+	cancel()
+	// A discovery bound to the request gives up on cancel; give it the chance before the
+	// issuer answers, so the test catches one.
+	select {
+	case <-done:
+	case <-time.After(200 * time.Millisecond):
+	}
+	close(release)
+	<-done
+
+	w := ssoLogin(t, srv, f, "alice", "sid-1")
+	if w.Code != http.StatusFound || issuedCookie(w) == nil {
+		t.Fatalf("login after a cancelled discovery: got %d %s", w.Code, w.Body.String())
+	}
+	if w := postLogout(srv, f.logoutToken(t, "alice", "sid-1")); w.Code != http.StatusOK {
+		t.Fatalf("logout after a cancelled discovery: got %d", w.Code)
 	}
 }
