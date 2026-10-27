@@ -1,0 +1,16 @@
+Command: scripts/build-wasm.sh
+git diff --exit-code -- internal/server/static/wasm
+node scripts/test-wasm.mjs
+node scripts/test-overview.mjs
+node internal/server/static/ky-ui/check-vendor.mjs
+node scripts/check-contrast.mjs
+total 3540
+drwxr-xr-x 1 yoshi yoshi      50 Oct 27 07:58 .
+drwxr-xr-x 1 yoshi yoshi     174 Oct 27 07:58 ..
+-rwxr-xr-x 1 yoshi yoshi 3604141 Oct 27 09:13 ceremony.wasm
+-rw-r--r-- 1 yoshi yoshi   16992 Oct 27 09:13 wasm_exec.js
+ceremony.wasm OK 72f8a935985d4c171ed54fa53655281f70f83315c1a899e48a628c4297c15e58
+Overview audit, count, failure and recovery states passed.
+ky-ui 0.4.3: vendor files verified
+light: active recovery palette meets AA
+dark: active recovery palette meets AA

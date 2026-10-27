@@ -1,0 +1,272 @@
+{
+  "round": 2,
+  "raw_reports": {
+    "opus-round2.md": "7eb245df3a87d927d4970385223bf215d36f09667e4e5f48ba3d1aab41ab66fd",
+    "opus-round2.json": "fcf912cb545c59df5bdcbf1725e9e3e16b60e6fe79265c7afd67d16f3e004146",
+    "sol-round2.md": "af3d6bedcae0deb79838288c5bbcd73f4bc5db70fde18e0b0c2771ca4017abd0",
+    "sol-round2.json": "7ce1e33eba15ebe6a778e0341553955308bb6f3282afe381340f853789f8f74d"
+  },
+  "arithmetic": "build-report.py validated both 52-file reports, per-image totals, exact cohort means and input hashes. No threshold rounding or cross-cohort pooling.",
+  "spread_count": 41,
+  "spread_files": 25,
+  "reinspection": "Parent individually viewed all25 originals at original resolution across both themes and sizes. Raw scores retained independently.",
+  "spread_findings": [
+    {
+      "file": "kyrecovery-02-after-audit-desktop-dark.png",
+      "dimension": "hierarchy",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-audit-desktop-dark.png",
+      "dimension": "density_layout",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "kyrecovery-02-after-audit-desktop-dark.png",
+      "dimension": "coherence",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-audit-desktop-light.png",
+      "dimension": "hierarchy",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-audit-desktop-light.png",
+      "dimension": "density_layout",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "kyrecovery-02-after-audit-desktop-light.png",
+      "dimension": "coherence",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-audit-mobile-dark.png",
+      "dimension": "density_layout",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "kyrecovery-02-after-audit-mobile-dark.png",
+      "dimension": "coherence",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-audit-mobile-light.png",
+      "dimension": "density_layout",
+      "opus": 6,
+      "sol": 8
+    },
+    {
+      "file": "kyrecovery-02-after-audit-mobile-light.png",
+      "dimension": "coherence",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-capsules-desktop-dark.png",
+      "dimension": "color",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-ceremony-desktop-dark.png",
+      "dimension": "typography",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-ceremony-desktop-dark.png",
+      "dimension": "density_layout",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-ceremony-desktop-dark.png",
+      "dimension": "coherence",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-ceremony-desktop-light.png",
+      "dimension": "typography",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-ceremony-desktop-light.png",
+      "dimension": "density_layout",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-ceremony-desktop-light.png",
+      "dimension": "coherence",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-ceremony-mobile-dark.png",
+      "dimension": "typography",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-ceremony-mobile-dark.png",
+      "dimension": "coherence",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-ceremony-mobile-light.png",
+      "dimension": "typography",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-ceremony-mobile-light.png",
+      "dimension": "coherence",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-custodian-form-desktop-dark.png",
+      "dimension": "typography",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-custodian-form-desktop-light.png",
+      "dimension": "typography",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-custodian-form-mobile-dark.png",
+      "dimension": "typography",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-custodian-form-mobile-dark.png",
+      "dimension": "density_layout",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-custodian-form-mobile-light.png",
+      "dimension": "typography",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-custodian-form-mobile-light.png",
+      "dimension": "density_layout",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-overview-desktop-dark.png",
+      "dimension": "hierarchy",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-overview-desktop-light.png",
+      "dimension": "hierarchy",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-overview-mobile-dark.png",
+      "dimension": "hierarchy",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-overview-mobile-light.png",
+      "dimension": "hierarchy",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-pairing-form-desktop-dark.png",
+      "dimension": "typography",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-pairing-form-desktop-light.png",
+      "dimension": "typography",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-pairing-form-mobile-dark.png",
+      "dimension": "typography",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-pairing-form-mobile-light.png",
+      "dimension": "typography",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-replication-form-desktop-dark.png",
+      "dimension": "typography",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-replication-form-desktop-dark.png",
+      "dimension": "coherence",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-replication-form-desktop-light.png",
+      "dimension": "typography",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-replication-form-desktop-light.png",
+      "dimension": "coherence",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-replication-form-mobile-dark.png",
+      "dimension": "coherence",
+      "opus": 7,
+      "sol": 9
+    },
+    {
+      "file": "kyrecovery-02-after-replication-form-mobile-light.png",
+      "dimension": "coherence",
+      "opus": 7,
+      "sol": 9
+    }
+  ],
+  "decisions": {
+    "audit": "Identifier/timestamp wrapping creates unnecessary desktop row height; retain phone scroll access.",
+    "phone_forms": "Two-line labels are usable but are a regression from one-line actions; remove equal-width constraint.",
+    "overview": "Prioritize the existing key/custodians destination before backup review while no current key exists.",
+    "ceremony": "Legible, correctly branded and unclipped; input width/bold emphasis are optional taste, not a required redesign.",
+    "replication_form": "No clipping in scored viewport, but both reviewers confirm real keyboard containment failure; native dialogs address all seven modal paths.",
+    "palette": "Keep the shared accent/danger tokens; similarity is an upstream optional finding, not an off-palette product defect.",
+    "bootstrap_helper": "Verified generated password is written to initial-admin-password; correct the existing inaccurate log guidance."
+  },
+  "blindness_caveat": "Opus disclosed briefly seeing prior cohort means before its freeze; no prior per-file or peer-round2 scores were seen. Sol reports a complete pre-prior freeze. Preserve disclosures and raw scores.",
+  "progression": "Not passed: Opus console183.4/24 and settings187.2/24 remain below8. Sol is satisfied for covered visual scope. Gemini deferred. Keyboard gate fails; other full gates remain untested."
+}

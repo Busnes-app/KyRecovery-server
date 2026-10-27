@@ -1,0 +1,49 @@
+{
+  "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+  "raw_report": "r3-impeccable-raw.json",
+  "findings": 17,
+  "required_fixes": 0,
+  "exceptions": [
+    {
+      "rule": "overused-font",
+      "count": 2,
+      "classification": "pinned-design",
+      "reason": "Space Grotesk is the explicit suite design-contract typeface."
+    },
+    {
+      "rule": "cramped-padding",
+      "count": 15,
+      "classification": "static-context-false-positive",
+      "reason": "Panel source classes are flattened by .tab-content > .panel and ceremony overrides; section rules and table scrollers intentionally run to the content edge. Rendered body copy and dialog fields have separate insets. The audit table edge is a scroll boundary, not text padding."
+    }
+  ],
+  "browser_supplement": {
+    "browser": "T3 collaborative Chromium154/DPR2; separate from scored Chromium153/DPR1",
+    "phone": {
+      "viewport": [
+        390,
+        844
+      ],
+      "pairing_dialog_native_modal": true,
+      "close_initially_focused": true,
+      "footer_heights": [
+        40,
+        40
+      ],
+      "escape_restored": "New pairing code",
+      "page_overflow": 0
+    },
+    "desktop": {
+      "viewport": [
+        1280,
+        900
+      ],
+      "audit_row_height": 47,
+      "prior_audit_row_height": 71,
+      "identifier_timestamp": "nowrap",
+      "page_overflow": 0,
+      "primary_navigation_regions": 1
+    },
+    "limits": "Scoped live checks and 20 browser tests; no whole-product keyboard/focus or complete state/contrast gate."
+  }
+}

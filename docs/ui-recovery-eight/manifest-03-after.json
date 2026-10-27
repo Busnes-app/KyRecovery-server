@@ -1,0 +1,1169 @@
+{
+  "product": "KyRecovery",
+  "stage": "03",
+  "phase": "after",
+  "councilRound": 3,
+  "source_commit": "675c71483055681b0a648adb60ae53f91997bf87",
+  "uncommitted_source_sha256": null,
+  "source_files": {
+    "internal/server/static/index.html": "26f7ae924a3ffbfd409f966d7e8396e3103ff03537b9646fa712be6499d52f07",
+    "internal/server/static/css/styles.css": "effe3194dee2b874948595f531c3a852b727913731a342df6e6c8f98edfd6761",
+    "internal/server/static/ceremony.html": "135ac5f1f4ba6042ebc697bcd64c2f33541c52371e7767b7adf5058dcc9216b4",
+    "internal/server/static/css/ceremony.css": "e2c3654e4982a8d7d89faddefa622b4f84876a3b99517a9a824c71a99a08d2cf",
+    "internal/server/static/js/app.js": "e03f25a84cf278cea567f34c408811d0266f527c31833a672de37fe8a62944cd",
+    "internal/server/static/js/theme.js": "975ac577c157b8c182247ddee99cfd7e588214b83fdf083852c2ed9869d2f4a8",
+    "internal/server/static/js/ceremony.js": "236267a24b833fc6c0b3c834d28ae6eb97bc87598ba25eb0d743570f5b3dbe86",
+    "internal/server/static/ky-ui/VERSION": "dfdf8f21203cf33b0a1f2cf8ed6128b216b3d9ad56807ffabc0bf87b5e31a5db"
+  },
+  "captured_at": "2026-10-27T13:12:04.220Z",
+  "os": "Linux 7.2.10-1-cachyos",
+  "driver": "Playwright 1.63.0; Chromium 153.0.8010.12; DPR1; normal service-worker behavior",
+  "fixture": "Disposable administrator, no ceremony/key/capsules/pairings/custodians/targets; open forms are not submitted. Initial viewport only.",
+  "served_index_sha256": "26f7ae924a3ffbfd409f966d7e8396e3103ff03537b9646fa712be6499d52f07",
+  "shots": [
+    {
+      "file": "kyrecovery-03-after-overview-desktop-light.png",
+      "sha256": "2f25fa268b226de855136c1fd660c7c2c4b3d1c9ebc8edb136eaad7b5c025979",
+      "bytes": 100058,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-light",
+      "cohort": "admin-console",
+      "surface": "overview",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-backups-desktop-light.png",
+      "sha256": "02169306ca611a910f62998cf2758b5906b4a142180c1821a48fce59117018bf",
+      "bytes": 88002,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-light",
+      "cohort": "admin-console",
+      "surface": "backups",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-capsules-desktop-light.png",
+      "sha256": "c851fd58318bb4256e7aa8400121a4ee6e9fc23a8833e35f1b8cf5261c9ac27f",
+      "bytes": 90878,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-light",
+      "cohort": "admin-console",
+      "surface": "capsules",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-pairing-desktop-light.png",
+      "sha256": "23716d4fa5d42cf3ce79503ad49379d69b8d5e9065b45d96e74a54613def0977",
+      "bytes": 64150,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-light",
+      "cohort": "admin-console",
+      "surface": "pairing",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-custodians-desktop-light.png",
+      "sha256": "9520f7e5558f4122bbd1a355d3e76bcd24a2416c1766c666d92404af9a9a6ae9",
+      "bytes": 59519,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-light",
+      "cohort": "settings",
+      "surface": "custodians",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-replication-desktop-light.png",
+      "sha256": "f3d217d9ceb8da701132e78d9a132a56c2e967b79171b8d1bb0953f9954baf89",
+      "bytes": 77282,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-light",
+      "cohort": "settings",
+      "surface": "replication",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-audit-desktop-light.png",
+      "sha256": "9420651ba2a926f18bf087fefb0a374e295ded998ab1af2114b651977507ea2a",
+      "bytes": 58784,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-light",
+      "cohort": "admin-console",
+      "surface": "audit",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-appearance-desktop-light.png",
+      "sha256": "1ba642331c080051856e7f73135a2b67f97a7f116cf69fe06c52d3c621534708",
+      "bytes": 84163,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-light",
+      "cohort": "settings",
+      "surface": "appearance",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-pairing-form-desktop-light.png",
+      "sha256": "2ed922f8e72265e5e7cb3ac1ab90664212516794204a66b8f7c94a3c11ac26c8",
+      "bytes": 97439,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-light",
+      "cohort": "admin-console",
+      "surface": "pairing-form",
+      "state": "open form",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-custodian-form-desktop-light.png",
+      "sha256": "99dd098dcbadef3e9775e91bf6ebf14b710ab4ba446fa9c758dba6a8962449b2",
+      "bytes": 84404,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-light",
+      "cohort": "settings",
+      "surface": "custodian-form",
+      "state": "open form",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-replication-form-desktop-light.png",
+      "sha256": "71e269b3182d225f61fbf88e3b7fa23a7824e4cb321ee4ff9db4985bca422b1a",
+      "bytes": 101365,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-light",
+      "cohort": "settings",
+      "surface": "replication-form",
+      "state": "open form",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-ceremony-desktop-light.png",
+      "sha256": "948c1cab5009e743d8f264cfe3f626c893c7f2ccdb6d26422ac5f8ed8bcd7731",
+      "bytes": 44020,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-light",
+      "cohort": "settings",
+      "surface": "ceremony",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-login-desktop-light.png",
+      "sha256": "e70bea3e6847571b0c89e9815f2b0ebe715f3004868052f0c874713994368877",
+      "bytes": 39528,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-light",
+      "cohort": "auth",
+      "surface": "login",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-overview-mobile-light.png",
+      "sha256": "b778f0955693d157fbf22d4a33bc1bf6b5d4ecfaa75f28f847237b180985eca9",
+      "bytes": 47918,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-light",
+      "cohort": "admin-console",
+      "surface": "overview",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-backups-mobile-light.png",
+      "sha256": "90b6f1d34f179ddd50b099a3599545be6c7c293f1b7b691331a18869f97ccb10",
+      "bytes": 46132,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-light",
+      "cohort": "admin-console",
+      "surface": "backups",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-capsules-mobile-light.png",
+      "sha256": "b5c579eb2b40eb3c2ca1b91cca46a2b0fd2a4299c9ac1e28cdca49c5e9eba882",
+      "bytes": 45584,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-light",
+      "cohort": "admin-console",
+      "surface": "capsules",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-pairing-mobile-light.png",
+      "sha256": "0aa2a499bbfe073eb2d551ed4bb028b6d4e1ea5e15f45b824976ba801ea997c9",
+      "bytes": 35968,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-light",
+      "cohort": "admin-console",
+      "surface": "pairing",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-custodians-mobile-light.png",
+      "sha256": "a892e702b156f51d22cd7019d32473deb57a71b69683298c501791bd2a394f10",
+      "bytes": 35724,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-light",
+      "cohort": "settings",
+      "surface": "custodians",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-replication-mobile-light.png",
+      "sha256": "d7efec38c5c9cf653e12ecc0acdf532bb66ba1d364c3e3f34c1c23aa9fc50e1a",
+      "bytes": 46098,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-light",
+      "cohort": "settings",
+      "surface": "replication",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-audit-mobile-light.png",
+      "sha256": "5a3bfd0d965fcef7c32380c0942c19c289fd754105325b090171e388da6882e3",
+      "bytes": 32582,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-light",
+      "cohort": "admin-console",
+      "surface": "audit",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-appearance-mobile-light.png",
+      "sha256": "085376811d957c0660eca7723043bf31a6bf48e9671c0394a4f7d6dc7a099862",
+      "bytes": 40637,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-light",
+      "cohort": "settings",
+      "surface": "appearance",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-pairing-form-mobile-light.png",
+      "sha256": "07b25d435c5d1f97395e2a460dfc15e3a2e77be394eef31121994231b3735a56",
+      "bytes": 49091,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-light",
+      "cohort": "admin-console",
+      "surface": "pairing-form",
+      "state": "open form",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-custodian-form-mobile-light.png",
+      "sha256": "684155f38d4f298189604ff7dd2cc7e605bd0001856365073b221b9e6364b548",
+      "bytes": 48554,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-light",
+      "cohort": "settings",
+      "surface": "custodian-form",
+      "state": "open form",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-replication-form-mobile-light.png",
+      "sha256": "6dbbfb1ed7920432c514d0721989e899cb3a4cd927a279999ea3f2f6f17205df",
+      "bytes": 42922,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-light",
+      "cohort": "settings",
+      "surface": "replication-form",
+      "state": "open form",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-ceremony-mobile-light.png",
+      "sha256": "8dfa2883ec51f1b8258b22d88eac1f0ad8dec403f689b188308ca0358963fb17",
+      "bytes": 39641,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-light",
+      "cohort": "settings",
+      "surface": "ceremony",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-login-mobile-light.png",
+      "sha256": "1fd2417c5c31f4a44298ec1a0b80c2ea71c246a7bb5827d9649d21127ba76392",
+      "bytes": 32223,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-light",
+      "cohort": "auth",
+      "surface": "login",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-overview-desktop-dark.png",
+      "sha256": "4df42c23a36fa8f4262d59704cae257e72b8a32afa71d75ef4c2b1a1810cdae7",
+      "bytes": 100216,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-dark",
+      "cohort": "admin-console",
+      "surface": "overview",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-backups-desktop-dark.png",
+      "sha256": "49b46d776e5da266bdd735217ac1ee8dd254bb02d52ccec30a7734694b204822",
+      "bytes": 88168,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-dark",
+      "cohort": "admin-console",
+      "surface": "backups",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-capsules-desktop-dark.png",
+      "sha256": "87fbbc94f5921935c12e69525f38c15c5e029ebf025eba905066033f8c6d6238",
+      "bytes": 91005,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-dark",
+      "cohort": "admin-console",
+      "surface": "capsules",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-pairing-desktop-dark.png",
+      "sha256": "a258e77a7cb8e6ae8c968a0dedc9d5be4d95d741f7c38b648aa55aa8070f99d2",
+      "bytes": 64363,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-dark",
+      "cohort": "admin-console",
+      "surface": "pairing",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-custodians-desktop-dark.png",
+      "sha256": "50d51329c3ab3efa1c49bdeb5c4d6089fe493c1e7292e0fac826ef88e90f7700",
+      "bytes": 59659,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-dark",
+      "cohort": "settings",
+      "surface": "custodians",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-replication-desktop-dark.png",
+      "sha256": "6cbc8f355cbf272197f56375073c6602bd90b0bc5d8f060c48d00af0e0e5a031",
+      "bytes": 77546,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-dark",
+      "cohort": "settings",
+      "surface": "replication",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-audit-desktop-dark.png",
+      "sha256": "e30fe4182dbbb5e0f6de28cbc657e240a52d5209f5cd02d683223368b86ba4e4",
+      "bytes": 58925,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-dark",
+      "cohort": "admin-console",
+      "surface": "audit",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-appearance-desktop-dark.png",
+      "sha256": "665ce9d9fd6d15901d6bc9e0df5c764d00c2d937026d2697473af8b938fb3b7d",
+      "bytes": 84873,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-dark",
+      "cohort": "settings",
+      "surface": "appearance",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-pairing-form-desktop-dark.png",
+      "sha256": "426cf788f12b5237f3a2cc9d7ff7357f7bc512b8d0e1f9b4fa1ccc0414d1b2d1",
+      "bytes": 96656,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-dark",
+      "cohort": "admin-console",
+      "surface": "pairing-form",
+      "state": "open form",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-custodian-form-desktop-dark.png",
+      "sha256": "55944dfecaad8dfc1470a13d8170c8e768b995ce88e169f4e294a21f37dbd347",
+      "bytes": 83490,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-dark",
+      "cohort": "settings",
+      "surface": "custodian-form",
+      "state": "open form",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-replication-form-desktop-dark.png",
+      "sha256": "a6b55532e1b7098ae326cee19e146bf6886b68c572c437f8cdbb593b7ae63743",
+      "bytes": 101387,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-dark",
+      "cohort": "settings",
+      "surface": "replication-form",
+      "state": "open form",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-ceremony-desktop-dark.png",
+      "sha256": "416dd70be4e1489c8bb248f525126922d9c4a58f045c3a52ec2943cf718e5ba0",
+      "bytes": 44295,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-dark",
+      "cohort": "settings",
+      "surface": "ceremony",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-login-desktop-dark.png",
+      "sha256": "aad53d493742b059edc305d9b5c6bfdfee0dd8163306036e44546c9624843000",
+      "bytes": 39626,
+      "width": 1280,
+      "height": 900,
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "device": "desktop",
+      "theme": "busnes-dark",
+      "cohort": "auth",
+      "surface": "login",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        1280,
+        900
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-overview-mobile-dark.png",
+      "sha256": "c8578465fd28fde36b97f217549050af2163dbc1dd18932acff737d78d2bc91a",
+      "bytes": 48834,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-dark",
+      "cohort": "admin-console",
+      "surface": "overview",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-backups-mobile-dark.png",
+      "sha256": "79dc9d5701aca77dd096a85f7f040be40cae6d5175823169a87c1c795b7f4697",
+      "bytes": 46552,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-dark",
+      "cohort": "admin-console",
+      "surface": "backups",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-capsules-mobile-dark.png",
+      "sha256": "3a864a7afdb059065fedbfdf90b05485ad30fab3b32ccc38cb6ff7424ad8162b",
+      "bytes": 45989,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-dark",
+      "cohort": "admin-console",
+      "surface": "capsules",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-pairing-mobile-dark.png",
+      "sha256": "0beee71d251244f35b458345b9eb47a2c923d8a552b032bd81f2d068b113b416",
+      "bytes": 36360,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-dark",
+      "cohort": "admin-console",
+      "surface": "pairing",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-custodians-mobile-dark.png",
+      "sha256": "1c0085196e567d08bf3466b1bc64e459b410fb95a627a028f50e7f9f7a875366",
+      "bytes": 35988,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-dark",
+      "cohort": "settings",
+      "surface": "custodians",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-replication-mobile-dark.png",
+      "sha256": "e5bac905319f95415d832214c82ca77955beb7752992ce6205af32b4eaa74ad7",
+      "bytes": 46490,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-dark",
+      "cohort": "settings",
+      "surface": "replication",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-audit-mobile-dark.png",
+      "sha256": "c5217f2cd13cd328301c539630bbd40812c673fac98a8d4770dd0e12eab77276",
+      "bytes": 32862,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-dark",
+      "cohort": "admin-console",
+      "surface": "audit",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-appearance-mobile-dark.png",
+      "sha256": "a7034d0906083d875b69f85f0e408d4d7bcc5205aa11cac91df19546fc11e31f",
+      "bytes": 41548,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-dark",
+      "cohort": "settings",
+      "surface": "appearance",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-pairing-form-mobile-dark.png",
+      "sha256": "ed13588299c42589a15d631bac4e6cf766e53978756f51e2e13d384843fd4458",
+      "bytes": 48753,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-dark",
+      "cohort": "admin-console",
+      "surface": "pairing-form",
+      "state": "open form",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-custodian-form-mobile-dark.png",
+      "sha256": "d9b1a3ce93f7cb98df33718c46f76caa6082a631c17620c1c09e456ffcbc9256",
+      "bytes": 47734,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-dark",
+      "cohort": "settings",
+      "surface": "custodian-form",
+      "state": "open form",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-replication-form-mobile-dark.png",
+      "sha256": "00e998311e2a873213fea674e424a3dd2ef825b7e31ffb4805da81cf310427f8",
+      "bytes": 43059,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-dark",
+      "cohort": "settings",
+      "surface": "replication-form",
+      "state": "open form",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-ceremony-mobile-dark.png",
+      "sha256": "e9d74d8002e527d167740cef4b56b700b13e1ab09b9416145ce1648403000f74",
+      "bytes": 39752,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-dark",
+      "cohort": "settings",
+      "surface": "ceremony",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    },
+    {
+      "file": "kyrecovery-03-after-login-mobile-dark.png",
+      "sha256": "4151eb9aaa82218134302a8368f105f67da39fe47a6ced024bba7c6ea1113c4a",
+      "bytes": 32560,
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "theme": "busnes-dark",
+      "cohort": "auth",
+      "surface": "login",
+      "state": "empty/unconfigured",
+      "overflow": 0,
+      "renderedViewport": [
+        390,
+        844
+      ],
+      "savedChoice": null
+    }
+  ]
+}

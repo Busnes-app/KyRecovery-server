@@ -266,8 +266,10 @@ code, .mono { font-family: var(--mono); font-size: 12.5px; color: var(--paper-mu
 .login-lede p { color: var(--paper-muted); font-size: 15px; max-width: 40ch; }
 
 /* Modal */
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(12, 16, 22, 0.7); backdrop-filter: blur(3px); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
-.modal-overlay.open { display: flex; }
+.modal-overlay { display: none; position: fixed; inset: 0; width: 100%; height: 100dvh; max-width: none; max-height: none; margin: 0; border: 0; background: transparent; color: inherit; overflow: hidden; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay[open] { display: flex; }
+.modal-overlay::backdrop { background: rgba(12, 16, 22, 0.7); backdrop-filter: blur(3px); }
+body:has(dialog[open]) { overflow: hidden; }
 .modal-card { background: var(--ink-raised); border: 1px solid var(--rule-strong); border-radius: var(--radius-panel); width: 100%; max-width: 600px; max-height: calc(100dvh - 32px); overflow: hidden; display: flex; flex-direction: column; }
 .modal-card > form { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 .modal-header, .modal-footer { flex-shrink: 0; }
@@ -429,6 +431,13 @@ body:not(.signed-in) > footer { margin-top: auto; }
   .overview-next h2 { font-size: var(--ky-type-section); }
   .modal-overlay { padding: 16px; }
   .modal-header, .modal-body, .modal-footer { padding: 16px; }
-  .modal-footer .btn { flex: 1; }
+  .modal-footer .btn { flex: 1 0 auto; white-space: nowrap; }
   .modal-footer > .btn:first-child:nth-last-child(3) { flex-basis: 100%; }
 }
+
+/* Keep ledger identifiers and dates together while the containing region scrolls. */
+#tab-audit table.data-table th, #tab-audit table.data-table td { padding: 12px; white-space: nowrap; }
+#tab-audit table.data-table td:first-child, #tab-audit table.data-table td:last-child { width: 1%; }
+#tab-backups .panel > .panel-note { padding: 0; margin: 8px 0; }
+#tab-backups .panel > .panel-header + .panel-note { margin-top: 16px; }
+#tab-backups .panel-note code { white-space: nowrap; }

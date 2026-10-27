@@ -93,6 +93,8 @@ test('retention validates fields, persists values and refuses a cross-origin wri
 
 test('actual WASM ceremony refuses invalid topology, imports only public fields and rotates explicitly', async ({ page, vault }) => {
   await enter(page, vault);
+  await expect(page.locator('#overview-key-action')).toHaveClass('btn btn-primary');
+  await expect(page.locator('.overview-next-row').first()).toHaveAttribute('id', 'overview-key-row');
   await page.goto(vault.url + '/admin/ceremony');
   await page.locator('#k').fill('4');
   await page.locator('#n').fill('3');
@@ -106,6 +108,8 @@ test('actual WASM ceremony refuses invalid topology, imports only public fields 
   expect(keys.find(k => k.key_id === first).status).toBe('previous');
   expect(keys.find(k => k.key_id === second).status).toBe('current');
   await page.goto(vault.url);
+  await expect(page.locator('#overview-backups-action')).toHaveClass('btn btn-primary');
+  await expect(page.locator('.overview-next-row').first()).toHaveAttribute('id', 'overview-backups-row');
   await tab(page, 'Custodians & Quorum');
   const previous = page.locator('#recovery-keys-body tr').filter({ hasText: first });
   page.once('dialog', dialog => dialog.accept());

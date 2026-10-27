@@ -1,4 +1,4 @@
-import { test, expect, enter, tab } from './fixtures.mjs';
+import { test, expect, enter, tab, account } from './fixtures.mjs';
 
 test('navigation, account and dialog actions remain reachable at the shipped sizes', async ({ page, vault }) => {
   await enter(page, vault);
@@ -32,4 +32,50 @@ test('navigation, account and dialog actions remain reachable at the shipped siz
   await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(dialog).toBeHidden();
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
+});
+
+
+test('dialogs contain keyboard focus, close with Escape and restore their triggers', async ({ page, vault }) => {
+  await enter(page, vault);
+  for (const [destination, name, id] of [
+    ['Paired Products', 'New pairing code', 'pairing-gen-modal'],
+    ['Custodians & Quorum', '+ Register Custodian', 'custodian-modal'],
+    ['Offsite Replication', 'Add target', 'replication-modal'],
+  ]) {
+    await tab(page, destination);
+    const trigger = page.getByRole('button', { name, exact: true });
+    await trigger.click();
+    const dialog = page.locator('#' + id);
+    await expect(dialog).toHaveRole('dialog');
+    const close = dialog.getByRole('button', { name: 'Close dialog', exact: true });
+    await expect(close).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    // Chromium may focus browser chrome at a native-dialog boundary; page controls stay inert.
+    expect(await dialog.evaluate(el => !document.hasFocus() || el.contains(document.activeElement))).toBe(true);
+    await page.keyboard.press('Tab');
+    await expect(close).toBeFocused();
+    await page.locator('nav.nav-tabs button').first().evaluate(el => el.focus());
+    await expect(close).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
+    await trigger.click();
+    for (const button of await dialog.locator('.modal-footer button').all()) {
+      expect((await button.boundingBox()).height).toBe(40);
+    }
+    await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(trigger).toBeFocused();
+  }
+  for (const [action, id, triggerId] of [
+    ['Password', 'change-password-modal', 'btn-change-pass-header'],
+    ['SSO pairing', 'sso-config-modal', 'btn-sso-pair-header'],
+  ]) {
+    await account(page, action);
+    const dialog = page.locator('#' + id);
+    await expect(dialog.getByRole('button', { name: 'Close dialog', exact: true })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    const returned = page.viewportSize().width < 900 ? page.getByRole('button', { name: 'Account', exact: true }) : page.locator('#' + triggerId);
+    await expect(returned).toBeFocused();
+  }
 });

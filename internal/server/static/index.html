@@ -52,13 +52,13 @@
     <div class="panel" style="padding: 28px;">
       <form onsubmit="submitLocalLogin(event)">
         <div class="form-group">
-          <label class="form-label" for="login-username">Username</label>
+          <label class="form-label" for="login-username">Username (required)</label>
           <input id="login-username" class="form-input" type="text" placeholder="admin" required autocomplete="username">
         </div>
         <div class="form-group">
-          <label class="form-label" for="login-password">Password</label>
+          <label class="form-label" for="login-password">Password (required)</label>
           <input id="login-password" class="form-input" type="password" placeholder="Enter administrator password" required autocomplete="current-password">
-          <div class="metric-sub">Generated in server startup log on first launch</div>
+          <div class="metric-sub">Use your configured administrator password. If generated on first launch, read <code>initial-admin-password</code> in the server’s data directory.</div>
         </div>
         <div id="login-error-box" style="display: none; background: var(--accent-red-dim); border: 1px solid var(--accent-red); color: var(--accent-red); padding: 8px 12px; border-radius: 4px; font-size: 12px; margin-bottom: 16px;"></div>
         <button type="submit" id="btn-local-login-submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 10px 0; font-weight: bold;">Sign In</button>
@@ -113,8 +113,8 @@
       </dl>
       <section class="overview-next" aria-labelledby="overview-next-heading">
         <h2 id="overview-next-heading">Check your recovery path</h2>
-        <div class="overview-next-row"><div><h3>Backup coverage</h3><p>Review stale or missing backups and open a service's restore plan.</p></div><button type="button" class="btn btn-primary" onclick="document.querySelector('[data-tab=tab-backups]').click()">Review backups</button></div>
-        <div class="overview-next-row"><div><h3>Key and custodians</h3><p>Check the ceremony record and the people holding the recovery cards.</p></div><button type="button" class="btn btn-secondary" onclick="document.querySelector('[data-tab=tab-custodians]').click()">View custodians &amp; quorum</button></div>
+        <div id="overview-backups-row" class="overview-next-row"><div><h3>Backup coverage</h3><p>Review stale or missing backups and open a service's restore plan.</p></div><button id="overview-backups-action" type="button" class="btn btn-secondary" onclick="document.querySelector('[data-tab=tab-backups]').click()">Review backups</button></div>
+        <div id="overview-key-row" class="overview-next-row"><div><h3>Key and custodians</h3><p>Check the ceremony record and the people holding the recovery cards.</p></div><button id="overview-key-action" type="button" class="btn btn-secondary" onclick="document.querySelector('[data-tab=tab-custodians]').click()">View custodians &amp; quorum</button></div>
         <div class="overview-next-row"><div><h3>Independent copies</h3><p>Review your offsite destinations and their replication results.</p></div><button type="button" class="btn btn-secondary" onclick="document.querySelector('[data-tab=tab-replication]').click()">View replication</button></div>
       </section>
 
@@ -229,15 +229,15 @@
           <div class="admin-only" style="display:none;">
             <div class="retention-fields">
               <div>
-                <label class="form-label" for="retention-days">Keep every backup (days)</label>
+                <label class="form-label" for="retention-days">Keep every backup (days) (required)</label>
           <input id="retention-days" class="form-input" type="number" min="0" max="36500" step="1" value="0" required aria-describedby="retention-status">
               </div>
               <div>
-                <label class="form-label" for="retention-weeks">Keep newest per week (weeks)</label>
+                <label class="form-label" for="retention-weeks">Keep newest per week (weeks) (required)</label>
           <input id="retention-weeks" class="form-input" type="number" min="0" max="5200" step="1" value="0" required>
               </div>
               <div>
-                <label class="form-label" for="retention-months">Keep newest per month (months)</label>
+                <label class="form-label" for="retention-months">Keep newest per month (months) (required)</label>
           <input id="retention-months" class="form-input" type="number" min="0" max="1200" step="1" value="0" required>
               </div>
             </div>
@@ -420,10 +420,10 @@
   </main>
 
   <!-- Pairing Code Generator Modal -->
-  <div id="pairing-gen-modal" class="modal-overlay">
+  <dialog id="pairing-gen-modal" class="modal-overlay" aria-labelledby="pairing-gen-modal-title">
     <div class="modal-card">
       <div class="modal-header">
-        <h2 class="panel-title">New pairing code</h2>
+        <h2 id="pairing-gen-modal-title" class="panel-title">New pairing code</h2>
         <button class="btn btn-secondary btn-sm" aria-label="Close dialog" onclick="closePairingGenModal()"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button>
       </div>
       <form onsubmit="submitGeneratePairing(event)">
@@ -450,13 +450,13 @@
         </div>
       </form>
     </div>
-  </div>
+  </dialog>
 
   <!-- Pairing Code Display Modal -->
-  <div id="pairing-code-display-modal" class="modal-overlay">
+  <dialog id="pairing-code-display-modal" class="modal-overlay" aria-labelledby="pairing-code-display-modal-title">
     <div class="modal-card">
       <div class="modal-header">
-        <h2 class="panel-title">Pairing code</h2>
+        <h2 id="pairing-code-display-modal-title" class="panel-title">Pairing code</h2>
         <button class="btn btn-secondary btn-sm" aria-label="Close dialog" onclick="closePairingDisplayModal()"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button>
       </div>
       <div class="modal-body" style="text-align: center;">
@@ -477,23 +477,23 @@
         <button type="button" class="btn btn-primary" onclick="closePairingDisplayModal()">Done</button>
       </div>
     </div>
-  </div>
+  </dialog>
 
   <!-- Custodian Add Modal -->
-  <div id="custodian-modal" class="modal-overlay">
+  <dialog id="custodian-modal" class="modal-overlay" aria-labelledby="custodian-modal-title">
     <div class="modal-card">
       <div class="modal-header">
-        <h2 class="panel-title">Add a custodian</h2>
+        <h2 id="custodian-modal-title" class="panel-title">Add a custodian</h2>
         <button class="btn btn-secondary btn-sm" aria-label="Close dialog" onclick="closeCustodianModal()"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button>
       </div>
       <form onsubmit="submitCustodian(event)">
         <div class="modal-body">
           <div class="form-group">
-            <label class="form-label" for="custodian-name">Custodian Full Name</label>
+            <label class="form-label" for="custodian-name">Custodian Full Name (required)</label>
           <input id="custodian-name" class="form-input" type="text" placeholder="e.g. Alice Chief" required>
           </div>
           <div class="form-group">
-            <label class="form-label" for="custodian-email">Custodian Email Address</label>
+            <label class="form-label" for="custodian-email">Custodian Email Address (required)</label>
           <input id="custodian-email" class="form-input" type="email" placeholder="alice@example.com" required>
           </div>
         </div>
@@ -503,13 +503,13 @@
         </div>
       </form>
     </div>
-  </div>
+  </dialog>
 
   <!-- Replication Target Add Modal -->
-  <div id="replication-modal" class="modal-overlay">
+  <dialog id="replication-modal" class="modal-overlay" aria-labelledby="replication-modal-title">
     <div class="modal-card">
       <div class="modal-header">
-        <h2 class="panel-title">Add a replication target</h2>
+        <h2 id="replication-modal-title" class="panel-title">Add a replication target</h2>
         <button class="btn btn-secondary btn-sm" aria-label="Close dialog" onclick="closeReplicationModal()"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button>
       </div>
       <form onsubmit="submitReplicationTarget(event)">
@@ -527,7 +527,7 @@
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label" for="repl-name">Target Name</label>
+            <label class="form-label" for="repl-name">Target Name (required)</label>
           <input id="repl-name" class="form-input" type="text" placeholder="e.g. Cloudflare R2 EU Vault" required>
           </div>
           <div class="form-group">
@@ -583,13 +583,13 @@
         </div>
       </form>
     </div>
-  </div>
+  </dialog>
 
   <!-- Snapshot Version Diff & Rollback Modal -->
-  <div id="diff-modal" class="modal-overlay">
+  <dialog id="diff-modal" class="modal-overlay" aria-labelledby="diff-modal-title">
     <div class="modal-card" style="max-width: 780px;">
       <div class="modal-header">
-        <h2 class="panel-title">Compare capsule versions</h2>
+        <h2 id="diff-modal-title" class="panel-title">Compare capsule versions</h2>
         <button class="btn btn-secondary btn-sm" aria-label="Close dialog" onclick="closeDiffModal()"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button>
       </div>
       <div class="modal-body">
@@ -630,15 +630,15 @@
         <button type="button" class="btn btn-secondary" onclick="closeDiffModal()">Close</button>
       </div>
     </div>
-  </div>
+  </dialog>
 
   </div> <!-- End #dashboard-view -->
 
   <!-- SSO Pairing & Configuration Modal -->
-  <div id="sso-config-modal" class="modal-overlay">
+  <dialog id="sso-config-modal" class="modal-overlay" aria-labelledby="sso-config-modal-title">
     <div class="modal-card" style="max-width: 640px;">
       <div class="modal-header">
-        <h2 class="panel-title">KySignOn sign-in</h2>
+        <h2 id="sso-config-modal-title" class="panel-title">KySignOn sign-in</h2>
         <button class="btn btn-secondary btn-sm" aria-label="Close dialog" onclick="closeSSOConfigModal()"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button>
       </div>
       <form onsubmit="submitSSOConfig(event)">
@@ -653,14 +653,14 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="sso-issuer-input">KySignOn Issuer URL</label>
+            <label class="form-label" for="sso-issuer-input">KySignOn Issuer URL (required)</label>
           <input id="sso-issuer-input" class="form-input" type="url" placeholder="https://auth.example.com" required>
             <div class="metric-sub">Base URL of your KySignOn instance (e.g. http://localhost:8080 or https://auth.example.com)</div>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
             <div class="form-group">
-              <label class="form-label" for="sso-client-id-input">OAuth Client ID</label>
+              <label class="form-label" for="sso-client-id-input">OAuth Client ID (required)</label>
           <input id="sso-client-id-input" class="form-input" type="text" placeholder="kyrecovery-server" required>
             </div>
             <div class="form-group">
@@ -689,28 +689,28 @@
         </div>
       </form>
     </div>
-  </div>
+  </dialog>
 
   <!-- Change Password Modal -->
-  <div id="change-password-modal" class="modal-overlay">
+  <dialog id="change-password-modal" class="modal-overlay" aria-labelledby="change-password-modal-title">
     <div class="modal-card">
       <div class="modal-header">
-        <h2 class="panel-title">Change password</h2>
+        <h2 id="change-password-modal-title" class="panel-title">Change password</h2>
         <button class="btn btn-secondary btn-sm" aria-label="Close dialog" onclick="closeChangePasswordModal()"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button>
       </div>
       <form onsubmit="submitChangePassword(event)">
         <div class="modal-body">
           <div class="form-group">
-            <label class="form-label" for="pass-current">Current Password</label>
+            <label class="form-label" for="pass-current">Current Password (required)</label>
           <input id="pass-current" class="form-input" type="password" required autocomplete="current-password">
           </div>
           <div class="form-group">
-            <label class="form-label" for="pass-new">New Password</label>
+            <label class="form-label" for="pass-new">New Password (required)</label>
           <input id="pass-new" class="form-input" type="password" minlength="8" required autocomplete="new-password">
             <div class="metric-sub">Minimum 8 characters</div>
           </div>
           <div class="form-group">
-            <label class="form-label" for="pass-confirm">Confirm New Password</label>
+            <label class="form-label" for="pass-confirm">Confirm New Password (required)</label>
           <input id="pass-confirm" class="form-input" type="password" minlength="8" required autocomplete="new-password">
           </div>
           <div id="change-pass-error" style="display: none; background: var(--accent-red-dim); border: 1px solid var(--accent-red); color: var(--accent-red); padding: 8px 12px; border-radius: 4px; font-size: 12px; margin-top: 10px;"></div>
@@ -721,7 +721,7 @@
         </div>
       </form>
     </div>
-  </div>
+  </dialog>
 
   <footer>
     KyRecovery Server &copy; 2026 Busnes.app. Privacy-safe, content-blind recovery verification.
