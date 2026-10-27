@@ -1,0 +1,25 @@
+Command: go test -p 2 -parallel 2 -fuzz=FuzzTargetLocation -fuzztime=150000x -fuzzminimizetime=5s ./internal/replication
+{"timestamp":"2026-10-27T14:18:16.699753725Z","level":"INFO","action":"capsule_replicated","actor":"replication-daemon","target_id":"cap-test-123","status":"AUDIT_RECORDED","message":"seq=1 hash=8735bf8b"}
+{"timestamp":"2026-10-27T14:18:16.715444613Z","level":"INFO","action":"capsule_replicated","actor":"replication-daemon","target_id":"cap-sftp-1","status":"AUDIT_RECORDED","message":"seq=1 hash=3cc3a206"}
+{"timestamp":"2026-10-27T14:18:16.722851156Z","level":"INFO","action":"capsule_replicated","actor":"replication-daemon","target_id":"cap-sftp-1","status":"AUDIT_RECORDED","message":"seq=2 hash=54322a80"}
+{"timestamp":"2026-10-27T14:18:16.735380725Z","level":"INFO","action":"capsule_replicated","actor":"replication-daemon","target_id":"cap-sftp-1","status":"AUDIT_RECORDED","message":"seq=1 hash=dc55440f"}
+{"timestamp":"2026-10-27T14:18:18.762874122Z","level":"INFO","action":"capsule_replicated","actor":"replication-daemon","target_id":"cap-sftp-1","status":"AUDIT_RECORDED","message":"seq=1 hash=7db80f4f"}
+{"timestamp":"2026-10-27T14:18:18.766188306Z","level":"INFO","action":"capsule_replicated","actor":"replication-daemon","target_id":"cap-sftp-1","status":"AUDIT_RECORDED","message":"seq=2 hash=ac699683"}
+{"timestamp":"2026-10-27T14:18:18.986417061Z","level":"ERROR","action":"sftp_staging_cleanup","actor":"replication-daemon","message":"Could not list staging files; continuing transfer","error":"permission denied"}
+{"timestamp":"2026-10-27T14:18:18.988228427Z","level":"ERROR","action":"sftp_staging_cleanup","actor":"replication-daemon","message":"Could not list staging files; continuing transfer","error":"permission denied"}
+{"timestamp":"2026-10-27T14:18:18.992144386Z","level":"ERROR","action":"sftp_staging_cleanup","actor":"replication-daemon","message":"Could not remove expired staging file; continuing transfer","error":"remove /vault/.ky-offsite-compat-stale: sftp: \"permission denied\" (SSH_FX_FAILURE)"}
+{"timestamp":"2026-10-27T14:18:18.994032155Z","level":"ERROR","action":"sftp_staging_cleanup","actor":"replication-daemon","message":"Could not remove expired staging file; continuing transfer","error":"remove /vault/.ky-offsite-compat-stale: sftp: \"permission denied\" (SSH_FX_FAILURE)"}
+{"timestamp":"2026-10-27T14:18:19.03704523Z","level":"INFO","action":"capsule_replicated","actor":"replication-daemon","target_id":"cap-sftp-1","status":"AUDIT_RECORDED","message":"seq=1 hash=0cfb47f2"}
+{"timestamp":"2026-10-27T14:18:19.050386946Z","level":"INFO","action":"capsule_replicated","actor":"replication-daemon","target_id":"cap-sftp-1","status":"AUDIT_RECORDED","message":"seq=2 hash=7432c280"}
+{"timestamp":"2026-10-27T14:18:19.058738917Z","level":"INFO","action":"capsule_replicated","actor":"replication-daemon","target_id":"cap-sftp-1","status":"AUDIT_RECORDED","message":"seq=3 hash=e9e2fee6"}
+{"timestamp":"2026-10-27T14:18:19.075048441Z","level":"INFO","action":"capsule_replicated","actor":"replication-daemon","target_id":"notes-backup-42","status":"AUDIT_RECORDED","message":"seq=4 hash=7476dc6e"}
+{"timestamp":"2026-10-27T14:18:19.09064376Z","level":"INFO","action":"capsule_replicated","actor":"replication-daemon","target_id":"cap-KySignOn-Legacy","status":"AUDIT_RECORDED","message":"seq=5 hash=a29d2e14"}
+fuzz: elapsed: 0s, gathering baseline coverage: 0/414 completed
+fuzz: elapsed: 2s, gathering baseline coverage: 414/414 completed, now fuzzing with 2 workers
+fuzz: elapsed: 3s, execs: 11586 (3861/sec), new interesting: 2 (total: 416)
+fuzz: elapsed: 6s, execs: 44725 (11046/sec), new interesting: 4 (total: 418)
+fuzz: elapsed: 9s, execs: 91653 (15647/sec), new interesting: 6 (total: 420)
+fuzz: elapsed: 12s, execs: 138334 (15559/sec), new interesting: 9 (total: 423)
+fuzz: elapsed: 13s, execs: 150000 (11989/sec), new interesting: 10 (total: 424)
+PASS
+ok  	github.com/Busnes-app/kyrecovery-server/internal/replication	18.195s

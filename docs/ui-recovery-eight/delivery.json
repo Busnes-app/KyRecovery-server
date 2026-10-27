@@ -12,6 +12,6 @@
   {
     "repository": "Busnes-app/KyRecovery-server",
     "url": "https://github.com/Busnes-app/KyRecovery-server/pull/81",
-    "status": "open; current-head CI/review and round4 pending"
+    "status": "open; round4 audited/gate held; round5 primaries and current-head CI/review pending"
   }
 ]
