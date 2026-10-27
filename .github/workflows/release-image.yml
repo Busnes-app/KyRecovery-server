@@ -114,6 +114,7 @@ jobs:
             go
             security
             docker
+            browser
         run: |
           set -euo pipefail
           sha="$(git rev-parse HEAD)"

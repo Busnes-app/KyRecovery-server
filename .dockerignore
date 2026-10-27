@@ -6,3 +6,4 @@ kyrecovery
 .env
 **/.env.*
 !**/.env.example
+tests/browser

@@ -18,6 +18,15 @@ version: 2
 # proposes SHA moves and the cooldown genuinely sits between an upstream release and
 # this repo running it; a mutable major tag would bypass both.
 updates:
+  - package-ecosystem: npm
+    directory: /tests/browser
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+    commit-message:
+      prefix: "chore(deps)"
+
   - package-ecosystem: gomod
     directory: /
     schedule:
