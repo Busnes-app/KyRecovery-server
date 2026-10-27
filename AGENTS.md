@@ -146,6 +146,7 @@ node scripts/test-wasm.mjs
 - Verify vendored files with `node internal/server/static/ky-ui/check-vendor.mjs` from this document's directory. Builds/CI run that check. Rendered evidence and capture limitations are recorded in the repository-root `UI-VERIFICATION.md`; the fleet Appearance stages (screenshots, manifests with hashes and behaviour checks, results CSV, reproducible `capture.mjs`) live in `docs/ui-fleet-2026-10-26/`.
 
 ## Child DOX Index
+- `docs/ui-recovery-eight/AGENTS.md`: focused Ky product-identity pass, frozen captures, Council scores and audits.
 - `docs/STRONG-CRYPTO.md`: supported process/edge profile, strong key/algorithm rules, migration and explicit SMB compatibility limits; preserve data/keys and all destination mappings.
 - `tests/browser/AGENTS.md`: disposable real-server dashboard/ceremony tests, test-only tooling and local fixture boundaries.
 - `docs/ASSURANCE-CASE.md`: threat model, trust boundaries and weakness → counter → code table; update it in the same change when a trust boundary, security requirement or a listed code path moves.
