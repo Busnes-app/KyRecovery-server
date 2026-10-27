@@ -59,6 +59,9 @@ type UserInfo struct {
 	Role    string `json:"role"` // "admin", "operator", "viewer"
 	// SessionID is the ID token's sid; a back-channel logout names the login by it.
 	SessionID string `json:"-"`
+	// IssuedAt is the ID token's iat; an SSO session is dated by it, so a subject-wide
+	// back-channel logout compares provider times.
+	IssuedAt time.Time `json:"-"`
 	// Local is set only by password login; every other login is fenced as native SSO.
 	Local bool `json:"-"`
 }
@@ -75,7 +78,16 @@ type Manager struct {
 	providerIssuer   string
 	providerClientID string
 	providerVerifier *oidc.IDTokenVerifier
+	// providerErr holds the last failed discovery, so it is retried at most once per
+	// oidcRefetchInterval rather than on every anonymous back-channel logout.
+	providerErr   error
+	providerErrAt time.Time
+	providerErrID string
 }
+
+// oidcRefetchInterval spaces discovery retries and JWKS refetches. go-oidc refetches the
+// JWKS for any token whose key it has not cached, before the signature is known good.
+const oidcRefetchInterval = 30 * time.Second
 
 // NewManager creates a new authentication manager.
 func NewManager(cfg OIDCConfig, database *db.DB) *Manager {
@@ -373,17 +385,24 @@ func (m *Manager) oidcProvider(ctx context.Context) (*oidc.Provider, *oidc.IDTok
 	if m.provider != nil && m.providerIssuer == issuer && m.providerClientID == cfg.ClientID {
 		return m.provider, m.providerVerifier, nil
 	}
+	key := issuer + "\x00" + cfg.ClientID
+	if m.providerErr != nil && m.providerErrID == key && time.Since(m.providerErrAt) < oidcRefetchInterval {
+		return nil, nil, m.providerErr
+	}
 
 	p, err := discoverProvider(ctx, issuer)
 	if err != nil {
-		return nil, nil, fmt.Errorf("OIDC discovery failed for %s: %w", issuer, err)
+		m.providerErr = fmt.Errorf("OIDC discovery failed for %s: %w", issuer, err)
+		m.providerErrAt, m.providerErrID = time.Now(), key
+		return nil, nil, m.providerErr
 	}
+	m.providerErr = nil
 	client := *oidcHTTPClient()
 	base := client.Transport
 	if base == nil {
 		base = http.DefaultTransport
 	}
-	client.Transport = strongJWKSTransport{base: base}
+	client.Transport = &spacedTransport{base: strongJWKSTransport{base: base}, every: oidcRefetchInterval}
 	verifier := p.VerifierContext(oidc.ClientContext(ctx, &client), &oidc.Config{ClientID: cfg.ClientID})
 	m.provider, m.providerIssuer, m.providerClientID, m.providerVerifier = p, issuer, cfg.ClientID, verifier
 	return p, verifier, nil
@@ -576,6 +595,7 @@ func (m *Manager) verifyIDToken(ctx context.Context, verifier *oidc.IDTokenVerif
 		Name:      claims.Name,
 		Role:      role,
 		SessionID: claims.SID,
+		IssuedAt:  idToken.IssuedAt,
 	}, nil
 }
 
@@ -599,6 +619,9 @@ func (m *Manager) CreateSession(ctx context.Context, u *UserInfo, secure bool) (
 	}
 	if u.Issuer != "" {
 		rec.SSOIssuer, rec.SSOSubject, rec.SSOSID = u.Issuer, u.Subject, u.SessionID
+		if !u.IssuedAt.IsZero() {
+			rec.CreatedAt = u.IssuedAt.UTC()
+		}
 		b, managed, err := m.db.InstallerConfiguration(ctx)
 		if err != nil {
 			return nil, err

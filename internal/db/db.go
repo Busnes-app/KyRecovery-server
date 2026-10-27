@@ -339,6 +339,15 @@ func (d *DB) migrate() error {
 		PRIMARY KEY (issuer, sid)
 	);
 
+	-- A subject-wide logout fences that subject's logins whose ID token predates cutoff.
+	CREATE TABLE IF NOT EXISTS sso_subject_logouts (
+		issuer TEXT NOT NULL,
+		subject TEXT NOT NULL,
+		cutoff DATETIME NOT NULL,
+		expires_at DATETIME NOT NULL,
+		PRIMARY KEY (issuer, subject)
+	);
+
 	CREATE TABLE IF NOT EXISTS replication_targets (
 		id TEXT PRIMARY KEY,
 		name TEXT NOT NULL,
@@ -1084,14 +1093,17 @@ func (d *DB) InsertSession(ctx context.Context, s SessionRecord) error {
 	if n != 1 {
 		return ErrSessionRefused
 	}
-	if s.SSOSID == "" {
+	if s.SSOIssuer == "" {
 		return nil
 	}
-	// Checked only after the insert: EndSSOSession writes its fence before deleting, so
-	// one of the two always sees the other.
+	// Checked only after the insert: EndSSOSession and EndSSOSubject write their fence
+	// before deleting, so one of the two always sees the other.
+	now := time.Now().UTC()
 	var fenced bool
-	err = d.conn.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM sso_logouts WHERE issuer = ? AND sid = ? AND expires_at > ?)`,
-		s.SSOIssuer, s.SSOSID, time.Now().UTC()).Scan(&fenced)
+	err = d.conn.QueryRowContext(ctx, `SELECT
+		EXISTS (SELECT 1 FROM sso_logouts WHERE issuer = ? AND sid = ? AND sid <> '' AND expires_at > ?) OR
+		EXISTS (SELECT 1 FROM sso_subject_logouts WHERE issuer = ? AND subject = ? AND cutoff > ? AND expires_at > ?)`,
+		s.SSOIssuer, s.SSOSID, now, s.SSOIssuer, s.SSOSubject, s.CreatedAt.UTC(), now).Scan(&fenced)
 	if err != nil || fenced {
 		_ = d.DeleteSession(ctx, s.ID)
 		if err != nil {
@@ -1116,9 +1128,21 @@ func (d *DB) EndSSOSession(ctx context.Context, issuer, sid string, fenceUntil t
 	return err
 }
 
-// EndSSOSubjectSessions ends a provider subject's sessions created before t.
-func (d *DB) EndSSOSubjectSessions(ctx context.Context, issuer, subject string, before time.Time) error {
-	_, err := d.conn.ExecContext(ctx, `DELETE FROM sessions WHERE sso_issuer = ? AND sso_subject = ? AND created_at < ?`, issuer, subject, before.UTC())
+// EndSSOSubject ends a provider subject's sessions dated before cutoff and fences that
+// subject's earlier logins until fenceUntil. It is keyed by subject, not by a local
+// session, so it also fences a first login whose callback is still in flight. Sessions
+// are dated by their ID token's iat, so cutoff and created_at are both provider time.
+func (d *DB) EndSSOSubject(ctx context.Context, issuer, subject string, cutoff, fenceUntil time.Time) error {
+	if _, err := d.conn.ExecContext(ctx, `DELETE FROM sso_subject_logouts WHERE expires_at <= ?`, time.Now().UTC()); err != nil {
+		return err
+	}
+	// An older logout delivered late never moves the cutoff back.
+	if _, err := d.conn.ExecContext(ctx, `INSERT INTO sso_subject_logouts (issuer, subject, cutoff, expires_at) VALUES (?, ?, ?, ?)
+	      ON CONFLICT (issuer, subject) DO UPDATE SET cutoff = excluded.cutoff, expires_at = excluded.expires_at
+	      WHERE sso_subject_logouts.cutoff < excluded.cutoff`, issuer, subject, cutoff.UTC(), fenceUntil.UTC()); err != nil {
+		return err
+	}
+	_, err := d.conn.ExecContext(ctx, `DELETE FROM sessions WHERE sso_issuer = ? AND sso_subject = ? AND created_at < ?`, issuer, subject, cutoff.UTC())
 	return err
 }
 

@@ -8,6 +8,8 @@ import (
 	"io"
 	"math/big"
 	"net/http"
+	"sync"
+	"time"
 
 	josejson "github.com/go-jose/go-jose/v4/json"
 )
@@ -63,4 +65,25 @@ func (t strongJWKSTransport) RoundTrip(req *http.Request) (*http.Response, error
 	}
 	resp.Body = io.NopCloser(bytes.NewReader(raw))
 	return resp, nil
+}
+
+// spacedTransport refuses a request made within every of the previous one, so a token
+// naming an unknown key cannot make each anonymous request fetch the JWKS. go-oidc keeps
+// its cached keys when a refresh fails.
+type spacedTransport struct {
+	base  http.RoundTripper
+	every time.Duration
+	mu    sync.Mutex
+	last  time.Time
+}
+
+func (t *spacedTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	t.mu.Lock()
+	if !t.last.IsZero() && time.Since(t.last) < t.every {
+		t.mu.Unlock()
+		return nil, errors.New("OIDC JWKS was fetched moments ago")
+	}
+	t.last = time.Now()
+	t.mu.Unlock()
+	return t.base.RoundTrip(req)
 }

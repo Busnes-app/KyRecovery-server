@@ -64,7 +64,10 @@ ceremony and deployment guidance, not by the software.
    addresses (`internal/auth/auth.go`, `strong_crypto.go`, `jwks_strength.go`).
    The provider's back-channel logout token passes the same verifier plus the logout-token
    claim rules before it ends the sessions of that issuer's `sid` or subject; it can only end
-   sessions, never create or widen one (`internal/auth/backchannel.go`).
+   sessions, never create or widen one (`internal/auth/backchannel.go`). The `sid`, or the
+   subject's cutoff, is fenced for ten minutes so a login callback in flight cannot revive
+   it; SSO sessions are dated by their ID token's `iat` (`internal/db/db.go`). The route is
+   anonymous, so discovery retries and JWKS fetches are spaced at least 30 seconds apart.
 5. **KyRecovery → offsite targets** (S3, R2, MinIO, SFTP, SMB, local mounts). The targets are
    configured by an admin and receive only ciphertext; S3 endpoints must be `https`
    (`internal/replication/offsite.go`).

@@ -8,7 +8,12 @@
   login there, now ends the matching KyRecovery sessions. KyIdentity POSTs a signed
   `logout_token` to `POST /api/auth/backchannel-logout`; register
   `<KyRecovery URL>/api/auth/backchannel-logout` as the client's back-channel logout URI.
-  Sessions created before this release carry no `sid` and end only when they expire or
+  A token naming a `sid` ends that login; one naming only the subject ends every login
+  of the subject whose ID token predates the logout. A logout that arrives while the
+  browser is still finishing that login, including a first login, stops the login from
+  completing. SSO sessions are dated by the ID token's `iat`. Repeated logout requests
+  never make KyRecovery re-run discovery or refetch the provider's keys more than once
+  every 30 seconds. Sessions created before this release carry no `sid` and end only when they expire or
   the user signs out here. The event is audited as `user_logged_out_sso`.
 
 ### Changed

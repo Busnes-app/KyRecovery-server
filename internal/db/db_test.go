@@ -189,4 +189,30 @@ func TestInsertSessionHonoursSSOLogoutFence(t *testing.T) {
 	if err := database.InsertSession(ctx, s); err != nil {
 		t.Fatalf("another issuer's sid was fenced: %v", err)
 	}
+
+	// A subject fence refuses that subject's logins dated before its cutoff, and a
+	// late, older logout does not move the cutoff back.
+	cutoff := time.Now().Truncate(time.Second)
+	if err := database.EndSSOSubject(ctx, "https://idp.example", "bob", cutoff, time.Now().Add(time.Minute)); err != nil {
+		t.Fatal(err)
+	}
+	if err := database.EndSSOSubject(ctx, "https://idp.example", "bob", cutoff.Add(-time.Hour), time.Now().Add(time.Minute)); err != nil {
+		t.Fatal(err)
+	}
+	bob := db.SessionRecord{ID: "bob-early", UserID: "bob", Role: "viewer", SSOIssuer: "https://idp.example", SSOSubject: "bob",
+		ExpiresAt: time.Now().Add(time.Hour), CreatedAt: cutoff.Add(-time.Minute)}
+	if err := database.InsertSession(ctx, bob); err != db.ErrSSOSessionEnded {
+		t.Fatalf("login before the subject cutoff: got %v, want ErrSSOSessionEnded", err)
+	}
+	if got, err := database.GetSession(ctx, bob.ID); err != nil || got != nil {
+		t.Fatalf("subject-fenced login left its row behind: %+v %v", got, err)
+	}
+	bob.ID, bob.CreatedAt = "bob-late", cutoff
+	if err := database.InsertSession(ctx, bob); err != nil {
+		t.Fatalf("login at the subject cutoff was fenced: %v", err)
+	}
+	bob.ID, bob.SSOIssuer, bob.CreatedAt = "bob-other-issuer", "https://other.example", cutoff.Add(-time.Minute)
+	if err := database.InsertSession(ctx, bob); err != nil {
+		t.Fatalf("another issuer's subject was fenced: %v", err)
+	}
 }

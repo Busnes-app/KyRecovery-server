@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -48,6 +49,8 @@ type fakeKyIdentity struct {
 	key     *rsa.PrivateKey
 	issuer  string
 	idToken string
+	// discoveries and jwksFetches count the provider's outbound fetches.
+	discoveries, jwksFetches atomic.Int32
 }
 
 func newFakeKyIdentity(t *testing.T) *fakeKyIdentity {
@@ -61,12 +64,14 @@ func newFakeKyIdentity(t *testing.T) *fakeKyIdentity {
 		w.Header().Set("Content-Type", "application/json")
 		switch r.URL.Path {
 		case "/.well-known/openid-configuration":
+			f.discoveries.Add(1)
 			_ = json.NewEncoder(w).Encode(map[string]any{
 				"issuer": f.issuer, "authorization_endpoint": f.issuer + "/authorize",
 				"token_endpoint": f.issuer + "/token", "jwks_uri": f.issuer + "/keys",
 				"id_token_signing_alg_values_supported": []string{"RS256"},
 			})
 		case "/keys":
+			f.jwksFetches.Add(1)
 			_ = json.NewEncoder(w).Encode(map[string]any{"keys": []any{map[string]any{
 				"kty": "RSA", "alg": "RS256", "kid": "k",
 				"n": base64.RawURLEncoding.EncodeToString(key.N.Bytes()), "e": "AQAB",
@@ -85,7 +90,10 @@ func newFakeKyIdentity(t *testing.T) *fakeKyIdentity {
 func (f *fakeKyIdentity) sign(t *testing.T, typ string, claims map[string]any) string {
 	t.Helper()
 	claims["iss"], claims["aud"] = f.issuer, "kyrecovery"
-	claims["iat"], claims["exp"] = time.Now().Unix(), time.Now().Add(2*time.Minute).Unix()
+	claims["exp"] = time.Now().Add(2 * time.Minute).Unix()
+	if _, ok := claims["iat"]; !ok {
+		claims["iat"] = time.Now().Unix()
+	}
 	header := map[string]string{"alg": "RS256", "kid": "k"}
 	if typ != "" {
 		header["typ"] = typ
@@ -111,6 +119,11 @@ func (f *fakeKyIdentity) logoutToken(t *testing.T, sub, sid string) string {
 
 // ssoLogin runs the KyIdentity login and callback for sub/sid and returns the callback response.
 func ssoLogin(t *testing.T, srv *server.Server, f *fakeKyIdentity, sub, sid string) *httptest.ResponseRecorder {
+	return ssoLoginAt(t, srv, f, sub, sid, time.Now())
+}
+
+// ssoLoginAt is ssoLogin with an ID token the provider issued at iat.
+func ssoLoginAt(t *testing.T, srv *server.Server, f *fakeKyIdentity, sub, sid string, iat time.Time) *httptest.ResponseRecorder {
 	t.Helper()
 	w := httptest.NewRecorder()
 	srv.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/api/auth/login", nil))
@@ -119,7 +132,7 @@ func ssoLogin(t *testing.T, srv *server.Server, f *fakeKyIdentity, sub, sid stri
 		t.Fatalf("login redirect: %d %s", w.Code, w.Body.String())
 	}
 	q := loc.Query()
-	f.idToken = f.sign(t, "", map[string]any{"sub": sub, "sid": sid, "nonce": q.Get("nonce"), "email": sub + "@example.com"})
+	f.idToken = f.sign(t, "", map[string]any{"sub": sub, "sid": sid, "nonce": q.Get("nonce"), "email": sub + "@example.com", "iat": iat.Unix()})
 	req := httptest.NewRequest(http.MethodGet, "/api/auth/callback?code=c&state="+q.Get("state"), nil)
 	for _, c := range w.Result().Cookies() {
 		req.AddCookie(c)
@@ -244,6 +257,24 @@ func TestBackchannelLogoutEndsTheSSOLogin(t *testing.T) {
 		t.Fatalf("logout for an unknown subject: got %d", w.Code)
 	}
 
+	// A subject-wide logout fences a callback already holding an ID token issued before
+	// it, even for a subject with no session here yet; a later login still works.
+	carolAt := time.Now().Add(-30 * time.Second)
+	carolLogout := f.sign(t, "logout+jwt", map[string]any{"sub": "carol", "jti": "carol", "iat": carolAt.Unix(),
+		"events": map[string]any{"http://schemas.openid.net/event/backchannel-logout": map[string]any{}}})
+	if w := postLogout(srv, carolLogout); w.Code != http.StatusOK {
+		t.Fatalf("subject-wide logout of an unprovisioned subject: got %d", w.Code)
+	}
+	if w := ssoLoginAt(t, srv, f, "carol", "sid-c1", time.Now().Add(-time.Minute)); w.Code != http.StatusUnauthorized || issuedCookie(w) != nil {
+		t.Fatalf("pending callback survived a subject-wide logout: %d", w.Code)
+	}
+	if w := ssoLoginAt(t, srv, f, "carol", "sid-c2", carolAt); w.Code != http.StatusUnauthorized || issuedCookie(w) != nil {
+		t.Fatalf("callback from the logout's own second survived it: %d", w.Code)
+	}
+	if w := ssoLoginAt(t, srv, f, "carol", "sid-c3", time.Now().Add(5*time.Second)); w.Code != http.StatusFound || !signedIn(srv, issuedCookie(w)) {
+		t.Fatalf("login issued after the subject-wide logout was refused: %d", w.Code)
+	}
+
 	events, err := database.ListAuditEvents(ctx, 100)
 	if err != nil {
 		t.Fatal(err)
@@ -254,5 +285,65 @@ func TestBackchannelLogoutEndsTheSSOLogin(t *testing.T) {
 	}
 	if !audited {
 		t.Fatal("back-channel logout was not audited")
+	}
+}
+
+// TestBackchannelLogoutFetchesNothingPerRequest: the route is anonymous and not rate
+// limited, so neither forged tokens nor a failing issuer may cost an outbound fetch each.
+func TestBackchannelLogoutFetchesNothingPerRequest(t *testing.T) {
+	f := newFakeKyIdentity(t)
+	var failedDiscoveries atomic.Int32
+	failing := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		failedDiscoveries.Add(1)
+		http.Error(w, "down", http.StatusInternalServerError)
+	}))
+	t.Cleanup(failing.Close)
+	newServer := func(issuer string) *server.Server {
+		database, err := db.Open(":memory:")
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { database.Close() })
+		srv, err := server.New(server.Config{Port: 8095, DataDir: t.TempDir(), Auth: auth.OIDCConfig{
+			Enabled: true, IssuerURL: issuer, ClientID: "kyrecovery", RedirectURL: "http://localhost:8095/api/auth/callback",
+		}}, database, audit.NewLedger(database))
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(srv.Close)
+		return srv
+	}
+	// forged carries valid claims under a key ID the provider never published.
+	forged := func(i int) string {
+		h, _ := json.Marshal(map[string]string{"alg": "RS256", "kid": "unknown-" + string(rune('a'+i%26)), "typ": "logout+jwt"})
+		c, _ := json.Marshal(map[string]any{"iss": f.issuer, "aud": "kyrecovery", "sub": "alice", "iat": time.Now().Unix(),
+			"exp": time.Now().Add(time.Minute).Unix(), "events": map[string]any{"http://schemas.openid.net/event/backchannel-logout": map[string]any{}}})
+		return base64.RawURLEncoding.EncodeToString(h) + "." + base64.RawURLEncoding.EncodeToString(c) + "." +
+			base64.RawURLEncoding.EncodeToString(make([]byte, 256))
+	}
+
+	const n = 20
+	srv := newServer(f.issuer)
+	for i := range n {
+		if w := postLogout(srv, forged(i)); w.Code != http.StatusBadRequest {
+			t.Fatalf("forged logout %d: got %d", i, w.Code)
+		}
+	}
+	if d, k := f.discoveries.Load(), f.jwksFetches.Load(); d > 1 || k > 1 {
+		t.Fatalf("%d forged logouts made %d discoveries and %d JWKS fetches, want at most 1 each", n, d, k)
+	}
+	// The keys already fetched still verify a genuine logout.
+	if w := postLogout(srv, f.logoutToken(t, "alice", "")); w.Code != http.StatusOK {
+		t.Fatalf("genuine logout after forged ones: got %d", w.Code)
+	}
+
+	down := newServer(failing.URL)
+	for i := range n {
+		if w := postLogout(down, f.logoutToken(t, "alice", "")); w.Code != http.StatusBadRequest {
+			t.Fatalf("logout with a failing issuer %d: got %d", i, w.Code)
+		}
+	}
+	if d := failedDiscoveries.Load(); d > 1 {
+		t.Fatalf("%d logouts retried a failing discovery %d times, want at most 1", n, d)
 	}
 }
