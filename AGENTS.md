@@ -170,6 +170,7 @@ node scripts/test-wasm.mjs
 - Buttons and inputs consume shared 40px control sizing and 8px radii. Native HTML dialogs contain keyboard focus, close on Escape, and return focus to their trigger (or the narrow-screen Account button). Dialog bodies scroll independently while titles and footer actions stay visible. `tests/browser/suite-ui.spec.mjs` covers navigation geometry, phone action sizing and dialog keyboard boundaries. Overview prioritizes the existing key/custodians destination until a current recovery key exists, then backup review. Focused visual evidence and limitations live in `docs/ui-recovery-eight/`.
 
 - The phone ledger presents every event field as a flat labelled entry; the desktop keeps the table. Both renderers use the existing HTML escaper for ledger data. Retention keeps Save at its section heading and preserves the complete policy in native disclosure. Empty Restore controls stay hidden until a service is available.
+- Phone Overview facts use three full-width rows with consistent value type and full-width explanations; desktop retains three columns.
 - Routine status pills use neutral theme tokens; reserve green for explicit verification/success feedback. Retention controls live in a padded panel body, with three columns on desktop and stacked fields on mobile.
 
 ## Operator documentation
