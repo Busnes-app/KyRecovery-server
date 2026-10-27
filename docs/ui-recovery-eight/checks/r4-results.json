@@ -1,0 +1,137 @@
+[
+  {
+    "name": "toolchain",
+    "command": "test -z \"$(gofmt -l $(git ls-files \"*.go\"))\"\ngo mod tidy\ngit diff --exit-code -- go.mod go.sum\ngo mod verify\ngo vet -p 2 ./...\ngo build -p 2 ./...",
+    "exit_code": 0,
+    "seconds": 4.02,
+    "evidence": "docs/ui-recovery-eight/checks/r4-toolchain.txt",
+    "source_commit": "2997f64052b57bb259ce1e7d9c86e7acbe1d152c",
+    "environment": {
+      "GOMAXPROCS": "2"
+    }
+  },
+  {
+    "name": "race-samba",
+    "command": "go test -p 2 -race -count=1 ./...",
+    "exit_code": 0,
+    "seconds": 33.73,
+    "evidence": "docs/ui-recovery-eight/checks/r4-race-samba.txt",
+    "source_commit": "2997f64052b57bb259ce1e7d9c86e7acbe1d152c",
+    "environment": {
+      "GOMAXPROCS": "2"
+    },
+    "fixture": "Owned random loopback Samba fixture using the CI-pinned image."
+  },
+  {
+    "name": "fips-race-samba",
+    "command": "go test -p 2 -race -count=1 ./...",
+    "exit_code": 0,
+    "seconds": 29.29,
+    "evidence": "docs/ui-recovery-eight/checks/r4-fips-race-samba.txt",
+    "source_commit": "2997f64052b57bb259ce1e7d9c86e7acbe1d152c",
+    "environment": {
+      "GOMAXPROCS": "2",
+      "GODEBUG": "fips140=on"
+    },
+    "fixture": "Owned random loopback Samba fixture using the CI-pinned image."
+  },
+  {
+    "name": "FuzzParseSMBEndpoint",
+    "command": "go test -p 2 -parallel 2 -fuzz=FuzzParseSMBEndpoint -fuzztime=150000x -fuzzminimizetime=5s ./internal/replication",
+    "exit_code": 0,
+    "seconds": 15.75,
+    "evidence": "docs/ui-recovery-eight/checks/r4-FuzzParseSMBEndpoint.txt",
+    "source_commit": "2997f64052b57bb259ce1e7d9c86e7acbe1d152c",
+    "environment": {
+      "GOMAXPROCS": "2"
+    }
+  },
+  {
+    "name": "FuzzTargetLocation",
+    "command": "go test -p 2 -parallel 2 -fuzz=FuzzTargetLocation -fuzztime=150000x -fuzzminimizetime=5s ./internal/replication",
+    "exit_code": 0,
+    "seconds": 16.65,
+    "evidence": "docs/ui-recovery-eight/checks/r4-FuzzTargetLocation.txt",
+    "source_commit": "2997f64052b57bb259ce1e7d9c86e7acbe1d152c",
+    "environment": {
+      "GOMAXPROCS": "2"
+    }
+  },
+  {
+    "name": "FuzzKeyringOpen",
+    "command": "go test -p 2 -parallel 2 -fuzz=FuzzKeyringOpen -fuzztime=1000000x -fuzzminimizetime=5s ./internal/secrets",
+    "exit_code": 0,
+    "seconds": 12.49,
+    "evidence": "docs/ui-recovery-eight/checks/r4-FuzzKeyringOpen.txt",
+    "source_commit": "2997f64052b57bb259ce1e7d9c86e7acbe1d152c",
+    "environment": {
+      "GOMAXPROCS": "2"
+    }
+  },
+  {
+    "name": "FuzzCapsuleNames",
+    "command": "go test -p 2 -parallel 2 -fuzz=FuzzCapsuleNames -fuzztime=150000x -fuzzminimizetime=5s ./internal/server",
+    "exit_code": 0,
+    "seconds": 21.31,
+    "evidence": "docs/ui-recovery-eight/checks/r4-FuzzCapsuleNames.txt",
+    "source_commit": "2997f64052b57bb259ce1e7d9c86e7acbe1d152c",
+    "environment": {
+      "GOMAXPROCS": "2"
+    }
+  },
+  {
+    "name": "wasm-node",
+    "command": "scripts/build-wasm.sh\ngit diff --exit-code -- internal/server/static/wasm\nnode scripts/test-wasm.mjs\nnode scripts/test-overview.mjs\nnode internal/server/static/ky-ui/check-vendor.mjs\nnode scripts/check-contrast.mjs",
+    "exit_code": 0,
+    "seconds": 0.57,
+    "evidence": "docs/ui-recovery-eight/checks/r4-wasm-node.txt",
+    "source_commit": "2997f64052b57bb259ce1e7d9c86e7acbe1d152c",
+    "environment": {
+      "GOMAXPROCS": "2"
+    }
+  },
+  {
+    "name": "repeatable",
+    "command": "mkdir -p \"/tmp/kyrecovery-repeatable-lv06til8/a/src\"\ngit archive HEAD | tar -x -C \"/tmp/kyrecovery-repeatable-lv06til8/a/src\"\n(cd \"/tmp/kyrecovery-repeatable-lv06til8/a/src\" && CGO_ENABLED=0 GOOS=linux go build -p 2 -trimpath -ldflags=\"-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=0.0.0\" -o \"/tmp/kyrecovery-repeatable-lv06til8/a/kyrecovery\" cmd/kyrecovery/main.go)\nmkdir -p \"/tmp/kyrecovery-repeatable-lv06til8/elsewhere/b/src\"\ngit archive HEAD | tar -x -C \"/tmp/kyrecovery-repeatable-lv06til8/elsewhere/b/src\"\n(cd \"/tmp/kyrecovery-repeatable-lv06til8/elsewhere/b/src\" && CGO_ENABLED=0 GOOS=linux go build -p 2 -trimpath -ldflags=\"-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=0.0.0\" -o \"/tmp/kyrecovery-repeatable-lv06til8/elsewhere/b/kyrecovery\" cmd/kyrecovery/main.go)\nsha256sum \"/tmp/kyrecovery-repeatable-lv06til8/a/kyrecovery\" \"/tmp/kyrecovery-repeatable-lv06til8/elsewhere/b/kyrecovery\"\ncmp \"/tmp/kyrecovery-repeatable-lv06til8/a/kyrecovery\" \"/tmp/kyrecovery-repeatable-lv06til8/elsewhere/b/kyrecovery\"",
+    "exit_code": 0,
+    "seconds": 2.47,
+    "evidence": "docs/ui-recovery-eight/checks/r4-repeatable.txt",
+    "source_commit": "2997f64052b57bb259ce1e7d9c86e7acbe1d152c",
+    "environment": {
+      "GOMAXPROCS": "2"
+    }
+  },
+  {
+    "name": "vulnerabilities",
+    "command": "go run golang.org/x/vuln/cmd/govulncheck@latest ./...",
+    "exit_code": 0,
+    "seconds": 6.18,
+    "evidence": "docs/ui-recovery-eight/checks/r4-vulnerabilities.txt",
+    "source_commit": "2997f64052b57bb259ce1e7d9c86e7acbe1d152c",
+    "environment": {
+      "GOMAXPROCS": "2"
+    }
+  },
+  {
+    "name": "docker-cli",
+    "command": "docker build -t kyrecovery-ui-r4:1917459 .\ndocker run --rm kyrecovery-ui-r4:1917459 help",
+    "exit_code": 0,
+    "seconds": 19.17,
+    "evidence": "docs/ui-recovery-eight/checks/r4-docker-cli.txt",
+    "source_commit": "2997f64052b57bb259ce1e7d9c86e7acbe1d152c",
+    "environment": {
+      "GOMAXPROCS": "2"
+    }
+  },
+  {
+    "name": "restic-overlay",
+    "command": "scripts/verify-restic-overlay.sh",
+    "exit_code": 0,
+    "seconds": 40.13,
+    "evidence": "docs/ui-recovery-eight/checks/r4-restic-overlay.txt",
+    "source_commit": "2997f64052b57bb259ce1e7d9c86e7acbe1d152c",
+    "environment": {
+      "GOMAXPROCS": "2"
+    }
+  }
+]

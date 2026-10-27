@@ -1,0 +1,46 @@
+{
+  "source_commit": "2997f64052b57bb259ce1e7d9c86e7acbe1d152c",
+  "raw_report": "r4-impeccable-raw.json",
+  "findings": 21,
+  "required_fixes": 0,
+  "exceptions": [
+    {
+      "rule": "overused-font",
+      "count": 3,
+      "classification": "pinned-design",
+      "reason": "Space Grotesk is the explicit suite design-contract typeface."
+    },
+    {
+      "rule": "cramped-padding",
+      "count": 16,
+      "classification": "static-context-false-positive",
+      "reason": "Panel source classes are flattened by .tab-content > .panel and ceremony overrides; section rules and table scrollers intentionally run to the content edge. Rendered body copy and dialog fields have separate insets. The audit table edge is a scroll boundary, not text padding."
+    },
+    {
+      "rule": "low-contrast",
+      "count": 2,
+      "classification": "static-theme-resolution-false-positive",
+      "reason": "Standalone static scan pairs dark foreground values with white while ignoring the classic saved/OS theme adapter. Active Busnes palette checks pass for body/secondary/semantic text and surfaces. CSS aliases/theme source are unchanged from the recorded light/dark live measurements. This is not an all-theme control contrast acceptance claim."
+    }
+  ],
+  "browser_supplement": {
+    "browser": "T3 Chromium154/DPR2; separate from scored153/DPR1",
+    "phone": [
+      390,
+      844
+    ],
+    "ledger": {
+      "phone_list": "block",
+      "desktop_table": "none",
+      "labelled_fields": [
+        "Actor",
+        "Recorded",
+        "Target",
+        "Hash"
+      ],
+      "all_values_present": true,
+      "page_overflow": 0
+    },
+    "limits": "24 passing browser tests and scoped live checks do not establish the full behavior matrix."
+  }
+}
