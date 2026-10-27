@@ -4,7 +4,7 @@ import { execFileSync, spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { createServer } from 'node:net';
 import { once } from 'node:events';
-import { mkdtemp, mkdir, readFile, writeFile, rm, access } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, rm, open } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir, type, release } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -14,12 +14,17 @@ if (!/^\d\d$/.test(stage ?? '') || !['before','after'].includes(phase)) throw ne
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const here = fileURLToPath(new URL('.', import.meta.url));
 const manifestPath = join(here, `manifest-${stage}-${phase}.json`);
-try { await access(manifestPath); throw new Error('Refusing to replace a frozen manifest'); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+// Reserve the stage before any screenshot writes; another run cannot share its outputs.
+let manifestFile;
+try { manifestFile = await open(manifestPath, 'wx'); }
+catch (e) { if (e.code === 'EEXIST') throw new Error('Refusing to replace a frozen or reserved manifest', { cause: e }); throw e; }
+let dir, server, browser, exited, captured = false;
+try {
 const require = createRequire(join(root,'tests/browser/package.json'));
 const { chromium } = require('@playwright/test');
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const git = (...args) => execFileSync('git',['-C',root,...args]);
-const dir = await mkdtemp(join(tmpdir(),'kyrecovery-council-'));
+dir = await mkdtemp(join(tmpdir(),'kyrecovery-council-'));
 const binary = join(dir,'kyrecovery');
 execFileSync('go',['build','-o',binary,'./cmd/kyrecovery'],{cwd:root,stdio:'inherit'});
 const listener = createServer();listener.listen(0,'127.0.0.1');await once(listener,'listening');
@@ -27,12 +32,10 @@ const port=listener.address().port;await new Promise(resolve=>listener.close(res
 const base=`http://127.0.0.1:${port}`, password=randomBytes(24).toString('base64url');
 const fixtureFile=join(dir,'fixture.json');
 await writeFile(fixtureFile,JSON.stringify({base,password,root,stage,phase}),{mode:0o600,flag:'wx'});
-const server=spawn(binary,['serve','--port',String(port),'--data-dir',join(dir,'data')],{
+server=spawn(binary,['serve','--port',String(port),'--data-dir',join(dir,'data')],{
  cwd:dir,stdio:['ignore','ignore','inherit'],env:{PATH:process.env.PATH,HOME:dir,KY_ADMIN_INITIAL_PASSWORD:password,KYRECOVERY_COOKIE_SECURE:'false'},
 });
-let browser;
-const exited=once(server,'exit');
-try {
+exited=once(server,'exit');
  for(let i=0;;i++){
   if(server.exitCode!==null)throw new Error(`Server exited: ${server.exitCode}`);
   try {const res=await fetch(base+'/healthz',{signal:AbortSignal.timeout(1000)});if(res.ok)break;}catch{}
@@ -73,10 +76,16 @@ try {
  const source_files=Object.fromEntries(await Promise.all(sourceNames.map(async file=>[file,sha(await readFile(join(root,file)))])));
  const diff=git('diff','HEAD','--binary','--','internal/server/static');
  const manifest={product:'KyRecovery',stage,phase,councilRound:Number(process.env.COUNCIL_ROUND??(Number(stage)+1)),source_commit:git('rev-parse','HEAD').toString().trim(),uncommitted_source_sha256:diff.length?sha(diff):null,source_files,captured_at:new Date().toISOString(),os:`${type()} ${release()}`,driver:`Playwright ${require('@playwright/test/package.json').version}; Chromium ${browser.version()}; DPR1; normal service-worker behavior`,fixture:'Disposable administrator, no ceremony/key/capsules/pairings/custodians/targets; open forms are not submitted. Initial viewport only.',served_index_sha256:sha(Buffer.from(await(await fetch(base+'/')).arrayBuffer())),shots};
- await writeFile(manifestPath,JSON.stringify(manifest,null,2)+'\n',{flag:'wx'});
+ await manifestFile.writeFile(JSON.stringify(manifest,null,2)+'\n');
+ captured = true;
  await browser.close();browser=null;
  console.log(JSON.stringify({manifest:manifestPath,shots:shots.length,overflows:shots.filter(s=>s.overflow),fixtureFile,base}));
  if(process.env.KEEP_FIXTURE==='1')await new Promise(resolve=>{process.once('SIGTERM',resolve);process.once('SIGINT',resolve);});
 } finally {
- await browser?.close();if(server.exitCode===null&&server.signalCode===null)server.kill('SIGTERM');await exited;await rm(dir,{recursive:true,force:true});
+ await browser?.close();
+ if(server && server.exitCode===null && server.signalCode===null)server.kill('SIGTERM');
+ if(exited)await exited;
+ if(dir)await rm(dir,{recursive:true,force:true});
+ await manifestFile.close();
+ if(!captured)await rm(manifestPath,{force:true});
 }

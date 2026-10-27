@@ -25,7 +25,8 @@ Record the focused pass toward the owner's covered visual 8/10 gate and shared K
 
 ## Verification
 
-- `node docs/ui-recovery-eight/capture.mjs <nn> before|after` builds and runs an owned server and refuses an existing manifest. `KEEP_FIXTURE=1` retains it for Computer Use until SIGTERM.
+- `node docs/ui-recovery-eight/capture.mjs <nn> before|after` atomically reserves the stage manifest before building or writing screenshots, refuses an existing or reserved manifest, and removes an incomplete manifest on a handled capture failure. It builds and runs an owned server. `KEEP_FIXTURE=1` retains it for Computer Use until SIGTERM.
+- `python3 docs/ui-recovery-eight/check-capture.py` exercises the real capture CLI: frozen/competing writer refusal, failed-build cleanup, a complete 52-image run, and frozen-file preservation. It requires unused scratch stages 98/99 and removes its own outputs.
 - Product checks remain owned by the root and browser AGENTS contracts.
 
 ## Child DOX Index

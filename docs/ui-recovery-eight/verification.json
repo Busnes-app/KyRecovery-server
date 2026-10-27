@@ -139,6 +139,13 @@
       "exceptions": "checks/r2-impeccable-exceptions.json",
       "findings": 21,
       "required_fixes": 0
+    },
+    "capture_reservation": {
+      "status": "pass",
+      "command": "python3 docs/ui-recovery-eight/check-capture.py",
+      "evidence": "checks/codeql-capture-regression.txt",
+      "result": "Frozen stage and competing writer refused; failed build reservation removed; complete 52-image capture validated;159 frozen files unchanged.",
+      "product_checks_reused": "Only capture tooling and its docs changed; tested product code, dependencies, configuration and relevant runtime environment are unchanged."
     }
   },
   "pending": [
