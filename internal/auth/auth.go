@@ -89,6 +89,9 @@ type Manager struct {
 // JWKS for any token whose key it has not cached, before the signature is known good.
 const oidcRefetchInterval = 30 * time.Second
 
+// oidcDiscoveryTimeout bounds the shared discovery, which no caller can cancel.
+const oidcDiscoveryTimeout = 10 * time.Second
+
 // NewManager creates a new authentication manager.
 func NewManager(cfg OIDCConfig, database *db.DB) *Manager {
 	m := &Manager{
@@ -390,7 +393,12 @@ func (m *Manager) oidcProvider(ctx context.Context) (*oidc.Provider, *oidc.IDTok
 		return nil, nil, m.providerErr
 	}
 
-	p, err := discoverProvider(ctx, issuer)
+	// Discovery is shared and its failure cached, so it runs detached from the caller: a
+	// cancelled or timed-out request must not be remembered as a failing issuer.
+	ctx = context.WithoutCancel(ctx)
+	dctx, cancel := context.WithTimeout(ctx, oidcDiscoveryTimeout)
+	defer cancel()
+	p, err := discoverProvider(dctx, issuer)
 	if err != nil {
 		m.providerErr = fmt.Errorf("OIDC discovery failed for %s: %w", issuer, err)
 		m.providerErrAt, m.providerErrID = time.Now(), key
