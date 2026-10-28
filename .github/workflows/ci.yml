@@ -8,8 +8,13 @@ permissions:
   contents: read
 # Every checkout uses persist-credentials: false. Nothing after a checkout runs git
 # against a remote, so the job token has no reason to sit in .git/config.
+# A new push supersedes a pull request's run. Every other run gets its own group: a shared
+# one would cancel a pending main run, leaving its commit without an image.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
-  go:
+  go-tests:
     runs-on: ubuntu-latest
     # Go has no in-process SMB server, so the smb replication tests run against
     # Samba here and skip everywhere KYRECOVERY_SMB_TEST is unset.
@@ -103,6 +108,20 @@ jobs:
           GODEBUG: fips140=on
         run: go test -race -count=1 ./...
 
+  # No Samba here: the smb tests already ran above and skip without KYRECOVERY_SMB_TEST.
+  go-fuzz-wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          # Own cache key: go-tests keeps its -race build cache.
+          cache-dependency-path: |
+            go.sum
+            scripts/build-wasm.sh
       # Bounded fuzzing, roughly 10-20 s per target. Minimising a new input may take the
       # default 60 s and stalls the exec count meanwhile, so it is capped at 5 s.
       - run: go test -fuzz=FuzzParseSMBEndpoint -fuzztime=150000x -fuzzminimizetime=5s ./internal/replication
@@ -118,6 +137,15 @@ jobs:
         run: node scripts/test-overview.mjs
       - run: node internal/server/static/ky-ui/check-vendor.mjs
       - run: node scripts/check-contrast.mjs
+
+  # The required check and release-image.yml's REQUIRED name: green only if both legs passed.
+  go:
+    needs: [go-tests, go-fuzz-wasm]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "${{ !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') && !contains(needs.*.result, 'skipped') }}" = true
+
   security:
     runs-on: ubuntu-latest
     steps:
@@ -190,7 +218,7 @@ jobs:
           retention-days: 7
 
   publish:
-    needs: [go, security, docker, browser]
+    needs: [go-tests, go-fuzz-wasm, go, security, docker, browser]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     # No concurrency group here on purpose: GitHub cancels a *pending* job when a

@@ -156,8 +156,8 @@ not a FIPS certification or proof of deployed endpoint policy.
 ## Evidence
 
 - **Tests:** the security tests named above, plus the whole suite under the race detector on
-  every push and pull request (`go` job). The SMB replication tests run against Samba in CI.
-  That job also runs `node scripts/test-overview.mjs` against the shipped dashboard script
+  every push and pull request (`go-tests` job). The SMB replication tests run against Samba in CI.
+  The `go-fuzz-wasm` job runs `node scripts/test-overview.mjs` against the shipped dashboard script
   and element IDs, covering audit labels, capsule counts, failed responses and recovery.
   Its minimal DOM stub does not establish real-browser behavior or complete UI coverage.
 - **Browser workflows:** `tests/browser` runs committed assets against disposable real

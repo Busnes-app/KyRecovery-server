@@ -90,7 +90,7 @@ Non-trivial logic must include one runnable check (unit test or minimal self-che
 - Update nearest owning AGENTS.md when behavior, responsibilities, or verification changes.
 ## Verification
 
-- CI's `go` job runs `node scripts/test-overview.mjs`: actual dashboard IDs, strict audit-evidence labels, capsule counts, failed responses and recovery. It evaluates the shipped script with a minimal DOM stub, not a browser. The overview must distinguish stored capsule counts, custodian directory size and audit append availability from a verified restore.
+- CI's `go-fuzz-wasm` job runs `node scripts/test-overview.mjs`: actual dashboard IDs, strict audit-evidence labels, capsule counts, failed responses and recovery. It evaluates the shipped script with a minimal DOM stub, not a browser. The overview must distinguish stored capsule counts, custodian directory size and audit append availability from a verified restore.
 - CI's `browser` job runs the real dashboard and WASM ceremony on desktop/phone Chromium against owned servers. `tests/browser/AGENTS.md` owns fixture isolation and coverage limits. Main publication and tag releases require this job; dependency installation and browser execution have separate budgets.
 
 Run all unit and integration tests across the repository:
@@ -103,7 +103,7 @@ CI also fuzzes `FuzzParseSMBEndpoint`, `FuzzTargetLocation`, `FuzzKeyringOpen` a
 - On a push to `main` that passes every job, `publish` pushes the exact image the Docker check ran against (handed over as an artifact, no rebuild) to `ghcr.io/busnes-app/kyrecovery-server:<commit sha>`, attests it and verifies the attestation pinned to this workflow on `main`; `promote` then moves `:latest` to that digest, only at the tip of `main`, and asserts the tag resolves to the attested digest. `docker-compose.yml` names the published image and never builds; source installs add `docker-compose.build.yml` to the `COMPOSE_FILE` chain in `.env` (overlay tags `kyrecovery-server:local`) so every compose command, recovery docs included, uses the local build.
 - The version has one source: `internal/appversion/VERSION` (`X.Y.Z`, the release line). `kyrecovery version` prints `appversion.String()`; a release image build sets the tag's full version through `-ldflags -X …/internal/appversion.release`, so images report `X.Y.Z` or `X.Y.Z.N` and source builds report the line.
 - Publishing a GitHub release `vX.Y.Z` or `vX.Y.Z.N` runs `release-image.yml` (a dispatch on a published release's tag runs it too). It refuses a malformed tag, a tag whose `X.Y.Z` disagrees with `internal/appversion/VERSION`, and any commit on which a ci.yml job in its `REQUIRED` list (`go`, `security`, `docker` and `browser`) did not pass. It then builds `:X.Y.Z[.N]` with provenance and SBOM, attests and verifies it (identity `release-image.yml@refs/tags/<tag>`), and moves `:stable` to that digest only for the highest non-prerelease. It never moves `:latest`; `main` CI owns that. A job added to ci.yml must be added to `REQUIRED` too.
-- `dependency-release.yml` runs daily at 23:00 UTC: if Dependabot commits landed on `main` since the newest release on the current line and the push CI run on `main`'s tip succeeded, it publishes the next `vX.Y.Z.N` (one per day however many PRs merged) and dispatches `release-image.yml` on it, since a `GITHUB_TOKEN` release raises no release event. Run by hand, it releases `main` without the Dependabot condition. It waits while the line in `VERSION` has no `vX.Y.Z` release: bump `VERSION` and publish `vX.Y.Z` by hand for a new line.
+- `dependency-release.yml` runs daily at 23:17 UTC: if Dependabot commits landed on `main` since the newest release on the current line and the push CI run on `main`'s tip succeeded, it publishes the next `vX.Y.Z.N` (one per day however many PRs merged) and dispatches `release-image.yml` on it, since a `GITHUB_TOKEN` release raises no release event. Run by hand, it releases `main` without the Dependabot condition. It waits while the line in `VERSION` has no `vX.Y.Z` release: bump `VERSION` and publish `vX.Y.Z` by hand for a new line.
 
 Prove the restic overlay (Docker; owns a per-run image tag, projects, loopback ports and a temp dir, and removes its artifacts):
 ```bash
@@ -116,7 +116,7 @@ go build -o kyrecovery cmd/kyrecovery/main.go
 ./kyrecovery help
 ```
 
-The `go` job's `release binary is repeatable` step builds `cmd/kyrecovery/main.go` the way the Dockerfile does (`-trimpath`, from a `git archive` copy) in two directories and requires identical bytes. Keep the Dockerfile's `go build` and that step in step; `docs/VERIFYING-RELEASES.md` gives users the same command.
+The `go-tests` job's `release binary is repeatable` step builds `cmd/kyrecovery/main.go` the way the Dockerfile does (`-trimpath`, from a `git archive` copy) in two directories and requires identical bytes. Keep the Dockerfile's `go build` and that step in step; `docs/VERIFYING-RELEASES.md` gives users the same command.
 
 Rebuild the ceremony module and prove the committed artefact matches, then run it:
 ```bash
