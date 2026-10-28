@@ -2,7 +2,6 @@
 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15934/badge)](https://www.bestpractices.dev/projects/15934)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Busnes-app/KyRecovery-server/badge)](https://scorecard.dev/viewer/?uri=github.com/Busnes-app/KyRecovery-server)
-[![OctoCounts](https://api.octocounts.com/badge/Busnes-app/KyRecovery-server/branch/main)](https://octocounts.com/github/Busnes-app/KyRecovery-server/tree/main)
 
 **Start here:** [Standalone installation](INSTALL.md). Local operator sign-in works without KyIdentity. The browser ceremony creates the recovery key and custodian cards; the server stores sealed capsules, public-key metadata and audit evidence. Stored capsules alone do not prove that a restore or off-site custody has been tested.
 
@@ -72,6 +71,12 @@ account.
 - The suite recovery **public** keys and their IDs: the current key, and any
   previous key still needed to open retained capsules. Custodian names, paired-app
   API tokens, and the server keyring for its own secrets.
+
+## License
+
+KyRecovery is released under the [MIT License](LICENSE.txt).
+
+[![OctoCounts](https://api.octocounts.com/badge/Busnes-app/KyRecovery-server/branch/main)](https://octocounts.com/github/Busnes-app/KyRecovery-server/tree/main)
 
 ## Documentation
 
