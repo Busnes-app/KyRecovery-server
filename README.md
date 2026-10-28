@@ -72,6 +72,12 @@ account.
   previous key still needed to open retained capsules. Custodian names, paired-app
   API tokens, and the server keyring for its own secrets.
 
+## License
+
+KyRecovery is released under the [MIT License](LICENSE.txt).
+
+[![OctoCounts](https://api.octocounts.com/badge/Busnes-app/KyRecovery-server/branch/main)](https://octocounts.com/github/Busnes-app/KyRecovery-server/tree/main)
+
 ## Documentation
 
 - [Ceremony](docs/CEREMONY.md) — Ceremony: creating the suite recovery keypair, and rotating it. <a id="ceremony-creating-the-suite-recovery-keypair"></a>
