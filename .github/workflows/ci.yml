@@ -84,11 +84,13 @@ jobs:
           mapfile -t sources < <(git ls-files '*.go')
           test -z "$(gofmt -l "${sources[@]}")"
       - run: go mod tidy && git diff --exit-code go.mod go.sum && go mod verify
+      # internal/server embeds ceremony.wasm, which is built, never committed.
+      - run: scripts/build-wasm.sh && git diff --exit-code -- internal/server/static/wasm
       - run: go vet ./...
       # The release binary must not depend on where it is built: build it the way the
-      # Dockerfile does (no .git in the context, -trimpath, the main.go file argument) from two
-      # directories and require identical bytes. The ceremony.wasm it embeds is the committed
-      # one, which the build-wasm step below proves is rebuilt from source byte for byte.
+      # Dockerfile does (no .git in the context, build-wasm.sh, -trimpath, the main.go file
+      # argument) from two directories and require identical bytes. That covers the
+      # ceremony.wasm it embeds, so the served module is reproducible from source too.
       # docs/VERIFYING-RELEASES.md tells users how to repeat this against a release image.
       - name: release binary is repeatable
         run: |
@@ -97,7 +99,7 @@ jobs:
           for d in "$RUNNER_TEMP/a" "$RUNNER_TEMP/elsewhere/b"; do
             mkdir -p "$d/src"
             git archive HEAD | tar -x -C "$d/src"
-            (cd "$d/src" && CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="$ld" -o "$d/kyrecovery" cmd/kyrecovery/main.go)
+            (cd "$d/src" && sh scripts/build-wasm.sh && CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="$ld" -o "$d/kyrecovery" cmd/kyrecovery/main.go)
           done
           sha256sum "$RUNNER_TEMP/a/kyrecovery" "$RUNNER_TEMP/elsewhere/b/kyrecovery"
           cmp "$RUNNER_TEMP/a/kyrecovery" "$RUNNER_TEMP/elsewhere/b/kyrecovery"
@@ -122,6 +124,7 @@ jobs:
           cache-dependency-path: |
             go.sum
             scripts/build-wasm.sh
+      - run: scripts/build-wasm.sh && git diff --exit-code -- internal/server/static/wasm
       # Bounded fuzzing, roughly 10-20 s per target. Minimising a new input may take the
       # default 60 s and stalls the exec count meanwhile, so it is capped at 5 s.
       - run: go test -fuzz=FuzzParseSMBEndpoint -fuzztime=150000x -fuzzminimizetime=5s ./internal/replication
@@ -131,7 +134,6 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 26
-      - run: scripts/build-wasm.sh && git diff --exit-code -- internal/server/static/wasm
       - run: node scripts/test-wasm.mjs
       - name: Overview evidence regression
         run: node scripts/test-overview.mjs
@@ -155,6 +157,7 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
+      - run: scripts/build-wasm.sh
       - run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
   docker:
     runs-on: ubuntu-latest

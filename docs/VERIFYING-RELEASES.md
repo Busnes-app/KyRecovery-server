@@ -66,6 +66,7 @@ so a build elsewhere does not compare with them.
 v=<release version>
 git clone --branch v$v https://github.com/Busnes-app/KyRecovery-server.git kyrecovery-v$v && cd kyrecovery-v$v
 go_version=$(sed -n 's/^FROM golang:\([0-9.]*\)-.*/\1/p' Dockerfile)
+scripts/build-wasm.sh
 GOTOOLCHAIN=go$go_version CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -buildvcs=false -trimpath \
   -ldflags="-s -w -X github.com/Busnes-app/kyrecovery-server/internal/appversion.release=$v" \
   -o kyrecovery-from-source cmd/kyrecovery/main.go
@@ -82,14 +83,8 @@ not rebuilt bit for bit; the binary is what you are checking.
 
 ### The ceremony module inside the binary
 
-The server embeds `internal/server/static/`, which includes the committed
-`wasm/ceremony.wasm` that `/admin/ceremony` serves. The binary comparison above proves the image
-contains the committed module. To prove the committed module is this commit's
-`cmd/ceremony-wasm`, rebuild it in the same clone (it pins the Go version in `go.mod`'s `go`
-line) and require no difference:
-
-```bash
-scripts/build-wasm.sh && git diff --exit-code -- internal/server/static/wasm && echo "ceremony.wasm rebuilds byte for byte"
-```
-
-CI runs the same two commands on every push and pull request.
+The server embeds `internal/server/static/wasm/ceremony.wasm`, the module `/admin/ceremony`
+serves. `scripts/build-wasm.sh` above builds it from this commit's `cmd/ceremony-wasm` (it pins
+the Go version in `go.mod`'s `go` line), so matching hashes prove the image serves the module this
+commit's source produces. Older releases committed the module instead; at their tags the same
+script rebuilds those bytes, which CI checked on every push.

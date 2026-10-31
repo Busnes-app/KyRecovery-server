@@ -9,6 +9,7 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 const fixtureRoot = mkdtempSync(join(tmpdir(), 'kyrec-browser-'));
 try {
   const binary = join(fixtureRoot, 'kyrecovery');
+  execFileSync('sh', ['scripts/build-wasm.sh'], { cwd: root, stdio: 'inherit' });
   execFileSync('go', ['build', '-o', binary, './cmd/kyrecovery'], { cwd: root, stdio: 'inherit' });
   const require = createRequire(import.meta.url);
   const result = spawnSync(process.execPath, [require.resolve('@playwright/test/cli'), 'test', ...process.argv.slice(2)], {

@@ -1,10 +1,11 @@
-#!/usr/bin/env bash
-# Rebuilds the committed ceremony module. CI runs this and then `git diff --exit-code`,
-# so the output has to be byte-identical everywhere: -trimpath drops paths, -s -w drops
-# the build id's debug sections, -buildvcs=false drops the git revision and time (which
-# differ per checkout), and GOTOOLCHAIN pins the compiler to the go directive in
-# go.mod rather than whatever is installed on the machine.
-set -euo pipefail
+#!/bin/sh
+# Builds the ceremony module the server embeds. It is never committed, so every server
+# build runs this first and the output has to be byte-identical everywhere: -trimpath
+# drops paths, -s -w drops the build id's debug sections, -buildvcs=false drops the git
+# revision and time (which differ per checkout), and GOTOOLCHAIN pins the compiler to the
+# go directive in go.mod rather than whatever is installed on the machine.
+# POSIX sh, because the Dockerfile's Alpine builder has no bash.
+set -eu
 cd "$(dirname "$0")/.."
 GOTOOLCHAIN="go$(go list -m -f '{{.GoVersion}}')"
 export GOTOOLCHAIN

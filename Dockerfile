@@ -6,6 +6,8 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
+# The ceremony module is built here from cmd/ceremony-wasm, never taken from the context.
+RUN sh scripts/build-wasm.sh
 # Release builds pass the tag's version (X.Y.Z or X.Y.Z.N); other builds report internal/appversion/VERSION.
 # -trimpath keeps the build directory out of the binary, so the same commit, Go version and
 # VERSION give the same bytes wherever it is built (docs/VERIFYING-RELEASES.md).

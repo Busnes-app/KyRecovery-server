@@ -17,3 +17,6 @@ data/
 .env
 .env.*
 !.env.example
+
+# Built by scripts/build-wasm.sh, never committed
+/internal/server/static/wasm/ceremony.wasm

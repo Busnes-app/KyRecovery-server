@@ -47,7 +47,7 @@ Phone header and Replication: on phones the brand, an Account button (a native p
 `cd tests/browser && npm ci && npx playwright install chromium && npm test`
 builds the current binary and exercises eight workflows on desktop/phone Chromium.
 Each case owns its real server, credentials, SQLite data and local replication
-directory. The ceremony uses the committed WASM and disposable cards; tests check
+directory. The ceremony uses the WASM built from source and disposable cards; tests check
 public import fields, explicit rotation and retirement. Other cases cover login,
 session invalidation, persisted form values, refusal behavior and theme storage.
 The `browser` CI job is required for main publication and tag releases.

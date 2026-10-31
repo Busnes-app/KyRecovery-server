@@ -49,7 +49,7 @@ jobs:
 
       - name: Build
         working-directory: consumer
-        run: go build ./...
+        run: scripts/build-wasm.sh && go build ./...
 
       - name: Test
         working-directory: consumer

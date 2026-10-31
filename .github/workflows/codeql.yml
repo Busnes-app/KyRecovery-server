@@ -45,6 +45,9 @@ jobs:
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
+      # Autobuild compiles internal/server, which embeds the built ceremony.wasm.
+      - if: matrix.language == 'go'
+        run: scripts/build-wasm.sh
       - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           languages: ${{ matrix.language }}
