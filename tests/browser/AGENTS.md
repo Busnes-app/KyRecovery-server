@@ -20,7 +20,7 @@ Private Playwright tooling, owned server/data fixtures and desktop/phone scenari
 
 Use semantic locators when the current markup supplies them; stable IDs cover unlabeled legacy inputs.
 Browser tests qualify existing behavior without changing the product's documented security exceptions.
-`suite-ui.spec.mjs` checks one navigation region, desktop account placement, active navigation visibility after resizing, and phone replication-footer geometry. It also checks native dialog focus containment, Escape/Cancel focus return (including asynchronous SSO from the Account popover), and one-line 40px footer actions. The existing WASM ceremony test checks Overview priority before and after real key import.
+`suite-ui.spec.mjs` checks one navigation region, desktop account placement, active navigation visibility after resizing, and phone replication-footer geometry. It also checks native dialog focus containment, Escape/Cancel focus return (including asynchronous SSO from the Account page), and one-line 40px footer actions. It also checks the shared sign-in card and that the licence link opens the About dialog with the version and licence and returns focus. The existing WASM ceremony test checks Overview priority before and after real key import.
 
 - Empty Restore visibility is checked before pairing and after revoke/clear; the real pairing flow proves configured controls remain available.
 - Browser cases verify the retention policy disclosure, required endpoint labels for every preset, and escaped hostile ledger text in desktop/phone layouts.

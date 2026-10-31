@@ -14,14 +14,19 @@ const escJs = v => esc(String(v ?? '').replace(/[\\'"\r\n]/g, c =>
 document.addEventListener('DOMContentLoaded', () => {
   initTabs();
   document.getElementById('tab-backups').addEventListener('click', onBackupsClick);
+  document.getElementById('capsules-table-body').addEventListener('click', onCapsulesClick);
+  document.getElementById('tab-overview').addEventListener('click', e => {
+    const go = e.target.closest('button[data-go]')?.dataset.go;
+    if (go === 'ceremony') location.href = '/admin/ceremony';
+    else if (go) document.querySelector(`.tab-btn[data-tab="${go}"]`).click();
+  });
+  document.querySelectorAll('[data-year]').forEach(el => { el.textContent = new Date().getFullYear(); });
+  // Invoker commands open the About dialog without script; this covers browsers without them.
+  if (!('commandForElement' in HTMLButtonElement.prototype)) {
+    document.querySelectorAll('[commandfor]').forEach(btn => btn.addEventListener('click', () => document.getElementById(btn.getAttribute('commandfor')).showModal()));
+  }
+  // Signing in loads every tab's data.
   loadAuthUser();
-  loadReadiness();
-  loadCapsules();
-  loadPairing();
-  loadCustodians();
-  loadRecoveryKey();
-  loadReplication();
-  loadAudit();
 
   // Polling for freshness
   setInterval(() => {
@@ -65,11 +70,7 @@ function initTabs() {
 
 // Native dialogs own the focus boundary, Escape and focus restoration.
 function openModal(id, trigger = document.activeElement) {
-  const toggle = document.querySelector('.account-toggle');
-  if (trigger.closest('#user-auth-area') && toggle.checkVisibility()) {
-    document.getElementById('user-auth-area').hidePopover();
-    toggle.focus();
-  } else trigger.focus();
+  trigger.focus();
   document.getElementById(id).showModal();
 }
 
@@ -84,6 +85,8 @@ async function loadReadiness() {
     const capsuleCount = Number(data.capsule_count) || 0;
     document.getElementById('metric-capsules').textContent = capsuleCount;
     document.getElementById('metric-custodians').textContent = Number(data.custodian_count) || 0;
+    const version = document.getElementById('about-version');
+    if (version && data.version) { version.textContent = 'v' + data.version; version.hidden = false; }
 
     // The pill states a fact the store can check. It must never imply a verified
     // restore: nothing here can open a capsule.
@@ -106,28 +109,69 @@ async function loadCapsules() {
   try {
     const res = await fetch('/api/capsules');
     if (!res.ok) return;
-    const capsules = await res.json() || [];
-
-    if (capsules.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-dim);">No capsules yet. Pair a product and it will deposit its own sealed backups here.</td></tr>';
-      return;
-    }
-
-    tbody.innerHTML = capsules.map(c => `
-      <tr>
-        <td><code>${esc(c.id)}</code></td>
-        <td><strong>${esc(c.service_name)}</strong></td>
-        <td><span class="status-pill ready">${esc(c.threshold)} of ${esc(c.total_shares)} Shares</span></td>
-        <td>${(c.size_bytes / 1024).toFixed(1)} KB</td>
-        <td><code title="${esc(c.payload_hash)}">${esc(String(c.payload_hash).substring(0, 12))}...</code></td>
-        <td>${new Date(c.created_at).toLocaleString()}</td>
-        <td>
-          <a class="btn btn-secondary btn-sm" href="/api/capsules/${encodeURIComponent(c.id)}/download" download>Download</a>
-        </td>
-      </tr>
-    `).join('');
+    capsulesData = await res.json() || [];
+    renderCapsules();
   } catch (err) {
     console.error('Error fetching capsules:', err);
+  }
+}
+
+// One scannable row per capsule: service, deposit time, size, integrity, a short ID.
+// Hashes, quorum and key detail open in a row underneath.
+let capsulesData = [];
+const capsulesOpen = new Set();
+const shortId = id => String(id).length > 12 ? '…' + String(id).slice(-8) : String(id);
+
+function renderCapsules() {
+  const tbody = document.getElementById('capsules-table-body');
+  if (capsulesData.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7">No capsules yet. Pair a product and it will deposit its own sealed backups here.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = capsulesData.map((c, i) => {
+    const open = capsulesOpen.has(c.id);
+    const corrupt = c.status === 'corrupt';
+    const row = `<tr>
+      <td class="cell-icon"><button type="button" class="icon-btn" data-action="toggle" data-id="${esc(c.id)}" aria-expanded="${open ? 'true' : 'false'}"${open ? ` aria-controls="capsule-detail-${Number(i)}"` : ''} aria-label="${esc('Details for capsule ' + c.id)}"><svg class="nav-icon chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button></td>
+      <td class="cell-service"><strong>${esc(c.service_name)}</strong>${c.app_name ? ` <span class="cell-dim">${esc(c.app_name)}</span>` : ''}</td>
+      <td class="nowrap"><time datetime="${esc(c.deposited_at)}" title="${esc(fmtTime(c.deposited_at))}">${esc(fmtAgo(c.deposited_at))}</time></td>
+      <td class="num nowrap">${esc(fmtBytes(c.size_bytes))}</td>
+      <td class="nowrap"><span class="status-pill ${corrupt ? 'danger' : 'ready'}"${c.verified_at ? ` title="${esc('Verified ' + fmtTime(c.verified_at))}"` : ''}>${corrupt ? 'Corrupt' : c.verified_at ? 'Verified' : 'Stored'}</span></td>
+      <td class="nowrap"><code title="${esc(c.id)}">${esc(shortId(c.id))}</code><button type="button" class="icon-btn" data-action="copy" data-id="${esc(c.id)}" aria-label="${esc('Copy capsule ID ' + c.id)}" title="Copy ID"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 9h11v11H9z M5 15H4V4h11v1"/></svg></button></td>
+      <td class="cell-icon"><a class="icon-btn" href="/api/capsules/${encodeURIComponent(c.id)}/download" download aria-label="${esc('Download capsule ' + c.id)}" title="Download"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11 M7 10l5 5 5-5 M5 20h14"/></svg></a></td>
+    </tr>`;
+    if (!open) return row;
+    return row + `<tr id="capsule-detail-${Number(i)}" class="capsule-detail"><td></td><td colspan="6"><dl class="detail-grid">
+      <dt>Capsule ID</dt><dd><code>${esc(c.id)}</code></dd>
+      <dt>Quorum</dt><dd>${esc(c.threshold)} of ${esc(c.total_shares)} custodian cards</dd>
+      <dt>Recovery key</dt><dd><code>${esc(c.recovery_key_id)}</code></dd>
+      <dt>Container digest</dt><dd><code>${esc(c.digest)}</code></dd>
+      <dt>Payload hash</dt><dd><code>${esc(c.payload_hash)}</code> (sealer-attested)</dd>
+      <dt>Deposited</dt><dd>${esc(fmtTime(c.deposited_at))}</dd>
+      <dt>Created</dt><dd>${esc(fmtTime(c.created_at))} (product-reported)</dd>
+      <dt>Integrity</dt><dd>${esc(capsuleState(c))}</dd>
+      ${c.app_version ? `<dt>App version</dt><dd>${esc(c.app_version)}</dd>` : ''}
+    </dl></td></tr>`;
+  }).join('');
+}
+
+async function onCapsulesClick(e) {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  if (btn.dataset.action === 'toggle') {
+    if (!capsulesOpen.delete(id)) capsulesOpen.add(id);
+    renderCapsules();
+    document.querySelector(`#capsules-table-body button[data-action="toggle"][data-id="${CSS.escape(id)}"]`).focus();
+    return;
+  }
+  const status = document.getElementById('capsules-status');
+  try {
+    await navigator.clipboard.writeText(id);
+    status.textContent = 'Copied capsule ID ' + id + '.';
+  } catch {
+    // Clipboard needs a secure context; plain-HTTP LAN installs fall back to a native prompt.
+    window.prompt('Copy the capsule ID:', id);
   }
 }
 
@@ -140,6 +184,8 @@ async function loadCustodians() {
     const res = await fetch('/api/custodians');
     if (!res.ok) return;
     const list = await res.json() || [];
+    evidence.custodians = list.length;
+    renderEvidence();
 
     if (list.length === 0) {
       tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-dim);">No custodians yet.</td></tr>';
@@ -164,31 +210,21 @@ async function loadCustodians() {
 // deposits must be sealed to; a previous key still opens the capsules sealed to it.
 async function loadRecoveryKey() {
   const el = document.getElementById('recovery-key-status');
-  // The overview caption states the real quorum, which the ceremony fixes; the
-  // custodian count next to it is a directory and must never be read as one.
-  const quorum = document.getElementById('metric-custodians-sub');
   if (!el) return;
   try {
     const res = await fetch('/api/recovery-keys');
-    if (!res.ok) return;
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const keys = await res.json() || [];
+    evidence.keys = keys;
+    renderEvidence();
     const k = keys.find(x => x.status === 'current');
-    const backupsAction = document.getElementById('overview-backups-action');
-    const keyAction = document.getElementById('overview-key-action');
-    backupsAction.className = k ? 'btn btn-primary' : 'btn btn-secondary';
-    keyAction.className = k ? 'btn btn-secondary' : 'btn btn-primary';
-    const backupsRow = document.getElementById('overview-backups-row');
-    const keyRow = document.getElementById('overview-key-row');
-    keyRow.parentElement.insertBefore(k ? backupsRow : keyRow, k ? keyRow : backupsRow);
     // After the first import the ceremony page rotates the key; say so on the way in.
     const link = document.getElementById('ceremony-link');
     if (link) link.textContent = k ? 'Rotate recovery key' : 'Run recovery key ceremony';
     if (!k) {
       el.textContent = 'No recovery key \u2014 run the ceremony';
-      if (quorum) quorum.textContent = 'No ceremony run yet, so the recovery key cannot be reconstructed.';
       return;
     }
-    if (quorum) quorum.textContent = `${k.threshold} of ${k.total_shares} custodian cards reconstruct the recovery key.`;
     el.innerHTML = '<div style="overflow-x: auto;"><table class="data-table"><thead><tr><th>Key ID</th><th>Status</th><th>Cards</th><th>Capsules</th><th></th><th></th></tr></thead><tbody id="recovery-keys-body"></tbody></table></div>';
     document.getElementById('recovery-keys-body').innerHTML = keys.map(x => `<tr>
       <td><code>${esc(x.key_id)}</code>${x.status === 'previous' && (x.pinned_products || []).length ? `<br><small>Still pinned by ${esc(x.pinned_products.map(p => `${p.service_name} (${p.app_name})`).join(', '))}; re-pair them.</small>` : ''}</td>
@@ -197,7 +233,88 @@ async function loadRecoveryKey() {
       <td>${x.status === 'previous' && isAdminUser ? `<button class="btn btn-secondary btn-sm" onclick="retireRecoveryKey('${escJs(x.key_id)}')">Retire</button>` : ''}</td>
     </tr>`).join('');
   } catch (err) {
+    evidence.keys = null;
+    renderEvidence();
     console.error('Error fetching recovery keys:', err);
+  }
+}
+
+// Overview evidence. Each loader stores its result here: undefined while loading,
+// null when it failed. Every row gets an explicit state and one next action; the
+// first row that needs one gets the primary button. None of it claims a verified restore.
+const evidence = {};
+const evidenceStates = {
+  ok: ['ready', 'Current'], attention: ['warning', 'Needs attention'], missing: ['danger', 'Missing'],
+  failing: ['danger', 'Failing'], unavailable: ['warning', 'Unavailable'], checking: ['warning', 'Checking'],
+};
+
+function backupsEvidence(data) {
+  if (data === undefined) return ['checking', 'Loading backup status…', 'Review backups', 'tab-backups'];
+  if (data === null) return ['unavailable', 'Backup status could not be loaded. Open Backups to retry.', 'Review backups', 'tab-backups'];
+  const services = data.report.services || [];
+  const count = state => Number((data.report.counts || {})[state]) || 0;
+  if (services.length === 0) return ['missing', 'No service has deposited a backup yet. Pair a product to start.', 'Pair a product', 'tab-pairing'];
+  const newest = newestTime(services.flatMap(s => s.instances || []).map(i => i.newest && i.newest.deposited_at));
+  const latest = newest ? ` Newest capsule ${fmtAgo(newest)}.` : '';
+  const n = services.length, of = x => `${x} of ${n} service${n === 1 ? '' : 's'}`;
+  if (count('corrupt')) return ['failing', `${of(count('corrupt'))} hold a corrupt capsule.${latest}`, 'Review backups', 'tab-backups'];
+  const late = count('stale') + count('never');
+  if (late) return ['attention', `${of(late)} stale or never backed up.${latest}`, 'Review backups', 'tab-backups'];
+  const other = n - count('ok') - count('pending');
+  if (other) return ['attention', `${of(other)} need attention (scan or repository findings).${latest}`, 'Review backups', 'tab-backups'];
+  return ['ok', `All ${n} service${n === 1 ? '' : 's'} backed up within the expected interval.${latest}`, 'Review backups', 'tab-backups'];
+}
+
+function keyEvidence(keys, custodians) {
+  if (keys === undefined) return ['checking', 'Loading the recovery key…', 'View custodians', 'tab-custodians'];
+  if (keys === null) return ['unavailable', 'The recovery key could not be loaded.', 'View custodians', 'tab-custodians'];
+  const k = keys.find(x => x.status === 'current');
+  if (!k) return ['missing', 'No recovery key yet, so products cannot seal backups. Run the key ceremony.',
+    isAdminUser ? 'Run key ceremony' : 'View custodians', isAdminUser ? 'ceremony' : 'tab-custodians'];
+  const quorum = `${k.threshold} of ${k.total_shares} cards reconstruct the recovery key.`;
+  const pinned = keys.filter(x => x.status === 'previous').flatMap(x => x.pinned_products || []).length;
+  if (pinned) return ['attention', `${quorum} ${pinned} product${pinned === 1 ? '' : 's'} still pin an older key; re-pair them.`, 'View custodians', 'tab-custodians'];
+  if (custodians === undefined || custodians === null) return ['ok', quorum, 'View custodians', 'tab-custodians'];
+  if (custodians < k.total_shares) return ['attention', `${quorum} ${custodians} of ${k.total_shares} card holders are on the custodian list.`, 'Register custodians', 'tab-custodians'];
+  return ['ok', `${quorum} ${custodians} custodians on record.`, 'View custodians', 'tab-custodians'];
+}
+
+function copiesEvidence(targets) {
+  if (targets === undefined) return ['checking', 'Loading replication targets…', 'View replication', 'tab-replication'];
+  if (targets === null) return ['unavailable', 'Replication targets could not be loaded.', 'View replication', 'tab-replication'];
+  if (targets.length === 0) return ['missing', 'No offsite copy. Every capsule exists only on this server.', 'Add a target', 'tab-replication'];
+  const n = targets.length, failing = targets.filter(t => t.status === 'error').length;
+  const synced = newestTime(targets.map(t => t.last_sync_at));
+  const of = x => `${x} of ${n} target${n === 1 ? '' : 's'}`;
+  if (failing) return ['failing', `${of(failing)} failed the last sync.`, 'View replication', 'tab-replication'];
+  if (!synced) return ['attention', `${of(n)} configured, never synced.`, 'View replication', 'tab-replication'];
+  return ['ok', `${n} target${n === 1 ? '' : 's'}, last synced ${fmtAgo(synced)}.`, 'View replication', 'tab-replication'];
+}
+
+function renderEvidence() {
+  const rows = [
+    ['backups', backupsEvidence(evidence.backups)],
+    ['key', keyEvidence(evidence.keys, evidence.custodians)],
+    ['copies', copiesEvidence(evidence.targets)],
+  ];
+  // Until a current recovery key exists, the key row leads.
+  const noKey = Array.isArray(evidence.keys) && !evidence.keys.some(x => x.status === 'current');
+  if (noKey) rows.unshift(rows.splice(1, 1)[0]);
+  let primary = false;
+  for (const [name, [state, summary, label, go]] of rows) {
+    const row = document.getElementById(`overview-${name}-row`);
+    row.parentElement.append(row);
+    const [pill, text] = evidenceStates[state];
+    const badge = document.getElementById(`evidence-${name}-state`);
+    badge.className = 'status-pill ' + pill;
+    badge.textContent = text;
+    document.getElementById(`evidence-${name}-summary`).textContent = summary;
+    const action = document.getElementById(`overview-${name}-action`);
+    const lead = !primary && state !== 'ok' && state !== 'checking';
+    primary ||= lead;
+    action.className = lead ? 'btn btn-primary' : 'btn btn-secondary';
+    action.textContent = label;
+    action.dataset.go = go;
   }
 }
 
@@ -455,6 +572,7 @@ function closePairingDisplayModal() {
 // 7. Authentication State Management & SSO Gateway
 let currentUser = null;
 let ssoConfig = null;
+const roleLabels = { admin: 'Administrator', operator: 'Operator', viewer: 'Viewer' };
 
 async function loadAuthUser() {
   try {
@@ -466,67 +584,33 @@ async function loadAuthUser() {
     const data = meRes.ok ? await meRes.json() : { authenticated: false };
     ssoConfig = ssoRes.ok ? await ssoRes.json() : null;
 
-    const nameEl = document.getElementById('user-display-name');
-    const roleEl = document.getElementById('user-role-badge');
-    const btn = document.getElementById('btn-auth-action');
-    const btnSSOPair = document.getElementById('btn-sso-pair-header');
-    const btnChangePass = document.getElementById('btn-change-pass-header');
-    const loginGateway = document.getElementById('login-gateway-view');
-    const dashboardView = document.getElementById('dashboard-view');
-    const ssoActiveSection = document.getElementById('sso-active-section');
-    document.body.classList.toggle('signed-in', !!(data.authenticated && data.user));
-
-    // Show SSO sign-in button only if SSO is paired & active
-    if (ssoActiveSection) {
-      ssoActiveSection.style.display = (ssoConfig && ssoConfig.enabled && ssoConfig.issuer_url) ? 'block' : 'none';
-    }
-
-    if (data.authenticated && data.user) {
-      currentUser = data.user;
-      if (nameEl) nameEl.textContent = data.user.name || data.user.email || data.user.username;
-      if (roleEl) {
-        roleEl.textContent = data.user.role || 'operator';
-        roleEl.className = `status-pill ${data.user.role === 'admin' ? 'ready' : 'warning'}`;
-      }
-      if (btn) {
-        btn.textContent = 'Sign Out';
-        btn.className = 'btn btn-secondary btn-sm';
-      }
-      if (btnSSOPair) btnSSOPair.style.display = data.user.role === 'admin' ? 'inline-flex' : 'none';
-      isAdminUser = data.user.role === 'admin';
-      applyAdminOnly();
-      if (btnChangePass) btnChangePass.style.display = 'inline-flex';
-
-      if (loginGateway) loginGateway.style.display = 'none';
-      if (dashboardView) dashboardView.style.display = 'flex';
-
-      // Load protected dashboard data
-      loadReadiness();
-      loadBackups();
-      loadCapsules();
-      loadRetention();
-      loadPairing();
-      loadCustodians();
-      loadAudit();
-      loadReplication();
-      loadRecoveryKey();
-    } else {
+    const signedIn = !!(data.authenticated && data.user);
+    document.body.classList.toggle('signed-in', signedIn);
+    const sso = !!(ssoConfig && ssoConfig.enabled && ssoConfig.issuer_url);
+    document.querySelectorAll('.sso-only').forEach(el => { el.style.display = sso ? '' : 'none'; });
+    document.getElementById('login-gateway-view').style.display = signedIn ? 'none' : '';
+    document.getElementById('dashboard-view').style.display = signedIn ? '' : 'none';
+    if (!signedIn) {
       currentUser = null;
-      if (nameEl) nameEl.textContent = 'Unauthenticated';
-      if (roleEl) {
-        roleEl.textContent = 'Guest';
-        roleEl.className = 'status-pill danger';
-      }
-      if (btn) {
-        btn.textContent = 'Sign In';
-        btn.className = 'btn btn-primary btn-sm';
-      }
-      if (btnSSOPair) btnSSOPair.style.display = 'none';
-      if (btnChangePass) btnChangePass.style.display = 'none';
-
-      if (loginGateway) loginGateway.style.display = 'block';
-      if (dashboardView) dashboardView.style.display = 'none';
+      return;
     }
+    currentUser = data.user;
+    isAdminUser = data.user.role === 'admin';
+    document.getElementById('user-display-name').textContent = data.user.name || data.user.email || data.user.username;
+    document.getElementById('user-role-badge').textContent = roleLabels[data.user.role] || 'Viewer';
+    document.getElementById('sso-settings-row').style.display = isAdminUser ? '' : 'none';
+    applyAdminOnly();
+
+    // Load protected dashboard data
+    loadReadiness();
+    loadBackups();
+    loadCapsules();
+    loadRetention();
+    loadPairing();
+    loadCustodians();
+    loadAudit();
+    loadReplication();
+    loadRecoveryKey();
   } catch (err) {
     console.error('Error fetching auth user:', err);
   }
@@ -541,7 +625,7 @@ async function submitLocalLogin(e) {
 
   errBox.style.display = 'none';
   btn.disabled = true;
-  btn.textContent = 'Verifying credentials...';
+  btn.textContent = 'Signing in…';
 
   try {
     const res = await fetch('/api/auth/login/local', {
@@ -563,7 +647,7 @@ async function submitLocalLogin(e) {
     errBox.style.display = 'block';
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Sign In as Local Admin';
+    btn.textContent = 'Sign in';
   }
 }
 
@@ -578,18 +662,6 @@ async function handleLogout() {
     await loadAuthUser();
   } catch (err) {
     console.error('Logout error:', err);
-  }
-}
-
-function handleAuthAction() {
-  if (currentUser) {
-    handleLogout();
-  } else {
-    const loginGateway = document.getElementById('login-gateway-view');
-    if (loginGateway) {
-      loginGateway.scrollIntoView({ behavior: 'smooth' });
-      document.getElementById('login-password').focus();
-    }
   }
 }
 
@@ -740,8 +812,13 @@ async function loadReplicationTargets() {
 
   try {
     const res = await fetch('/api/replication/targets');
-    if (!res.ok) return;
+    if (!res.ok) {
+      if (evidence.targets === undefined) { evidence.targets = null; renderEvidence(); }
+      return;
+    }
     const list = await res.json() || [];
+    evidence.targets = list;
+    renderEvidence();
 
     if (list.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-dim);">No replication targets yet. Add one and every new capsule is copied offsite.</td></tr>';
@@ -766,9 +843,9 @@ async function loadReplicationTargets() {
           </span>
         </td>
         <td>${t.last_sync_at ? new Date(t.last_sync_at).toLocaleString() : '<span style="color: var(--text-dim);">Never</span>'}</td>
-        <td>
-          <button class="btn btn-secondary btn-sm" onclick="syncAllToTarget('${escJs(t.id)}')">Sync All</button>
-          <button class="btn btn-sm" style="color: var(--accent-red); margin-left: 4px;" onclick="deleteReplicationTarget('${escJs(t.id)}')">Delete</button>
+        <td class="row-actions">
+          <button class="btn btn-secondary btn-sm" onclick="syncAllToTarget('${escJs(t.id)}')">Sync all</button>
+          <button class="btn btn-secondary btn-sm" onclick="deleteReplicationTarget('${escJs(t.id)}')">Delete</button>
         </td>
       </tr>
     `).join('');
@@ -1172,9 +1249,12 @@ async function loadBackups() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed loading backup status');
     backupsData = data;
+    evidence.backups = data;
+    renderEvidence();
     renderBackups(data);
     status.textContent = `Updated ${new Date().toLocaleTimeString()}.`;
   } catch (err) {
+    if (evidence.backups === undefined) { evidence.backups = null; renderEvidence(); }
     status.textContent = err.message;
   }
 }

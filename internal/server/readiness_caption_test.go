@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"strings"
 	"testing"
 
+	"github.com/Busnes-app/kyrecovery-server/internal/appversion"
 	"github.com/Busnes-app/kyrecovery-server/internal/auth"
 )
 
@@ -32,5 +35,24 @@ func TestReadinessReportsCustodianCountNotQuorum(t *testing.T) {
 		if _, ok := body[k]; ok {
 			t.Fatalf("readiness must not report %q; the quorum belongs to /api/recovery-key", k)
 		}
+	}
+	if body["version"] != appversion.String() {
+		t.Fatalf("version = %v, want %q for the About dialog", body["version"], appversion.String())
+	}
+}
+
+// The About dialog embeds the licence verbatim; it must not drift from LICENSE.txt.
+func TestAboutDialogCarriesTheLicence(t *testing.T) {
+	licence, err := os.ReadFile("../../LICENSE.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	page, err := os.ReadFile("static/index.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := `aria-label="MIT License">` + strings.TrimRight(string(licence), "\n") + "</textarea>"
+	if !strings.Contains(string(page), want) {
+		t.Fatal("index.html's About dialog does not carry LICENSE.txt verbatim")
 	}
 }
