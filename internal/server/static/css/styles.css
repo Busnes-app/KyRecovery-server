@@ -120,34 +120,7 @@ body {
 .status-pill.danger  { color: var(--bad);  background: var(--bad-wash);  border-color: rgba(235, 157, 147, 0.3); }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
 
-/* Tabs */
-nav.nav-tabs {
-  display: flex;
-  gap: 4px;
-  padding: 0 32px;
-  border-bottom: 1px solid var(--rule);
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-}
-.tab-btn {
-  background: none;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  color: var(--paper-muted);
-  font: inherit;
-  font-size: var(--ky-type-nav);
-  min-height: var(--ky-control-size);
-  padding: 0 12px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: color 120ms ease;
-}
-.tab-btn:hover { color: var(--paper); }
-.tab-btn.active { color: var(--paper); border-bottom-color: var(--brass); }
-
-/* Main */
-#dashboard-view > main { flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: 32px; }
+/* The app frame, brand, navigation and phone header are ky-ui shell.css. */
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 
@@ -257,7 +230,6 @@ body:has(dialog[open]) { overflow: hidden; }
 
 
 @media (max-width: 720px) {
-  #dashboard-view > main { padding: 20px 16px; }
   .metric-value { font-size: 52px; }
   .panel-header { flex-wrap: wrap; }
   /* An empty table is one sentence; its column headings would push it past the card edge. */
@@ -294,8 +266,7 @@ table.data-table.backups-sub th, table.data-table.backups-sub td { padding: 8px 
 
 
 /* Suite composition. The existing destinations remain one navigation region. */
-.nav-icon { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.tab-btn { display: flex; align-items: center; gap: 10px; border-radius: var(--ky-control-radius); }
+.nav-icon { flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .status-pill, .pill-badge, .form-hint, code, .mono, .backups-dim { font-size: var(--ky-type-meta); }
 .form-label { font-size: var(--ky-type-meta); }
 input[type="checkbox"], input[type="radio"] { accent-color: var(--brass); }
@@ -353,35 +324,13 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--brass); }
 
 /* ---------- Suite shell (ky-ui shell.css owns the ky-* classes) ---------- */
 /* Shell and Appearance read --ink as secondary text; here --ink names the surface. */
-.ky-auth, .ky-user, .ky-about, .ky-page-head, .ky-license-link, .ky-appearance { --ink: var(--paper-muted); }
-.ky-auth-theme .theme-select { width: auto; max-width: 100%; }
-.ky-auth-help code { display: block; }
+.ky-auth, .ky-sidebar, .ky-about, .ky-page-head, .ky-license-link, .ky-appearance { --ink: var(--paper-muted); }
+.ky-sidebar { --sidebar-start: var(--ky-sidebar-start); --sidebar-end: var(--ky-sidebar-end); }
 /* The mark is a dark tile; dark schemes get the shell's inverted tile (light tile, dark mark). */
 :root[data-theme="busnes-dark"] .app-mark { filter: invert(1) hue-rotate(180deg); }
 .login-error { margin: 0; padding: 8px 12px; border-radius: var(--radius); background: var(--bad-wash); color: var(--bad); font-size: var(--ky-type-meta); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-.brand { display: flex; align-items: center; gap: 12px; }
-.brand-icon { width: 30px; height: 30px; border-radius: 6px; display: block; }
-.brand-title { font-size: var(--ky-type-section); font-weight: 600; color: var(--paper); }
-.app-sidebar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 12px 16px 0; border-bottom: 1px solid var(--rule); }
-.app-sidebar nav.nav-tabs { flex: 1 0 100%; margin-inline: -16px; padding: 4px 16px 8px; border: 0; }
-.tab-btn { flex-shrink: 0; }
-.sidebar-foot { display: grid; gap: 8px; padding: 16px; border-top: 1px solid var(--rule); }
-.sidebar-foot .ky-user { padding-top: 0; border-top: 0; }
-
-@media (min-width: 900px) {
-  /* One fixed 240px left region; the user block and licence line sit in its foot. */
-  .app-sidebar { position: fixed; inset: 0 auto 0 0; z-index: 1; width: var(--ky-sidebar-size); flex-direction: column; flex-wrap: nowrap; align-items: stretch; justify-content: flex-start; gap: 16px; padding: 24px 0 var(--sidebar-foot-size); background: var(--ky-sidebar-start); border: 0; border-right: 1px solid var(--rule); }
-  .app-sidebar > .brand, .app-sidebar > .status-pill { margin-inline: 16px; }
-  .app-sidebar > .status-pill { align-self: flex-start; }
-  .app-sidebar nav.nav-tabs { flex: 1 1 auto; min-height: 0; flex-direction: column; gap: 4px; margin: 8px 0 0; padding: 0 16px; overflow-x: hidden; overflow-y: auto; }
-  .app-sidebar .tab-btn { padding: 8px 12px; border: 0; text-align: left; white-space: normal; }
-  .sidebar-foot { position: fixed; left: 0; bottom: 0; z-index: 1; width: var(--ky-sidebar-size); padding: 0 16px 12px; border: 0; border-right: 1px solid var(--rule); background: var(--ky-sidebar-start); }
-  .sidebar-foot .ky-user { padding-top: 16px; border-top: 1px solid var(--rule); }
-  #dashboard-view { margin-left: var(--ky-sidebar-size); }
-}
-:root { --sidebar-foot-size: 156px; }
 
 /* ---------- Overview: evidence rows, then the stored facts ---------- */
 .evidence, .overview-facts, .overview-note, .settings-row { max-width: 56rem; }

@@ -57,10 +57,10 @@ export async function enter(page, vault) {
 }
 
 export async function tab(page, name) {
-  await page.locator('nav.nav-tabs').getByRole('button', { name, exact: true }).click();
+  await page.getByRole('navigation', { name: 'Primary' }).getByRole('button', { name, exact: true }).click();
 }
 
-// Sign out sits in the sidebar foot; password and SSO live on the Account page.
+// Sign out sits in the sidebar foot (the phone header on phones); password and SSO live on the Account page.
 export async function account(page, name) {
   if (name === 'Sign out') return page.getByRole('button', { name, exact: true }).click();
   await tab(page, 'Account');

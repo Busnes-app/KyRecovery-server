@@ -201,7 +201,7 @@ test('Appearance follows the OS, persists across reload and synchronizes tabs', 
   await expect(page.locator('html')).toHaveCSS('color-scheme', 'light');
   const other = await context.newPage();
   await other.goto(vault.url);
-  await other.locator('nav.nav-tabs').getByRole('button', { name: 'Appearance', exact: true }).click();
+  await other.getByRole('navigation', { name: 'Primary' }).getByRole('button', { name: 'Appearance', exact: true }).click();
   await busnes(other).getByRole('radio', { name: 'Dark' }).check();
   await expect(page.locator('html')).toHaveCSS('color-scheme', 'dark');
   await other.close();
