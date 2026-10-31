@@ -1335,6 +1335,25 @@ function serviceRows(s, samplesFor) {
 const HISTORY_LATE = 1.1;
 const HISTORY_SLOTS = 31;
 const historyTone = ratio => ratio > HISTORY_LATE ? 'warning' : 'success';
+const BEHIND = ['corrupt', 'missing', 'never', 'stale'];
+
+// The freshness line comes from the server's per-source verdicts, so it cannot contradict the
+// pill: while any source is behind, every source is named, worst first. Returns the phrases.
+function freshnessParts(s) {
+  const sources = [
+    ...(s.instances || []).map(i => ({ channel: 'capsule', at: i.newest?.deposited_at, state: i.state })),
+    ...(s.repos || []).map(r => ({ channel: 'restic', at: r.last_snapshot_at, state: BEHIND.find(f => (r.flags || []).includes(f)) || 'ok' })),
+  ];
+  const rank = x => { const i = BEHIND.indexOf(x.state); return i < 0 ? BEHIND.length : i; };
+  const ago = x => x.at ? fmtAgo(x.at) : 'never';
+  if (!sources.some(x => rank(x) < BEHIND.length)) {
+    const last = newestTime(sources.map(x => x.at));
+    return [last ? 'Last ' + fmtAgo(last) : 'No backups yet'];
+  }
+  const parts = sources.sort((a, b) => rank(a) - rank(b) || new Date(a.at || 0) - new Date(b.at || 0))
+    .map(x => `${x.channel} ${['corrupt', 'missing'].includes(x.state) ? x.state : ago(x)}`);
+  return [...new Set(parts)].slice(0, 3).map((p, i) => i ? p : sentence(p));
+}
 
 function historyRow(s) {
   const exp = Number(s.expected_seconds) || 1;
@@ -1354,18 +1373,18 @@ function historyRow(s) {
   const times = Object.values(newest).sort((a, b) => a - b);
   const bar = (g, now) => `<span class="history-bar${now ? ' history-now' : ''}" data-tone="${esc(g.tone)}" style="--h:${esc(Math.min(g.ratio / (2 * HISTORY_LATE), 1).toFixed(3))}" title="${esc(g.title)}"></span>`;
   let bars = gaps.map(g => bar(g)).join('');
-  let summary = `No backups yet; due every ${fmtDuration(exp)}.`;
-  const facts = ['Every ' + fmtDuration(exp), late && `${late} late`];
+  const fresh = freshnessParts(s);
+  let summary = `${fresh.join(', ')}; due every ${fmtDuration(exp)}.`;
   if (times.length) {
     const wait = (Date.now() - times[0]) / 1000;
-    if (wait / exp > HISTORY_LATE) facts.push('waiting ' + fmtDuration(wait));
     bars += bar({ ratio: wait / exp, tone: historyTone(wait / exp), title: `Now: ${fmtDuration(wait)} waiting for the next backup` }, true);
-    summary = `${gaps.length} gaps between backups, ${late} late${corrupt ? `, ${corrupt} corrupt` : ''}. Last backup ${fmtAgo(times[times.length - 1])}, longest wait now ${fmtDuration(wait)}; due every ${fmtDuration(exp)}.`;
+    summary = `${gaps.length} gaps between backups, ${late} late${corrupt ? `, ${corrupt} corrupt` : ''}. ` + summary;
   }
   return `<li class="history-row">
       <div class="history-name"><strong>${esc(s.service_name)}</strong> ${kyStatus(backupTone(s.state), stateLabel(s.state))}</div>
       <div class="history-bars" role="img" aria-label="${esc(s.service_name + ': ' + summary)}">` + (bars || '<span class="history-none">No backups yet</span>') + `</div>
-      <p class="history-caption">${times.length ? esc('Last ' + fmtAgo(times[times.length - 1])) : 'Never'}<span>${esc(facts.filter(Boolean).join(' · '))}</span></p>
+      <p class="history-caption"><span class="history-fresh">` + fresh.map(p => `<span>${esc(p)}</span>`).join(' · ') +
+      `</span><span class="history-due">${esc('Every ' + fmtDuration(exp) + (late ? ` · ${late} late` : ''))}</span></p>
     </li>`;
 }
 

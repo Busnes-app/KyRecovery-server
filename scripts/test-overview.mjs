@@ -134,6 +134,8 @@ console.log('Overview audit, count, failure, recovery and evidence states passed
   const at = h => new Date(now - h * H).toISOString();
   const row = context.historyRow({
     service_name: '<b>kynotes</b>', state: 'stale', expected_seconds: 24 * 3600,
+    instances: [{ state: 'ok', newest: { deposited_at: at(30) } }],
+    repos: [{ flags: ['stale'], last_snapshot_at: at(47) }],
     runs: [
       { at: at(100), source: 'a', channel: 'capsule' }, { at: at(98), source: 'u/r', channel: 'restic' },
       { at: at(76), source: 'a', channel: 'capsule' }, { at: at(48), source: 'a', channel: 'capsule' },
@@ -144,15 +146,22 @@ console.log('Overview audit, count, failure, recovery and evidence states passed
   // a: 24 h, 28 h (late), 18 h; u/r: 51 h but corrupt; now: u/r has waited 47 h (late).
   assert.deepEqual(tones, ['success', 'warning', 'danger', 'success', 'warning']);
   assert.equal((row.match(/history-now/g) || []).length, 1);
-  assert.match(row, /4 gaps between backups, 1 late, 1 corrupt\. Last backup 30 h ago, longest wait now 47 h; due every 24 h\./);
+  // The stale source leads in the caption and the summary, never a fresher "Last" figure.
+  assert.match(row, /aria-label="&lt;b&gt;kynotes&lt;\/b&gt;: 4 gaps between backups, 1 late, 1 corrupt\. Restic 47 h ago, capsule 30 h ago; due every 24 h\."/);
+  assert.match(row, /history-fresh"><span>Restic 47 h ago<\/span> · <span>capsule 30 h ago<\/span><\/span><span class="history-due">Every 24 h · 1 late</);
+  assert(!row.includes('Last '), 'a stale row never shows a bare Last figure');
   assert(!row.includes('<b>'), 'service names are escaped');
-  assert.match(row, /Every 24 h · 1 late · waiting 47 h</, 'an overdue wait is named, not only drawn');
   const long = context.historyRow({ service_name: 'z', state: 'stale', expected_seconds: 24 * 3600,
     runs: [{ at: at(200), source: 'a', channel: 'capsule' }, { at: at(1), source: 'a', channel: 'capsule' }] });
   assert.match(long, /data-tone="warning" style="--h:1\.000"/, 'heights cap at the top of the track');
 
   const many = Array.from({ length: 30 }, (_, i) => ({ at: at(60 - i), source: 'a', channel: 'capsule' }));
-  const full = context.historyRow({ service_name: 'x', state: 'ok', expected_seconds: 3600, runs: many });
+  const full = context.historyRow({ service_name: 'x', state: 'ok', expected_seconds: 3600, runs: many,
+    instances: [{ state: 'ok', newest: { deposited_at: at(31) } }], repos: [{ flags: [], last_snapshot_at: at(32) }] });
+  assert.match(full, /history-fresh"><span>Last 31 h ago</, 'healthy rows show the newest backup');
   assert.equal((full.match(/class="history-bar[" ]/g) || []).length, 30, '29 gaps and the wait, within 31 slots');
-  assert.match(context.historyRow({ service_name: 'y', state: 'never', expected_seconds: 3600, runs: [] }), /No backups yet/);
+  assert.match(context.historyRow({ service_name: 'y', state: 'never', expected_seconds: 3600, runs: [], instances: [{ state: 'never' }] }),
+    /history-fresh"><span>Capsule never</);
+  assert.match(context.historyRow({ service_name: 'p', state: 'pending', expected_seconds: 3600, runs: [], instances: [{ state: 'pending' }] }),
+    /aria-label="p: No backups yet; due every 1 h\."/);
 }
