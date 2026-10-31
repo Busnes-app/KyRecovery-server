@@ -143,13 +143,16 @@ test('pairing requires ceremony, claims once, revokes and clears the registratio
   await expect(page.locator('#restore-controls')).toBeVisible();
   await expect(page.locator('#restore-service')).toHaveValue('browser-fixture');
   await expect(page.locator('#restore-empty')).toBeHidden();
+  const history = page.locator('#backups-history li').filter({ hasText: 'browser-fixture' });
+  await expect(history.getByRole('img')).toHaveAccessibleName('browser-fixture: No backups yet; due every 26 h.');
+  await expect(history.locator('.ky-status')).toHaveText('Pending');
   await tab(page, 'Paired Products');
   const row = page.locator('#pairing-table-body tr').filter({ hasText: 'Disposable Browser Client' });
-  await expect(row).toContainText('paired');
+  await expect(row.locator('.ky-status[data-ky-status="success"]')).toHaveText('Paired');
   await expect(page.locator('#pairing-table-body')).not.toContainText(token);
   page.once('dialog', dialog => dialog.accept());
   await row.getByRole('button', { name: 'Revoke' }).click();
-  await expect(row).toContainText('revoked');
+  await expect(row.locator('.ky-status:not([data-ky-status])')).toHaveText('Revoked');
   const refused = await page.request.post(vault.url + '/api/backup/deposit', { headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/octet-stream' }, data: Buffer.from('not a capsule') });
   expect(refused.status()).toBe(401);
   page.once('dialog', dialog => dialog.accept());
@@ -175,7 +178,7 @@ test('local replication form tests an owned directory, persists and deletes its 
   await expect(page.locator('#repl-test-status')).toContainText('✓');
   await page.getByRole('button', { name: 'Save target' }).click();
   const row = page.locator('#replication-targets-table-body tr').filter({ hasText: 'Owned test destination' });
-  await expect(row).toContainText('MANUAL');
+  await expect(row.locator('.ky-status:not([data-ky-status])')).toHaveText('Manual');
   const targets = await (await page.request.get(vault.url + '/api/replication/targets')).json();
   expect(targets).toHaveLength(1);
   expect(targets[0]).toMatchObject({ name: 'Owned test destination', endpoint: destination, type: 'local', auto_sync: false });

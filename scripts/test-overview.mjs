@@ -15,7 +15,7 @@ function runtime(body) {
     return [id, {
       get textContent() { return text; },
       set textContent(value) { text = String(value ?? ''); },
-      innerHTML: '', className: '',
+      innerHTML: '', className: '', dataset: {},
     }];
   }));
   const state = { body, errors: [], jsonCalls: 0 };
@@ -60,8 +60,9 @@ for (const [count, expectedCount, expected] of [
   await context.loadReadiness();
   const pill = elements.get('system-status-pill');
   assert.equal(elements.get('metric-capsules').textContent, String(expectedCount));
-  assert.equal(pill.innerHTML, '<span class="dot"></span> ' + expected);
-  assert.equal(pill.className, expected === 'No capsules stored' ? 'status-pill warning' : 'status-pill ready');
+  assert.equal(pill.textContent, expected);
+  assert.equal(pill.innerHTML, '', 'the pill text is never parsed as markup');
+  assert.equal(pill.dataset.kyStatus, expected === 'No capsules stored' ? 'warning' : undefined);
   assert.equal(elements.get('metric-custodians').textContent, '0');
   assert.equal(elements.get('overview-audit-status').textContent, 'Unknown');
   assert.equal(state.errors.length, 0);
@@ -75,7 +76,7 @@ for (const failure of ['http', 'network', 'json']) {
   await context.loadReadiness();
   assert.equal(state.jsonCalls, failure === 'json' ? 1 : 0);
   assert.equal(state.errors.length, failure === 'http' ? 0 : 1);
-  assert.equal(elements.get('system-status-pill').innerHTML, '');
+  assert.equal(elements.get('system-status-pill').textContent, '');
 
   // A later valid response must recover without inventing restore evidence.
   Object.assign(state, { ok: true, networkError: false, jsonError: false,
@@ -84,7 +85,7 @@ for (const failure of ['http', 'network', 'json']) {
   assert.equal(elements.get('overview-audit-status').textContent, 'Accepting entries');
   assert.equal(elements.get('metric-capsules').textContent, '1');
   assert.equal(elements.get('metric-custodians').textContent, '2');
-  assert(!elements.get('system-status-pill').innerHTML.includes('restore'));
+  assert(!elements.get('system-status-pill').textContent.includes('restore'));
 }
 // Evidence rows: every missing piece gets an explicit state and a next action.
 {
@@ -125,3 +126,33 @@ for (const failure of ['http', 'network', 'json']) {
   assert.match(context.keyEvidence([{ status: 'current', threshold: 3, total_shares: 5 }], 5)[1], /^3 of 5 cards/);
 }
 console.log('Overview audit, count, failure, recovery and evidence states passed.');
+
+// Freshness history: gaps per source, the late line at interval + 10%, a bounded row, escaped names.
+{
+  const { context } = runtime({});
+  const H = 3600e3, now = Date.now();
+  const at = h => new Date(now - h * H).toISOString();
+  const row = context.historyRow({
+    service_name: '<b>kynotes</b>', state: 'stale', expected_seconds: 24 * 3600,
+    runs: [
+      { at: at(100), source: 'a', channel: 'capsule' }, { at: at(98), source: 'u/r', channel: 'restic' },
+      { at: at(76), source: 'a', channel: 'capsule' }, { at: at(48), source: 'a', channel: 'capsule' },
+      { at: at(47), source: 'u/r', channel: 'restic', corrupt: true }, { at: at(30), source: 'a', channel: 'capsule' },
+    ],
+  });
+  const tones = [...row.matchAll(/data-tone="(\w+)"/g)].map(m => m[1]);
+  // a: 24 h, 28 h (late), 18 h; u/r: 51 h but corrupt; now: u/r has waited 47 h (late).
+  assert.deepEqual(tones, ['success', 'warning', 'danger', 'success', 'warning']);
+  assert.equal((row.match(/history-now/g) || []).length, 1);
+  assert.match(row, /4 gaps between backups, 1 late, 1 corrupt\. Last backup 30 h ago, longest wait now 47 h; due every 24 h\./);
+  assert(!row.includes('<b>'), 'service names are escaped');
+  assert.match(row, /Every 24 h · 1 late · waiting 47 h</, 'an overdue wait is named, not only drawn');
+  const long = context.historyRow({ service_name: 'z', state: 'stale', expected_seconds: 24 * 3600,
+    runs: [{ at: at(200), source: 'a', channel: 'capsule' }, { at: at(1), source: 'a', channel: 'capsule' }] });
+  assert.match(long, /data-tone="warning" style="--h:1\.000"/, 'heights cap at the top of the track');
+
+  const many = Array.from({ length: 30 }, (_, i) => ({ at: at(60 - i), source: 'a', channel: 'capsule' }));
+  const full = context.historyRow({ service_name: 'x', state: 'ok', expected_seconds: 3600, runs: many });
+  assert.equal((full.match(/class="history-bar[" ]/g) || []).length, 30, '29 gaps and the wait, within 31 slots');
+  assert.match(context.historyRow({ service_name: 'y', state: 'never', expected_seconds: 3600, runs: [] }), /No backups yet/);
+}

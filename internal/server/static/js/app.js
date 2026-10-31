@@ -8,6 +8,10 @@
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+// A ky-ui status pill: a word and a dot. tone is danger, warning, success, or '' for neutral.
+const sentence = v => { const t = String(v ?? ''); return t.charAt(0).toUpperCase() + t.slice(1); };
+const kyStatus = (tone, word, title) => `<span class="ky-status"${tone ? ` data-ky-status="${esc(tone)}"` : ''}${title ? ` title="${esc(title)}"` : ''}>${esc(word)}</span>`;
+
 const escJs = v => esc(String(v ?? '').replace(/[\\'"\r\n]/g, c =>
   '\\' + ({ '\r': 'r', '\n': 'n' }[c] || c)));
 
@@ -91,11 +95,11 @@ async function loadReadiness() {
     // The pill states a fact the store can check. It must never imply a verified
     // restore: nothing here can open a capsule.
     const statusPill = document.getElementById('system-status-pill');
-    const dot = '<span class="dot"></span> ';
-    statusPill.className = capsuleCount > 0 ? 'status-pill ready' : 'status-pill warning';
-    statusPill.innerHTML = capsuleCount > 0
-      ? dot + capsuleCount + ' capsule' + (capsuleCount === 1 ? '' : 's') + ' stored'
-      : dot + 'No capsules stored';
+    if (capsuleCount > 0) delete statusPill.dataset.kyStatus;
+    else statusPill.dataset.kyStatus = 'warning';
+    statusPill.textContent = capsuleCount > 0
+      ? capsuleCount + ' capsule' + (capsuleCount === 1 ? '' : 's') + ' stored'
+      : 'No capsules stored';
   } catch (err) {
     console.error('Error fetching readiness:', err);
   }
@@ -140,7 +144,7 @@ function renderCapsules() {
       <td class="cell-service"><strong>${esc(c.service_name)}</strong>${c.app_name ? ` <span class="cell-dim">${esc(c.app_name)}</span>` : ''}</td>
       <td class="nowrap"><time datetime="${esc(c.deposited_at)}" title="${esc(fmtTime(c.deposited_at))}">${esc(fmtAgo(c.deposited_at))}</time></td>
       <td class="num nowrap">${esc(fmtBytes(c.size_bytes))}</td>
-      <td class="nowrap"><span class="status-pill ${corrupt ? 'danger' : 'ready'}" title="${esc(capsuleStatus(c))}">${corrupt ? 'Corrupt' : c.verified_at ? 'Verified' : 'Stored'}</span></td>
+      <td class="nowrap">${kyStatus(corrupt ? 'danger' : c.verified_at ? 'success' : '', corrupt ? 'Corrupt' : c.verified_at ? 'Verified' : 'Stored', capsuleStatus(c))}</td>
       <td class="nowrap"><code title="${esc(c.id)}">${esc(shortId(c.id))}</code><button type="button" class="icon-btn" data-action="copy" data-id="${esc(c.id)}" aria-label="${esc('Copy capsule ID ' + c.id)}" title="Copy ID"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 9h11v11H9z M5 15H4V4h11v1"/></svg></button></td>
       <td class="cell-icon"><a class="icon-btn" href="/api/capsules/${encodeURIComponent(c.id)}/download" download aria-label="${esc('Download capsule ' + c.id)}" title="Download"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11 M7 10l5 5 5-5 M5 20h14"/></svg></a></td>
     </tr>`;
@@ -248,8 +252,8 @@ async function loadRecoveryKey() {
 // severe row gets the primary button. None of it claims a verified restore.
 const evidence = {};
 const evidenceStates = {
-  ok: ['ready', 'Current'], attention: ['warning', 'Needs attention'], missing: ['danger', 'Missing'],
-  failing: ['danger', 'Failing'], unavailable: ['warning', 'Unavailable'], checking: ['warning', 'Checking'],
+  ok: ['success', 'Current'], attention: ['warning', 'Needs attention'], missing: ['danger', 'Missing'],
+  failing: ['danger', 'Failing'], unavailable: ['warning', 'Unavailable'], checking: ['', 'Checking'],
 };
 
 function backupsEvidence(data) {
@@ -310,7 +314,8 @@ function renderEvidence() {
     row.parentElement.append(row);
     const [pill, text] = evidenceStates[state];
     const badge = document.getElementById(`evidence-${name}-state`);
-    badge.className = 'status-pill ' + pill;
+    if (pill) badge.dataset.kyStatus = pill;
+    else delete badge.dataset.kyStatus;
     badge.textContent = text;
     document.getElementById(`evidence-${name}-summary`).textContent = summary;
     const action = document.getElementById(`overview-${name}-action`);
@@ -464,9 +469,7 @@ async function loadPairing() {
             : `<code style="color: var(--text-dim);">${esc(p.id)}</code>`}
         </td>
         <td>
-          <span class="status-pill ${p.status === 'paired' ? 'ready' : (p.status === 'pending' ? 'warning' : 'danger')}">
-            <span class="dot"></span> ${esc(String(p.status))}
-          </span>
+          ${kyStatus(p.status === 'paired' ? 'success' : p.status === 'pending' ? 'warning' : '', sentence(p.status))}
         </td>
         <td>${p.last_backup_at ? new Date(p.last_backup_at).toLocaleString() : '<span style="color: var(--text-dim);">Never</span>'}</td>
         <td>
@@ -843,14 +846,10 @@ async function loadReplicationTargets() {
           <code style="font-size: 12px;">${esc(t.type === 's3' ? (t.bucket + ' (' + t.region + ')') : t.type === 'smb' ? (t.endpoint + '/' + t.bucket) : t.endpoint)}</code>
         </td>
         <td>
-          <span class="status-pill ${t.auto_sync ? 'ready' : 'warning'}">
-            <span class="dot"></span> ${t.auto_sync ? 'ENABLED' : 'MANUAL'}
-          </span>
+          ${kyStatus('', t.auto_sync ? 'Automatic' : 'Manual')}
         </td>
         <td>
-          <span class="status-pill ${t.status === 'active' ? 'ready' : (t.status === 'error' ? 'danger' : 'warning')}">
-            <span class="dot"></span> ${esc(String(t.status))}
-          </span>
+          ${kyStatus(t.status === 'active' ? 'success' : t.status === 'error' ? 'danger' : 'warning', sentence(t.status))}
         </td>
         <td>${t.last_sync_at ? new Date(t.last_sync_at).toLocaleString() : '<span style="color: var(--text-dim);">Never</span>'}</td>
         <td class="row-actions">
@@ -886,9 +885,7 @@ async function loadReplicationLogs() {
         <td>${(l.bytes_transferred / 1024).toFixed(1)} KB</td>
         <td>${Number(l.duration_ms) || 0} ms</td>
         <td>
-          <span class="status-pill ${l.status === 'success' ? 'ready' : 'danger'}">
-            <span class="dot"></span> ${esc(String(l.status))}
-          </span>
+          ${kyStatus(l.status === 'success' ? 'success' : 'danger', sentence(l.status))}
         </td>
       </tr>
     `).join('');
@@ -1244,12 +1241,12 @@ const fmtBytes = n => {
 };
 const newestTime = times => times.filter(Boolean).sort((a, b) => new Date(a) - new Date(b)).pop();
 const capsuleState = c => c.status === 'corrupt' ? 'corrupt' : c.verified_at ? 'verified ' + fmtTime(c.verified_at) : 'stored';
-const backupPill = state => ['corrupt', 'scan_error', 'missing'].includes(state) ? 'danger' : ['ok', 'pending'].includes(state) ? 'ready' : 'warning';
-const stateLabel = state => String(state).replace('_', ' ');
+const backupTone = state => ['corrupt', 'scan_error', 'missing'].includes(state) ? 'danger' : state === 'ok' ? 'success' : state === 'pending' ? '' : 'warning';
+const stateLabel = state => sentence(String(state).replace('_', ' '));
 
 function stateHtml(state, flags) {
-  return `<span class="status-pill ${esc(backupPill(state))}"><span class="dot"></span> ${esc(stateLabel(state))}</span>` +
-    (flags || []).filter(f => f !== state).map(f => ` <span class="pill-badge">${esc(stateLabel(f))}</span>`).join('');
+  return kyStatus(backupTone(state), stateLabel(state)) +
+    (flags || []).filter(f => f !== state).map(f => ' ' + kyStatus(backupTone(f), stateLabel(f))).join('');
 }
 
 async function loadBackups() {
@@ -1292,6 +1289,10 @@ function renderBackups({ report, scan, samples }) {
     ? `<tr><td colspan="6">No services yet. Pair a product or link a restic repository.<button type="button" class="btn btn-secondary empty-action" onclick="document.querySelector('[data-tab=tab-pairing]').click()">Paired products</button></td></tr>`
     : services.map(s => serviceRows(s, samplesFor)).join('');
 
+  document.getElementById('backups-history').innerHTML = services.length === 0
+    ? '<li class="history-row history-empty">No backups yet.</li>'
+    : services.map(historyRow).join('');
+
   document.getElementById('backups-unassigned').innerHTML = unassigned.length === 0
     ? '<p class="backups-dim">No unassigned repositories.</p>'
     : unassigned.map(r => repoHtml(r, samplesFor(r.path))).join('');
@@ -1326,6 +1327,46 @@ function serviceRows(s, samplesFor) {
   return row + '<tr class="backups-detail"><td colspan="6">' + instancesHtml(s.instances) +
     ((s.repos || []).length ? '<h4 class="form-label">Repositories</h4>' : '') +
     (s.repos || []).map(r => repoHtml(r, samplesFor(r.path))).join('') + '</td></tr>';
+}
+
+// One row per service. A bar's height is the gap since the previous run from the same source,
+// over the interval; the server calls a backup late past interval + 10%, which is the dashed
+// line at half height. The outlined last bar is the wait so far for the source waiting longest.
+const HISTORY_LATE = 1.1;
+const HISTORY_SLOTS = 31;
+const historyTone = ratio => ratio > HISTORY_LATE ? 'warning' : 'success';
+
+function historyRow(s) {
+  const exp = Number(s.expected_seconds) || 1;
+  const newest = {};
+  let gaps = [];
+  for (const run of s.runs || []) {
+    const at = new Date(run.at), before = newest[run.source];
+    newest[run.source] = at;
+    if (!before) continue; // the oldest run of a source has no gap to measure
+    const gap = (at - before) / 1000;
+    gaps.push({ ratio: gap / exp, tone: run.corrupt ? 'danger' : historyTone(gap / exp),
+      title: `${run.channel === 'restic' ? 'Restic snapshot' : 'Capsule'}, ${fmtTime(run.at)}: ${fmtDuration(gap)} after the previous one${run.corrupt ? ', corrupt' : ''}` });
+  }
+  gaps = gaps.slice(1 - HISTORY_SLOTS);
+  const late = gaps.filter(g => g.tone === 'warning').length;
+  const corrupt = gaps.filter(g => g.tone === 'danger').length;
+  const times = Object.values(newest).sort((a, b) => a - b);
+  const bar = (g, now) => `<span class="history-bar${now ? ' history-now' : ''}" data-tone="${esc(g.tone)}" style="--h:${esc(Math.min(g.ratio / (2 * HISTORY_LATE), 1).toFixed(3))}" title="${esc(g.title)}"></span>`;
+  let bars = gaps.map(g => bar(g)).join('');
+  let summary = `No backups yet; due every ${fmtDuration(exp)}.`;
+  const facts = ['Every ' + fmtDuration(exp), late && `${late} late`];
+  if (times.length) {
+    const wait = (Date.now() - times[0]) / 1000;
+    if (wait / exp > HISTORY_LATE) facts.push('waiting ' + fmtDuration(wait));
+    bars += bar({ ratio: wait / exp, tone: historyTone(wait / exp), title: `Now: ${fmtDuration(wait)} waiting for the next backup` }, true);
+    summary = `${gaps.length} gaps between backups, ${late} late${corrupt ? `, ${corrupt} corrupt` : ''}. Last backup ${fmtAgo(times[times.length - 1])}, longest wait now ${fmtDuration(wait)}; due every ${fmtDuration(exp)}.`;
+  }
+  return `<li class="history-row">
+      <div class="history-name"><strong>${esc(s.service_name)}</strong> ${kyStatus(backupTone(s.state), stateLabel(s.state))}</div>
+      <div class="history-bars" role="img" aria-label="${esc(s.service_name + ': ' + summary)}">` + (bars || '<span class="history-none">No backups yet</span>') + `</div>
+      <p class="history-caption">${times.length ? esc('Last ' + fmtAgo(times[times.length - 1])) : 'Never'}<span>${esc(facts.filter(Boolean).join(' · '))}</span></p>
+    </li>`;
 }
 
 function instancesHtml(instances) {

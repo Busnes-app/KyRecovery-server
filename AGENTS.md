@@ -174,7 +174,8 @@ node scripts/test-wasm.mjs
 - The phone ledger presents every event field as a flat labelled entry; the desktop keeps the table. Both renderers use the existing HTML escaper for ledger data. Retention keeps Save at its section heading and preserves the complete policy in native disclosure. Empty Restore controls stay hidden until a service is available.
 - Overview facts (capsules stored, custodians of record, audit ledger append state) are one compact line under the evidence; phones stack them.
 - Capsule rows (~44px) lead with service and deposit time (relative, full date in the tooltip), then size, status (Stored until the verify sweep says Verified or Corrupt) and a short ID with a copy button; Download is an icon link with an accessible name. Digest, payload hash, quorum and key open in a detail row. Row actions elsewhere appear on hover or focus.
-- Routine status pills use neutral theme tokens; reserve green for explicit verification/success feedback. Retention controls live in a padded panel body, with three columns on desktop and stacked fields on mobile.
+- State pills are ky-ui `.ky-status` (`kyStatus` in `app.js`): danger for corrupt, missing, scan errors and failures; warning for stale, never, pending codes and other findings; success for ok, current, paired, active and verified; neutral for stored, pending first backups, revoked and settings such as Manual. Never style state with the accent or a button class.
+- Backups' freshness history (`historyRow`) draws one row per service from the report's bounded `runs` (newest `backupstatus.HistoryRuns`). Bars are gaps per source against interval + 10%, the server's stale line; `scripts/test-overview.mjs` checks the tones, the bound and escaping. Retention controls live in a padded panel body, with three columns on desktop and stacked fields on mobile.
 
 ## Operator documentation
 
