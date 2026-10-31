@@ -1,7 +1,9 @@
 /* The ceremony page runs under a stricter CSP than the dashboard: no inline styles,
    so its handful of layout rules live here. */
 .ceremony { max-width: 900px; margin: 40px auto; padding: 0 20px; }
-.ceremony-header .brand { text-decoration: none; color: var(--paper); }
+.ceremony-header .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--paper); }
+.brand-icon { width: 30px; height: 30px; border-radius: 6px; display: block; }
+.brand-title { font-size: var(--ky-type-section); font-weight: 600; color: var(--paper); }
 .ceremony-header { background: transparent; }
 .ceremony h1 { font-size: var(--ky-type-title); font-weight: 600; line-height: 1.25; margin-bottom: 24px; }
 .ceremony .panel { border: 0; border-radius: 0; background: transparent; padding: 0 0 24px; margin-bottom: 24px; border-bottom: 1px solid var(--rule); }

@@ -19,7 +19,7 @@
 
   <!-- Sign-in: the suite's ky-auth card (ky-ui shell.css). -->
   <main id="login-gateway-view" class="ky-auth" style="display: none;">
-    <div class="ky-auth-theme"><select class="form-input form-select theme-select" data-theme-select aria-label="Color theme"></select></div>
+    <div class="ky-auth-theme"><select data-theme-select aria-label="Color theme"></select></div>
     <div class="ky-auth-body">
       <div class="ky-auth-brand">
         <img class="app-mark" src="/static/app-icon.png" width="56" height="56" alt="">
@@ -29,33 +29,31 @@
       <form class="ky-auth-card" onsubmit="submitLocalLogin(event)">
         <div class="ky-auth-field">
           <label for="login-username">Username</label>
-          <input id="login-username" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+          <input id="login-username" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required autofocus>
         </div>
         <div class="ky-auth-field">
           <label for="login-password">Password</label>
           <input id="login-password" name="password" type="password" autocomplete="current-password" required>
         </div>
         <p id="login-error-box" class="login-error" role="alert" style="display: none;"></p>
+        <p class="ky-auth-check"></p>
         <button type="submit" id="btn-local-login-submit" class="ky-auth-submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg><span>Sign in</span></button>
         <!-- Only when SSO is configured. -->
         <hr class="ky-auth-divider sso-only" style="display: none;">
-        <button type="button" class="ky-auth-sso sso-only" style="display: none;" onclick="handleLogin()">Continue with KySignOn</button>
+        <button type="button" class="ky-auth-sso sso-only" style="display: none;" onclick="handleLogin()">Continue with single sign-on</button>
       </form>
-      <p class="ky-auth-help">First launch? The admin password is in the server’s data directory, in <code>initial-admin-password</code></p>
+      <p class="ky-auth-help">First launch? The admin password is in the server’s data directory, in <code>initial-admin-password</code>.</p>
     </div>
   </main>
 
   <!-- Dashboard (visible when signed in) -->
-  <div id="dashboard-view">
-  <aside class="app-sidebar">
-    <div class="brand">
-      <img src="/favicon.svg" alt="" class="brand-icon app-mark">
-      <span class="brand-title">KyRecovery</span>
+  <div id="dashboard-view" class="ky-app">
+  <header class="ky-sidebar">
+    <div class="ky-mobile-head">
+      <div class="ky-brand"><img class="app-mark" src="/static/app-icon.png" width="28" height="28" alt=""><span>KyRecovery</span></div>
+      <button class="ky-mobile-signout" type="button" aria-label="Sign out" onclick="handleLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
     </div>
-    <div id="system-status-pill" class="status-pill warning">
-      <span class="dot"></span> Loading
-    </div>
-    <nav class="nav-tabs" aria-label="Primary">
+    <nav class="ky-nav" aria-label="Primary">
       <button class="ky-nav-item tab-btn active" aria-current="page" data-tab="tab-overview"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z"/></svg><span>Overview</span></button>
       <button class="ky-nav-item tab-btn" data-tab="tab-backups"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z M4 9h16 M9 14h6"/></svg><span>Backups</span></button>
       <button class="ky-nav-item tab-btn" data-tab="tab-capsules"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6z M9 7h6 M9 11h6 M9 15h4"/></svg><span>Capsules</span></button>
@@ -66,10 +64,22 @@
       <button class="ky-nav-item tab-btn" data-tab="tab-account"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M4 21a8 8 0 0 1 16 0"/></svg><span>Account</span></button>
       <button class="ky-nav-item tab-btn" data-tab="tab-appearance"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-2-1-3-3-3h-3c-1 0-2-1-2-2V3z M7 8h.01 M6 13h.01 M9 17h.01"/></svg><span>Appearance</span></button>
     </nav>
-  </aside>
+    <div class="ky-sidebar-foot">
+      <div class="ky-user">
+        <div class="ky-user-copy">
+          <p id="user-display-name" class="ky-user-name"></p>
+          <p id="user-role-badge" class="ky-user-role"></p>
+        </div>
+        <button id="btn-auth-action" class="ky-user-signout" type="button" onclick="handleLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sign out</button>
+      </div>
+      <footer>
+        <button class="ky-license-link" type="button" commandfor="ky-about" command="show-modal">&copy; <span data-year>2026</span> &middot; MIT License</button>
+      </footer>
+    </div>
+  </header>
 
   <!-- Main Content Area -->
-  <main>
+  <main class="ky-content">
 
     <!-- Tab 1: Overview -->
     <div id="tab-overview" class="tab-content active">
@@ -78,6 +88,7 @@
           <h1 class="ky-page-title">Recovery overview</h1>
           <p class="ky-page-lede">What this vault can show about each part of your recovery path, and what to do next.</p>
         </div>
+        <span id="system-status-pill" class="status-pill warning"><span class="dot"></span> Loading</span>
       </header>
       <!-- Each row states its evidence and one next action. A blind store never claims a verified restore. -->
       <section class="evidence" aria-label="Recovery evidence">
@@ -446,6 +457,7 @@
         <div class="ky-appearance-grid appearance-pairs"></div>
       </fieldset>
     </div>
+    <footer class="ky-content-foot"><button class="ky-license-link" type="button" commandfor="ky-about" command="show-modal">&copy; <span data-year>2026</span> &middot; MIT License</button></footer>
   </main>
 
   <!-- Pairing Code Generator Modal -->
@@ -661,19 +673,6 @@
     </div>
   </dialog>
 
-  <!-- Sidebar foot: after main in the DOM so focus order matches phones, where it sits at the page end. -->
-  <div class="sidebar-foot">
-    <div class="ky-user">
-      <div class="ky-user-copy">
-        <p id="user-display-name" class="ky-user-name"></p>
-        <p id="user-role-badge" class="ky-user-role"></p>
-      </div>
-      <button id="btn-auth-action" class="ky-user-signout" type="button" onclick="handleLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sign out</button>
-    </div>
-    <footer>
-      <button class="ky-license-link" type="button" commandfor="ky-about" command="show-modal">&copy; <span data-year>2026</span> &middot; MIT License</button>
-    </footer>
-  </div>
 
   <dialog class="ky-about" id="ky-about" aria-label="About KyRecovery" closedby="any">
     <div class="ky-about-head">

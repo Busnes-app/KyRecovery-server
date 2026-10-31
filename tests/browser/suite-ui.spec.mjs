@@ -5,17 +5,24 @@ test('navigation, account and dialog actions remain reachable at the shipped siz
   const nav = page.getByRole('navigation', { name: 'Primary' });
   await expect(nav).toHaveCount(1);
   await tab(page, 'Appearance');
-  if (page.viewportSize().width >= 900) {
+  if (page.viewportSize().width > 720) {
     const box = await nav.boundingBox();
-    expect(box.x).toBe(0);
-    const region = await page.locator('.app-sidebar').boundingBox();
+    const region = await page.locator('.ky-sidebar').boundingBox();
     expect(region.x).toBe(0);
     expect(region.width).toBe(240);
-    const account = await page.locator('.sidebar-foot').boundingBox();
+    // Nothing between the brand row and the first destination; content starts at the shared inset.
+    expect(Math.round((await nav.getByRole('button').first().boundingBox()).y)).toBe(88);
+    expect((await page.locator('#tab-appearance .ky-page-head').boundingBox()).x).toBe(272);
+    // The user block and licence line close the sidebar.
+    const account = await page.locator('.ky-sidebar-foot').boundingBox();
     expect(account.x).toBeLessThan(240);
-    expect(account.y).toBeGreaterThan(box.y);
+    expect(account.y).toBeGreaterThan(box.y + box.height);
+    expect(Math.abs(account.y + account.height - (region.y + region.height - 16))).toBeLessThan(1);
     await page.setViewportSize({ width: 390, height: 844 });
   }
+  // Phones: an icon-only Sign out in the header row, no user block.
+  await expect(page.locator('.ky-mobile-head').getByRole('button', { name: 'Sign out', exact: true })).toBeVisible();
+  await expect(page.locator('.ky-user')).toBeHidden();
   await expect.poll(() => nav.locator('[aria-current="page"]').evaluate(el => {
     const item = el.getBoundingClientRect(), row = el.parentElement.getBoundingClientRect();
     return item.left >= row.left - 1 && item.right <= row.right + 1;
@@ -56,7 +63,7 @@ test('dialogs contain keyboard focus, close with Escape and restore their trigge
     expect(await dialog.evaluate(el => !document.hasFocus() || el.contains(document.activeElement))).toBe(true);
     await page.keyboard.press('Tab');
     await expect(close).toBeFocused();
-    await page.locator('nav.nav-tabs button').first().evaluate(el => el.focus());
+    await page.getByRole('navigation', { name: 'Primary' }).getByRole('button').first().evaluate(el => el.focus());
     await expect(close).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
