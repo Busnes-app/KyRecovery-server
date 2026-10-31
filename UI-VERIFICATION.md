@@ -55,3 +55,7 @@ The `browser` CI job is required for main publication and tag releases.
 This qualifies those workflows on Chromium, not every UI state, accessibility,
 a product restore, offsite disaster recovery or human acceptance. Failure screenshots
 may contain only the fixture’s disposable test values and cards.
+
+## Suite design pass (2026-10-31)
+
+ky-ui 0.6.0 shell (shared sign-in card, sidebar user block, licence line and About dialog, page heads) and palette pairs; Overview evidence rows; compact Capsules table; an Account page for Password and SSO pairing. Before/after screenshots are in `docs/ui-suite-2026-10-31/screenshots/` (1440×900 Busnes Light and Dark, plus 390×844 Light for Overview). They were captured from a disposable server holding a real 3-of-5 ceremony, three custodians, ten sealed synthetic capsules from four paired products, and no replication targets or restic repositories. The browser clock was fixed two hours after the deposits. The screenshots show appearance only; they do not qualify a restore.
