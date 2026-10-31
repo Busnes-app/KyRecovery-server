@@ -76,7 +76,7 @@ type Repo struct {
 	Expected        time.Duration `json:"-"`
 	SnapshotCount   int           `json:"snapshot_count"`
 	LastSnapshotAt  *time.Time    `json:"last_snapshot_at,omitempty"`
-	RecentSnapshots []time.Time   `json:"-"` // newest last, at most 10, for the cadence hint
+	RecentSnapshots []time.Time   `json:"-"` // newest last, at most HistoryRuns, for cadence and history
 	SizeBytes       int64         `json:"size_bytes"`
 	LockSeenAt      *time.Time    `json:"lock_seen_at,omitempty"`
 	KeyCount        int           `json:"key_count"`
@@ -141,6 +141,19 @@ type ServiceStatus struct {
 	ExpectedSeconds int64            `json:"expected_seconds"`
 	Instances       []InstanceStatus `json:"instances"`
 	Repos           []RepoStatus     `json:"repos"`
+	Runs            []Run            `json:"runs"` // oldest first, at most HistoryRuns
+}
+
+// HistoryRuns bounds a service's run history: the newest runs its freshness chart shows.
+const HistoryRuns = 30
+
+// Run is one backup arriving: a capsule deposit or a restic snapshot write. Source is the
+// instance ID or repository path, so gaps are measured within one source.
+type Run struct {
+	At      time.Time `json:"at"`
+	Source  string    `json:"source"`
+	Channel string    `json:"channel"` // "capsule" | "restic"
+	Corrupt bool      `json:"corrupt,omitempty"`
 }
 
 type Report struct {
@@ -179,6 +192,9 @@ func Evaluate(in Input) Report {
 		s := get(inst.Service)
 		s.ExpectsCapsule = true
 		s.Instances = append(s.Instances, classifyInstance(inst, byInstance[inst.ID], time.Duration(s.ExpectedSeconds)*time.Second, in.Now))
+		for _, c := range byInstance[inst.ID] {
+			s.Runs = append(s.Runs, Run{At: c.DepositedAt, Source: inst.ID, Channel: "capsule", Corrupt: c.Status == "corrupt"})
+		}
 	}
 
 	rep := Report{Unassigned: []RepoStatus{}, Counts: map[State]int{}, ScanFresh: fresh}
@@ -194,10 +210,15 @@ func Evaluate(in Input) Report {
 			exp = time.Duration(s.ExpectedSeconds) * time.Second
 		}
 		s.Repos = append(s.Repos, classifyRepo(r, true, exp, fresh, in.Now))
+		for _, t := range r.RecentSnapshots {
+			s.Runs = append(s.Runs, Run{At: t, Source: r.Path, Channel: "restic"})
+		}
 	}
 
 	var all []State
 	for _, s := range svcs {
+		sort.SliceStable(s.Runs, func(i, j int) bool { return s.Runs[i].At.Before(s.Runs[j].At) })
+		s.Runs = append([]Run{}, s.Runs[max(0, len(s.Runs)-HistoryRuns):]...)
 		var states []State
 		for _, i := range s.Instances {
 			states = append(states, i.State)

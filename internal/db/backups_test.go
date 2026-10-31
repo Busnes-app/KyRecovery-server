@@ -176,7 +176,7 @@ func TestSnapshotsSamplesAndRecent(t *testing.T) {
 	ctx, d := context.Background(), openMem(t)
 	t0 := time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC)
 	var snaps []time.Time
-	for i := 0; i < 12; i++ {
+	for i := 0; i < backupstatus.HistoryRuns+2; i++ {
 		snaps = append(snaps, t0.Add(time.Duration(i)*time.Hour))
 	}
 	old := t0.Add(-500 * 24 * time.Hour)
@@ -187,11 +187,12 @@ func TestSnapshotsSamplesAndRecent(t *testing.T) {
 		t.Fatal(err)
 	}
 	r := repoRow(t, d, "u/r")
-	if r.SnapshotCount != 12 || len(r.RecentSnapshots) != 10 || !r.RecentSnapshots[9].Equal(snaps[11]) || !r.LastSnapshotAt.Equal(snaps[11]) {
+	n := len(snaps)
+	if r.SnapshotCount != n || len(r.RecentSnapshots) != backupstatus.HistoryRuns || !r.RecentSnapshots[0].Equal(snaps[2]) || !r.LastSnapshotAt.Equal(snaps[n-1]) {
 		t.Fatalf("repo = %+v", r)
 	}
 	all, err := d.ListResticSnapshots(ctx, "u/r")
-	if err != nil || len(all) != 12 {
+	if err != nil || len(all) != n {
 		t.Fatalf("snapshots = %d, %v", len(all), err)
 	}
 	samples, err := d.ListResticSamples(ctx, old.Add(-time.Hour))

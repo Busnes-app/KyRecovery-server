@@ -365,3 +365,45 @@ func TestUnassignedOldLockIsNotAFinding(t *testing.T) {
 		t.Fatalf("worst = %s, unassigned = %+v", r.Worst, r.Unassigned)
 	}
 }
+
+func TestRunsMergeChannelsOldestFirstAndBounded(t *testing.T) {
+	var caps []Capsule
+	for i := range HistoryRuns {
+		caps = append(caps, capsule(fmt.Sprintf("c%02d", i), "a", time.Duration(2*HistoryRuns-2*i)*time.Hour, "active"))
+	}
+	caps[len(caps)-1].Status = "corrupt"
+	caps = append(caps, capsule("gone", "revoked", time.Minute, "active"))
+	repo := linked("u/notes", "kynotes", time.Hour)
+	repo.RecentSnapshots = []time.Time{ago(3 * time.Hour), ago(time.Hour)}
+	r := Evaluate(Input{Now: now, Scan: freshScan(), Repos: []Repo{repo}, Capsules: caps,
+		Instances: []Instance{paired("a", "kynotes"), {ID: "revoked", Service: "kynotes", Status: "revoked"}}})
+	runs := service(t, r, "kynotes").Runs
+	if len(runs) != HistoryRuns {
+		t.Fatalf("got %d runs, want the newest %d", len(runs), HistoryRuns)
+	}
+	if !slices.IsSortedFunc(runs, func(a, b Run) int { return a.At.Compare(b.At) }) {
+		t.Fatalf("runs not oldest first: %+v", runs)
+	}
+	last := runs[len(runs)-1]
+	if last != (Run{At: ago(time.Hour), Source: "u/notes", Channel: "restic"}) {
+		t.Fatalf("newest run = %+v", last)
+	}
+	for _, run := range runs {
+		if run.Source == "revoked" {
+			t.Fatal("a revoked instance's capsules are not part of the service's history")
+		}
+		if run.Corrupt != (run.At.Equal(ago(2 * time.Hour))) {
+			t.Fatalf("corrupt flag wrong on %+v", run)
+		}
+	}
+	if got := Evaluate(Input{Now: now}).Services; len(got) != 0 {
+		t.Fatalf("services = %+v", got)
+	}
+}
+
+func TestRunsEncodeAsEmptyListNotNull(t *testing.T) {
+	r := Evaluate(Input{Now: now, Instances: []Instance{paired("a", "kynotes")}})
+	if runs := service(t, r, "kynotes").Runs; runs == nil || len(runs) != 0 {
+		t.Fatalf("runs = %#v, want an empty non-nil list", runs)
+	}
+}

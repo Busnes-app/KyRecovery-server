@@ -135,7 +135,7 @@ func (d *DB) ResticScanState(ctx context.Context) (backupstatus.ScanState, error
 	return st, err
 }
 
-// ListResticRepos returns every known repository with its newest ten snapshot times.
+// ListResticRepos returns every known repository with its newest backupstatus.HistoryRuns snapshot times.
 func (d *DB) ListResticRepos(ctx context.Context) ([]backupstatus.Repo, error) {
 	rows, err := d.conn.QueryContext(ctx, `SELECT path, service_name, expected_interval_seconds, snapshot_count, last_snapshot_at,
 		size_bytes, lock_seen_at, key_count, acked_key_count, missing_since, scan_error, measured_at FROM restic_repos ORDER BY path`)
@@ -160,7 +160,7 @@ func (d *DB) ListResticRepos(ctx context.Context) ([]backupstatus.Repo, error) {
 	}
 	for i := range out {
 		recent, err := d.conn.QueryContext(ctx, `SELECT written_at FROM (SELECT written_at FROM restic_snapshots WHERE path = ?
-			ORDER BY written_at DESC LIMIT 10) ORDER BY written_at`, out[i].Path)
+			ORDER BY written_at DESC LIMIT ?) ORDER BY written_at`, out[i].Path, backupstatus.HistoryRuns)
 		if err != nil {
 			return nil, err
 		}

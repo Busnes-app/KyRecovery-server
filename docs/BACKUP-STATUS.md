@@ -12,6 +12,13 @@ each linked repository. It flags corrupt, missing, never-backed-up, stale, scan
 problems, new repository keys and old locks; `/healthz` degrades with one fixed
 reason code and no names.
 
+**Freshness history** gives each service one row of bars: one per capsule deposit
+or snapshot write, as tall as the gap since the previous one from the same
+instance or repository, against a dashed line at the expected interval plus 10%
+(the point where the service turns stale). The outlined last bar is the wait so
+far. `GET /api/backups/status` (viewer role, unchanged) carries the newest 30
+runs per service as `runs`; nothing new is stored.
+
 Restic metadata is observation, not proof. KyRecovery reads only file names,
 sizes and mtimes: a snapshot shows when rest-server **wrote** it, a lock is
 repository activity, and a capsule and snapshot written close together are not
