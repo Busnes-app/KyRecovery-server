@@ -32,7 +32,10 @@ import (
 	"github.com/Busnes-app/kyrecovery-server/internal/replication"
 )
 
-//go:embed static/*
+// ceremony.wasm is built, not committed: naming it fails the build until
+// scripts/build-wasm.sh has run, instead of shipping a ceremony page that 404s.
+//
+//go:embed static/* static/wasm/ceremony.wasm
 var staticFS embed.FS
 
 // Config contains server options.

@@ -58,17 +58,18 @@ Use the Go version in `go.mod`. These are source checks, separate from installed
 acceptance and real custodian-card recovery:
 
 ```bash
+scripts/build-wasm.sh
+git diff --exit-code -- internal/server/static/wasm
 go build -o kyrecovery cmd/kyrecovery/main.go
 go vet ./...
 go test -race -count=1 ./...
 ./kyrecovery help
-scripts/build-wasm.sh
-git diff --exit-code -- internal/server/static/wasm
 node scripts/test-wasm.mjs
 node scripts/test-overview.mjs
 ```
 
-The WASM check needs the build prerequisites in `scripts/build-wasm.sh`; Node runs the
+The server embeds the ceremony module, which is never committed, so `scripts/build-wasm.sh`
+runs first and needs its build prerequisites; Node runs the
 ceremony module vectors. Run `scripts/verify-restic-overlay.sh` separately with Docker for
 the optional restic overlay. Successful vectors and synthetic drills do not prove printed
 cards, off-site replication or an operator-observed restore.

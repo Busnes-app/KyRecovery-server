@@ -34,7 +34,7 @@ KyRecovery Server is the self-hosted **blind store** for the Ky Suite (KySignOn,
 | `internal/resticscan` | Reads restic repository metadata through an `os.Root`; never file contents. |
 | `internal/backupstatus` | Pure classification of capsule and restic evidence, health reasons, and the restore plan. |
 | `pkg/client` | The product-side SDK: `ClaimPairing`, `Client.Deposit`. |
-| `scripts` | `build-wasm.sh` rebuilds the committed module byte-for-byte; `test-wasm.mjs` runs it under Node; `verify-restic-overlay.sh` proves `docker-compose.restic.yml` with Docker. |
+| `scripts` | `build-wasm.sh` builds the embedded module (never committed) byte-for-byte; `test-wasm.mjs` runs it under Node; `verify-restic-overlay.sh` proves `docker-compose.restic.yml` with Docker. |
 
 Absolute-SFTP compatibility uploads reconcile regular `.ky-offsite-compat-*` staging files before Put and connection tests, after the greater of the default/current transfer budget plus one minute. Recent files and unrelated names are preserved. Cleanup listing/removal errors are logged and do not block uploads or connection tests; transfer errors still fail the sync. SMB legacy names outside the admitted grammar count as absent, allowing canonical replication of any valid capsule ID.
 
@@ -110,15 +110,16 @@ Prove the restic overlay (Docker; owns a per-run image tag, projects, loopback p
 scripts/verify-restic-overlay.sh
 ```
 
-Verify the binary builds and the CLI answers:
+Verify the binary builds and the CLI answers. `internal/server` embeds `ceremony.wasm`, which is never committed, so build it first; without it the server does not compile:
 ```bash
+scripts/build-wasm.sh
 go build -o kyrecovery cmd/kyrecovery/main.go
 ./kyrecovery help
 ```
 
-The `go-tests` job's `release binary is repeatable` step builds `cmd/kyrecovery/main.go` the way the Dockerfile does (`-trimpath`, from a `git archive` copy) in two directories and requires identical bytes. Keep the Dockerfile's `go build` and that step in step; `docs/VERIFYING-RELEASES.md` gives users the same command.
+The `go-tests` job's `release binary is repeatable` step builds `cmd/kyrecovery/main.go` the way the Dockerfile does (`build-wasm.sh`, `-trimpath`, from a `git archive` copy) in two directories and requires identical bytes. Keep the Dockerfile's builds and that step in step; `docs/VERIFYING-RELEASES.md` gives users the same command.
 
-Rebuild the ceremony module and prove the committed artefact matches, then run it:
+Run the ceremony module; the diff proves the committed `wasm_exec.js` matches the toolchain's:
 ```bash
 scripts/build-wasm.sh && git diff --exit-code -- internal/server/static/wasm
 node scripts/test-wasm.mjs
