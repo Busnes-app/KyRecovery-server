@@ -298,7 +298,7 @@ func TestEmbeddedDashboardEscapesEveryInnerHTMLSink(t *testing.T) {
 
 	// Interpolations that are safe without escaping: a literal-producing ternary,
 	// a numeric coercion, a date, or a URL component.
-	safe := regexp.MustCompile(`^\s*(esc|escJs|Number|encodeURIComponent)\(|^\s*[a-zA-Z_.]+\s*(===|!==|\?)|^\s*\(|^\s*pct\b|^\s*color\b|^\s*pillClass\b|^\s*checksHtml\b|^\s*participantsStr\b|^\s*optionsHTML\b|^\s*new Date\(`)
+	safe := regexp.MustCompile(`^\s*(esc|escJs|Number|encodeURIComponent)\(|^\s*[a-zA-Z_.]+\s*(===|!==|\?)|^\s*\(|^\s*pct\b|^\s*color\b|^\s*pillClass\b|^\s*checksHtml\b|^\s*participantsStr\b|^\s*optionsHTML\b|^\s*kyStatus\(|^\s*new Date\(`)
 
 	// Inside an on*="..." handler the browser HTML-decodes the attribute before parsing it
 	// as script, so esc() is the wrong escaper there: a decoded quote ends the JS string.

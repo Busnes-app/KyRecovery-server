@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Backups has a freshness history: one row per service, a bar per recent capsule
+  deposit or restic snapshot sized by the gap before it against the service's
+  schedule. `GET /api/backups/status` adds `runs` (the newest 30 per service, read
+  from rows already stored); restic history reads the newest 30 snapshot times per
+  repository instead of 10.
+
+### Changed
+
+- ky-ui 0.8.0: status pills use the shared `.ky-status` with danger, warning and
+  success colours that no longer borrow the accent. Replication shows Automatic or
+  Manual instead of ENABLED or MANUAL, and a revoked pairing reads as neutral.
+
 ## 0.5.0 — 2026-10-28
 
 ### Added

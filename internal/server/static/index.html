@@ -88,20 +88,20 @@
           <h1 class="ky-page-title">Recovery overview</h1>
           <p class="ky-page-lede">What this vault can show about each part of your recovery path, and what to do next.</p>
         </div>
-        <span id="system-status-pill" class="status-pill warning"><span class="dot"></span> Loading</span>
+        <span id="system-status-pill" class="ky-status">Loading</span>
       </header>
       <!-- Each row states its evidence and one next action. A blind store never claims a verified restore. -->
       <section class="evidence" aria-label="Recovery evidence">
         <div id="overview-backups-row" class="evidence-row">
-          <div><div class="evidence-head"><span id="evidence-backups-state" class="status-pill warning">Checking</span><h2>Backup freshness</h2></div><p id="evidence-backups-summary">Loading backup status…</p></div>
+          <div><div class="evidence-head"><span id="evidence-backups-state" class="ky-status">Checking</span><h2>Backup freshness</h2></div><p id="evidence-backups-summary">Loading backup status…</p></div>
           <button id="overview-backups-action" type="button" class="btn btn-secondary" data-go="tab-backups">Review backups</button>
         </div>
         <div id="overview-key-row" class="evidence-row">
-          <div><div class="evidence-head"><span id="evidence-key-state" class="status-pill warning">Checking</span><h2>Key and quorum</h2></div><p id="evidence-key-summary">Loading the recovery key…</p></div>
+          <div><div class="evidence-head"><span id="evidence-key-state" class="ky-status">Checking</span><h2>Key and quorum</h2></div><p id="evidence-key-summary">Loading the recovery key…</p></div>
           <button id="overview-key-action" type="button" class="btn btn-secondary" data-go="tab-custodians">View custodians</button>
         </div>
         <div id="overview-copies-row" class="evidence-row">
-          <div><div class="evidence-head"><span id="evidence-copies-state" class="status-pill warning">Checking</span><h2>Independent copies</h2></div><p id="evidence-copies-summary">Loading replication targets…</p></div>
+          <div><div class="evidence-head"><span id="evidence-copies-state" class="ky-status">Checking</span><h2>Independent copies</h2></div><p id="evidence-copies-summary">Loading replication targets…</p></div>
           <button id="overview-copies-action" type="button" class="btn btn-secondary" data-go="tab-replication">View replication</button>
         </div>
       </section>
@@ -129,6 +129,15 @@
         <div class="metric-card"><div class="metric-label">scan problems</div><div id="backups-scan" class="metric-value">--</div></div>
         <div class="metric-card"><div class="metric-label">restic storage</div><div id="backups-storage" class="metric-value">--</div></div>
       </div>
+
+      <section class="panel" aria-labelledby="backups-history-title">
+        <div class="panel-header">
+          <h2 id="backups-history-title" class="panel-title">Freshness history</h2>
+          <p class="history-legend"><span class="history-swatch" data-tone="success">On time</span><span class="history-swatch" data-tone="warning">Late</span><span class="history-swatch" data-tone="danger">Corrupt</span><span class="history-swatch history-swatch-now">Waiting now</span></p>
+        </div>
+        <p class="panel-note">Each bar is one backup, as tall as the wait since the one before it. Above the dashed line it came late for the service's schedule.</p>
+        <ol id="backups-history" class="history-list"><li class="history-row history-empty">Loading backup history…</li></ol>
+      </section>
 
       <div class="panel">
         <div class="panel-header">

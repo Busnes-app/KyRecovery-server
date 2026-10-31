@@ -30,7 +30,15 @@ for (const mode of ['light', 'dark']) {
     const value = values[name];
     assert(value, `Missing ${name}`);
     const alias = value.match(/^var\(--([a-z-]+)\)$/);
-    return alias ? resolve(alias[1]) : value;
+    if (alias) return resolve(alias[1]);
+    // ky-ui 0.8.0 soft tints: color-mix(in srgb, var(--a[, var(--b)]) N%, var(--c[, var(--d)])), mixed per sRGB channel.
+    const v = '\\s*var\\(--([a-z-]+)(?:,\\s*var\\(--([a-z-]+)\\))?\\)\\s*';
+    const mix = value.match(new RegExp(`^color-mix\\(in srgb,${v}(\\d+)%,${v}\\)$`));
+    if (!mix) return value;
+    const [fg, bg] = [[mix[1], mix[2]], [mix[4], mix[5]]].map(([a, b]) => resolve(values[a] || !b ? a : b));
+    const p = Number(mix[3]) / 100;
+    const channels = hex => hex.slice(1).match(/../g).map(x => parseInt(x, 16));
+    return '#' + channels(fg).map((c, i) => Math.round(c * p + channels(bg)[i] * (1 - p)).toString(16).padStart(2, '0')).join('');
   };
   for (const foreground of ['paper', 'paper-muted', 'paper-dim', 'brass', 'ok', 'warn', 'bad']) {
     const surfaces = ['ink', 'ink-raised', 'ink-well'];
