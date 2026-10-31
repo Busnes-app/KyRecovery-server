@@ -91,9 +91,17 @@ function picker(grid) {
       radio.name = key;
       radio.value = mode.value;
       radio.addEventListener('change', () => choose(mode.value));
+      // KyCalendar's ✓ before the selected label; CSS shows it only on the checked mode.
+      const check = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      check.setAttribute('viewBox', '0 0 24 24');
+      check.setAttribute('aria-hidden', 'true');
+      check.classList.add('appearance-check');
+      const tick = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      tick.setAttribute('d', 'M20 6 9 17l-5-5');
+      check.append(tick);
       const label = document.createElement('span');
       label.textContent = mode.label;
-      option.append(radio, label);
+      option.append(radio, check, label);
       row.append(option);
     }
     card.append(head, preview, row);

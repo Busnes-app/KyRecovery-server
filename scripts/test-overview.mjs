@@ -118,6 +118,10 @@ for (const failure of ['http', 'network', 'json']) {
     if (target) assert.equal(go, target);
     assert(!/restor(ed|able)|verified restore/i.test(summary), `evidence must not claim a restore: ${summary}`);
   }
+  for (const [states, want] of [
+    [['attention', 'ok', 'missing'], 2], [['ok', 'failing', 'missing'], 1], [['ok', 'attention', 'unavailable'], 1],
+    [['ok', 'ok', 'ok'], -1], [['checking', 'ok', 'checking'], -1], [['missing', 'missing', 'attention'], 0],
+  ]) assert.equal(context.leadRow(states), want, states.join());
   assert.match(context.keyEvidence([{ status: 'current', threshold: 3, total_shares: 5 }], 5)[1], /^3 of 5 cards/);
 }
 console.log('Overview audit, count, failure, recovery and evidence states passed.');

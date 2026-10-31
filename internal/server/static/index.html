@@ -22,7 +22,7 @@
     <div class="ky-auth-theme"><select class="form-input form-select theme-select" data-theme-select aria-label="Color theme"></select></div>
     <div class="ky-auth-body">
       <div class="ky-auth-brand">
-        <img src="/static/app-icon.png" width="56" height="56" alt="">
+        <img class="app-mark" src="/static/app-icon.png" width="56" height="56" alt="">
         <h1>KyRecovery</h1>
         <p>Your recovery vault, on your own server.</p>
       </div>
@@ -36,12 +36,12 @@
           <input id="login-password" name="password" type="password" autocomplete="current-password" required>
         </div>
         <p id="login-error-box" class="login-error" role="alert" style="display: none;"></p>
-        <button type="submit" id="btn-local-login-submit" class="ky-auth-submit">Sign in</button>
+        <button type="submit" id="btn-local-login-submit" class="ky-auth-submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg><span>Sign in</span></button>
         <!-- Only when SSO is configured. -->
         <hr class="ky-auth-divider sso-only" style="display: none;">
         <button type="button" class="ky-auth-sso sso-only" style="display: none;" onclick="handleLogin()">Continue with KySignOn</button>
       </form>
-      <p class="ky-auth-help">First launch? The admin password is in <code>initial-admin-password</code> in the server’s data directory.</p>
+      <p class="ky-auth-help">First launch? The admin password is in the server’s data directory, in <code>initial-admin-password</code></p>
     </div>
   </main>
 
@@ -49,7 +49,7 @@
   <div id="dashboard-view">
   <aside class="app-sidebar">
     <div class="brand">
-      <img src="/favicon.svg" alt="" class="brand-icon">
+      <img src="/favicon.svg" alt="" class="brand-icon app-mark">
       <span class="brand-title">KyRecovery</span>
     </div>
     <div id="system-status-pill" class="status-pill warning">
@@ -82,18 +82,15 @@
       <!-- Each row states its evidence and one next action. A blind store never claims a verified restore. -->
       <section class="evidence" aria-label="Recovery evidence">
         <div id="overview-backups-row" class="evidence-row">
-          <span id="evidence-backups-state" class="status-pill warning">Checking</span>
-          <div><h2>Backup freshness</h2><p id="evidence-backups-summary">Loading backup status…</p></div>
+          <div><div class="evidence-head"><span id="evidence-backups-state" class="status-pill warning">Checking</span><h2>Backup freshness</h2></div><p id="evidence-backups-summary">Loading backup status…</p></div>
           <button id="overview-backups-action" type="button" class="btn btn-secondary" data-go="tab-backups">Review backups</button>
         </div>
         <div id="overview-key-row" class="evidence-row">
-          <span id="evidence-key-state" class="status-pill warning">Checking</span>
-          <div><h2>Key and quorum</h2><p id="evidence-key-summary">Loading the recovery key…</p></div>
+          <div><div class="evidence-head"><span id="evidence-key-state" class="status-pill warning">Checking</span><h2>Key and quorum</h2></div><p id="evidence-key-summary">Loading the recovery key…</p></div>
           <button id="overview-key-action" type="button" class="btn btn-secondary" data-go="tab-custodians">View custodians</button>
         </div>
         <div id="overview-copies-row" class="evidence-row">
-          <span id="evidence-copies-state" class="status-pill warning">Checking</span>
-          <div><h2>Independent copies</h2><p id="evidence-copies-summary">Loading replication targets…</p></div>
+          <div><div class="evidence-head"><span id="evidence-copies-state" class="status-pill warning">Checking</span><h2>Independent copies</h2></div><p id="evidence-copies-summary">Loading replication targets…</p></div>
           <button id="overview-copies-action" type="button" class="btn btn-secondary" data-go="tab-replication">View replication</button>
         </div>
       </section>
@@ -201,7 +198,7 @@
                 <th>Service</th>
                 <th>Deposited</th>
                 <th class="num">Size</th>
-                <th>Integrity</th>
+                <th>Status</th>
                 <th>Capsule</th>
                 <th><span class="visually-hidden">Download</span></th>
               </tr>

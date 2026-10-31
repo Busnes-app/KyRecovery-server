@@ -120,6 +120,10 @@ async function loadCapsules() {
 // Hashes, quorum and key detail open in a row underneath.
 let capsulesData = [];
 const capsulesOpen = new Set();
+// Stored means held but not yet re-hashed; only the verify sweep can say Verified or Corrupt.
+const capsuleStatus = c => c.status === 'corrupt' ? 'Corrupt: the stored bytes failed verification'
+  : c.verified_at ? 'Verified ' + fmtTime(c.verified_at) + ': the stored bytes matched the deposit digest'
+  : 'Stored: not yet checked by the verify sweep';
 const shortId = id => String(id).length > 12 ? '…' + String(id).slice(-8) : String(id);
 
 function renderCapsules() {
@@ -136,7 +140,7 @@ function renderCapsules() {
       <td class="cell-service"><strong>${esc(c.service_name)}</strong>${c.app_name ? ` <span class="cell-dim">${esc(c.app_name)}</span>` : ''}</td>
       <td class="nowrap"><time datetime="${esc(c.deposited_at)}" title="${esc(fmtTime(c.deposited_at))}">${esc(fmtAgo(c.deposited_at))}</time></td>
       <td class="num nowrap">${esc(fmtBytes(c.size_bytes))}</td>
-      <td class="nowrap"><span class="status-pill ${corrupt ? 'danger' : 'ready'}"${c.verified_at ? ` title="${esc('Verified ' + fmtTime(c.verified_at))}"` : ''}>${corrupt ? 'Corrupt' : c.verified_at ? 'Verified' : 'Stored'}</span></td>
+      <td class="nowrap"><span class="status-pill ${corrupt ? 'danger' : 'ready'}" title="${esc(capsuleStatus(c))}">${corrupt ? 'Corrupt' : c.verified_at ? 'Verified' : 'Stored'}</span></td>
       <td class="nowrap"><code title="${esc(c.id)}">${esc(shortId(c.id))}</code><button type="button" class="icon-btn" data-action="copy" data-id="${esc(c.id)}" aria-label="${esc('Copy capsule ID ' + c.id)}" title="Copy ID"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 9h11v11H9z M5 15H4V4h11v1"/></svg></button></td>
       <td class="cell-icon"><a class="icon-btn" href="/api/capsules/${encodeURIComponent(c.id)}/download" download aria-label="${esc('Download capsule ' + c.id)}" title="Download"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11 M7 10l5 5 5-5 M5 20h14"/></svg></a></td>
     </tr>`;
@@ -149,7 +153,7 @@ function renderCapsules() {
       <dt>Payload hash</dt><dd><code>${esc(c.payload_hash)}</code> (sealer-attested)</dd>
       <dt>Deposited</dt><dd>${esc(fmtTime(c.deposited_at))}</dd>
       <dt>Created</dt><dd>${esc(fmtTime(c.created_at))} (product-reported)</dd>
-      <dt>Integrity</dt><dd>${esc(capsuleState(c))}</dd>
+      <dt>Status</dt><dd>${esc(capsuleStatus(c))}</dd>
       ${c.app_version ? `<dt>App version</dt><dd>${esc(c.app_version)}</dd>` : ''}
     </dl></td></tr>`;
   }).join('');
@@ -240,8 +244,8 @@ async function loadRecoveryKey() {
 }
 
 // Overview evidence. Each loader stores its result here: undefined while loading,
-// null when it failed. Every row gets an explicit state and one next action; the
-// first row that needs one gets the primary button. None of it claims a verified restore.
+// null when it failed. Every row gets an explicit state and one next action; the most
+// severe row gets the primary button. None of it claims a verified restore.
 const evidence = {};
 const evidenceStates = {
   ok: ['ready', 'Current'], attention: ['warning', 'Needs attention'], missing: ['danger', 'Missing'],
@@ -300,8 +304,8 @@ function renderEvidence() {
   // Until a current recovery key exists, the key row leads.
   const noKey = Array.isArray(evidence.keys) && !evidence.keys.some(x => x.status === 'current');
   if (noKey) rows.unshift(rows.splice(1, 1)[0]);
-  let primary = false;
-  for (const [name, [state, summary, label, go]] of rows) {
+  const lead = leadRow(rows.map(([, [state]]) => state));
+  rows.forEach(([name, [state, summary, label, go]], i) => {
     const row = document.getElementById(`overview-${name}-row`);
     row.parentElement.append(row);
     const [pill, text] = evidenceStates[state];
@@ -310,12 +314,18 @@ function renderEvidence() {
     badge.textContent = text;
     document.getElementById(`evidence-${name}-summary`).textContent = summary;
     const action = document.getElementById(`overview-${name}-action`);
-    const lead = !primary && state !== 'ok' && state !== 'checking';
-    primary ||= lead;
-    action.className = lead ? 'btn btn-primary' : 'btn btn-secondary';
+    action.className = i === lead ? 'btn btn-primary' : 'btn btn-secondary';
     action.textContent = label;
     action.dataset.go = go;
-  }
+  });
+}
+
+// The row that gets the primary button: Missing/Failing, then Needs attention/Unavailable;
+// ties go to the row shown first. -1 when everything is current or still loading.
+function leadRow(states) {
+  const severity = state => ({ missing: 2, failing: 2, attention: 1, unavailable: 1 })[state] || 0;
+  const worst = Math.max(0, ...states.map(severity));
+  return worst ? states.findIndex(state => severity(state) === worst) : -1;
 }
 
 // Retiring says the key's cards are no longer needed. The server refuses while any retained
@@ -625,7 +635,7 @@ async function submitLocalLogin(e) {
 
   errBox.style.display = 'none';
   btn.disabled = true;
-  btn.textContent = 'Signing in…';
+  btn.lastElementChild.textContent = 'Signing in…';
 
   try {
     const res = await fetch('/api/auth/login/local', {
@@ -647,7 +657,7 @@ async function submitLocalLogin(e) {
     errBox.style.display = 'block';
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Sign in';
+    btn.lastElementChild.textContent = 'Sign in';
   }
 }
 
@@ -1464,7 +1474,7 @@ function restorePlanHtml(p) {
       <dt>Digest</dt><dd><code>${esc(c.digest)}</code></dd>
       <dt>Deposited</dt><dd>${esc(fmtTime(c.deposited_at))}</dd>
       <dt>Created</dt><dd>${esc(fmtTime(c.created_at))} (product-reported)</dd>
-      <dt>Integrity</dt><dd>${esc(capsuleState(c))}</dd>
+      <dt>Status</dt><dd>${esc(capsuleStatus(c))}</dd>
       <dt>Custodian cards</dt><dd>${p.recovery_key ? `${esc(p.recovery_key.threshold)} of the ${esc(p.recovery_key.total_shares)} cards printed with recovery key <code>${esc(p.recovery_key.key_id)}</code> (${esc(p.recovery_key.status)})` : `Cards printed with recovery key <code>${esc(c.recovery_key_id)}</code>`}</dd>` : '<dt>Capsule</dt><dd>No capsule deposited at or before this time.</dd>'}
       ${p.repo ? `<dt>Repository</dt><dd><code>${esc(p.repo)}</code></dd>` : ''}
       ${snap ? `<dt>Snapshot</dt><dd><code>${esc(snap.id)}</code></dd>

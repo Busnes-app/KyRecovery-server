@@ -355,7 +355,9 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--brass); }
 /* Shell and Appearance read --ink as secondary text; here --ink names the surface. */
 .ky-auth, .ky-user, .ky-about, .ky-page-head, .ky-license-link, .ky-appearance { --ink: var(--paper-muted); }
 .ky-auth-theme .theme-select { width: auto; max-width: 100%; }
-.ky-auth-help code { white-space: nowrap; }
+.ky-auth-help code { display: block; }
+/* The mark is a dark tile; dark schemes get the shell's inverted tile (light tile, dark mark). */
+:root[data-theme="busnes-dark"] .app-mark { filter: invert(1) hue-rotate(180deg); }
 .login-error { margin: 0; padding: 8px 12px; border-radius: var(--radius); background: var(--bad-wash); color: var(--bad); font-size: var(--ky-type-meta); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
@@ -382,11 +384,11 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--brass); }
 :root { --sidebar-foot-size: 156px; }
 
 /* ---------- Overview: evidence rows, then the stored facts ---------- */
+.evidence, .overview-facts, .overview-note, .settings-row { max-width: 56rem; }
 .evidence { border-top: 1px solid var(--rule); margin-bottom: 24px; }
-.evidence-row, .settings-row { display: grid; grid-template-columns: 9rem minmax(0, 1fr) auto; align-items: center; gap: 8px 24px; padding: 20px 0; border-bottom: 1px solid var(--rule); }
-.settings-row { grid-template-columns: minmax(0, 1fr) auto; }
+.evidence-row, .settings-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 24px; padding: 20px 0; border-bottom: 1px solid var(--rule); }
+.evidence-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
 .settings-row:first-of-type { border-top: 1px solid var(--rule); }
-.evidence-row > .status-pill { justify-self: start; }
 .evidence-row h2, .settings-row h2 { font-size: var(--ky-type-body); font-weight: 600; color: var(--paper); }
 .evidence-row p, .settings-row p { margin-top: 4px; max-width: 65ch; color: var(--paper-muted); font-size: var(--ky-type-meta); }
 .evidence-row .btn, .settings-row .btn { justify-self: end; white-space: nowrap; }
@@ -438,6 +440,9 @@ table.data-table tr.capsule-detail td { height: auto; padding: 12px; background:
 .appearance-modes { display: flex; border: 1px solid var(--rule-strong); border-radius: var(--radius); overflow: hidden; }
 .appearance-mode { position: relative; flex: 1 1 auto; display: flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 var(--ky-space-2); color: var(--paper-muted); font-size: 0.85rem; white-space: nowrap; cursor: pointer; }
 .appearance-mode + .appearance-mode { border-left: 1px solid var(--rule-strong); }
+.appearance-mode { gap: 0.3rem; }
+.appearance-check { flex: none; width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.appearance-mode:not(:has(:checked)) > .appearance-check { display: none; }
 .appearance-mode > input[type="radio"] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .appearance-mode:hover { background: var(--ink-well); color: var(--paper); }
 .appearance-mode:has(:checked) { background: var(--brass); color: var(--brass-ink); font-weight: 600; }
