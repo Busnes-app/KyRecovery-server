@@ -60,10 +60,11 @@ export async function tab(page, name) {
   await page.locator('nav.nav-tabs').getByRole('button', { name, exact: true }).click();
 }
 
+// Sign out sits in the sidebar foot; password and SSO live on the Account page.
 export async function account(page, name) {
-  const action = page.locator('#user-auth-area').getByRole('button', { name, exact: true });
-  if (!(await action.isVisible())) await page.getByRole('button', { name: 'Account', exact: true }).click();
-  await action.click();
+  if (name === 'Sign out') return page.getByRole('button', { name, exact: true }).click();
+  await tab(page, 'Account');
+  await page.locator('#tab-account').getByRole('button', { name, exact: true }).click();
 }
 
 export async function ceremony(page, vault) {

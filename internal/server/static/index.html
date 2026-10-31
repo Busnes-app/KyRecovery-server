@@ -7,6 +7,7 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="alternate icon" href="/favicon.ico">
   <link rel="stylesheet" href="/static/ky-ui/tokens.css">
+  <link rel="stylesheet" href="/static/ky-ui/shell.css">
   <link rel="stylesheet" href="/static/css/styles.css">
   <link rel="stylesheet" href="/static/ky-ui/navigation.css">
   <link rel="stylesheet" href="/static/ky-ui/appearance.css">
@@ -16,121 +17,100 @@
 </head>
 <body>
 
-  <!-- Header -->
-  <header>
-    <div class="brand">
-      <img src="/favicon.svg" alt="KyRecovery" class="brand-icon">
-      <div>
-        <div class="brand-title">KyRecovery</div>
+  <!-- Sign-in: the suite's ky-auth card (ky-ui shell.css). -->
+  <main id="login-gateway-view" class="ky-auth" style="display: none;">
+    <div class="ky-auth-theme"><select class="form-input form-select theme-select" data-theme-select aria-label="Color theme"></select></div>
+    <div class="ky-auth-body">
+      <div class="ky-auth-brand">
+        <img class="app-mark" src="/static/app-icon.png" width="56" height="56" alt="">
+        <h1>KyRecovery</h1>
+        <p>Your recovery vault, on your own server.</p>
       </div>
-      <span class="brand-tag">Recovery vault</span>
-    </div>
-    <div class="header-meta">
-      <div id="system-status-pill" class="status-pill warning">
-        <span class="dot"></span> LOADING
-      </div>
-      <!-- Phones fold the account controls into this popover; wider screens show them inline. -->
-      <button type="button" class="btn btn-secondary btn-sm account-toggle" popovertarget="user-auth-area">Account</button>
-      <div id="user-auth-area" popover>
-        <span id="user-display-name" style="font-size: 13px; font-weight: 600; color: var(--text-main);">Unauthenticated</span>
-        <span id="user-role-badge" class="status-pill danger">Guest</span>
-        <button id="btn-sso-pair-header" class="btn btn-secondary btn-sm" popovertarget="user-auth-area" popovertargetaction="hide" onclick="openSSOConfigModal()" style="display: none;">SSO pairing</button>
-        <button id="btn-change-pass-header" class="btn btn-secondary btn-sm" popovertarget="user-auth-area" popovertargetaction="hide" onclick="openChangePasswordModal()" style="display: none;">Password</button>
-        <button id="btn-auth-action" class="btn btn-primary btn-sm" popovertarget="user-auth-area" popovertargetaction="hide" onclick="handleAuthAction()">Sign In</button>
-      </div>
-    </div>
-  </header>
-
-  <!-- Login Gateway View (Displayed When Unauthenticated) -->
-  <div id="login-gateway-view" style="display: none; max-width: 480px; margin: 48px auto; padding: 0 20px; width: 100%;">
-    <div style="text-align: center; margin-bottom: 24px;">
-      <img src="/favicon.svg" alt="KyRecovery" style="width: 56px; height: 56px; border-radius: 12px; margin-bottom: 12px;">
-      <h1>Sign in to the vault</h1>
-      <p style="color: var(--text-muted); font-size: 13px; margin-top: 6px;">Sign in with your administrator account to access the disaster recovery console.</p>
-    </div>
-
-    <div class="panel" style="padding: 28px;">
-      <form onsubmit="submitLocalLogin(event)">
-        <div class="form-group">
-          <label class="form-label" for="login-username">Username (required)</label>
-          <input id="login-username" class="form-input" type="text" placeholder="admin" required autocomplete="username">
+      <form class="ky-auth-card" onsubmit="submitLocalLogin(event)">
+        <div class="ky-auth-field">
+          <label for="login-username">Username</label>
+          <input id="login-username" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required>
         </div>
-        <div class="form-group">
-          <label class="form-label" for="login-password">Password (required)</label>
-          <input id="login-password" class="form-input" type="password" placeholder="Enter administrator password" required autocomplete="current-password">
-          <div class="metric-sub">Use your configured administrator password. If generated on first launch, read <code>initial-admin-password</code> in the server’s data directory.</div>
+        <div class="ky-auth-field">
+          <label for="login-password">Password</label>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" required>
         </div>
-        <div id="login-error-box" style="display: none; background: var(--accent-red-dim); border: 1px solid var(--accent-red); color: var(--accent-red); padding: 8px 12px; border-radius: 4px; font-size: 12px; margin-bottom: 16px;"></div>
-        <button type="submit" id="btn-local-login-submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 10px 0; font-weight: bold;">Sign In</button>
+        <p id="login-error-box" class="login-error" role="alert" style="display: none;"></p>
+        <button type="submit" id="btn-local-login-submit" class="ky-auth-submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg><span>Sign in</span></button>
+        <!-- Only when SSO is configured. -->
+        <hr class="ky-auth-divider sso-only" style="display: none;">
+        <button type="button" class="ky-auth-sso sso-only" style="display: none;" onclick="handleLogin()">Continue with KySignOn</button>
       </form>
-
-      <!-- SSO Alternative (Only shown when SSO is configured & active) -->
-      <div id="sso-active-section" style="display: none; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
-        <div style="text-align: center; font-size: 12px; color: var(--text-dim); margin-bottom: 12px; ">or</div>
-        <button type="button" class="btn btn-secondary" onclick="handleLogin()" style="width: 100%; justify-content: center; padding: 10px 0; border-color: var(--accent-cyan); color: var(--accent-cyan);">
-          Continue with Single Sign On
-        </button>
-      </div>
+      <p class="ky-auth-help">First launch? The admin password is in the server’s data directory, in <code>initial-admin-password</code></p>
     </div>
-  </div>
+  </main>
 
-  <!-- Dashboard Container (Visible When Authenticated) -->
+  <!-- Dashboard (visible when signed in) -->
   <div id="dashboard-view">
-  <!-- Navigation Tabs -->
-  <nav class="nav-tabs" aria-label="Primary">
-    <button class="ky-nav-item tab-btn active" aria-current="page" data-tab="tab-overview"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z"/></svg><span>Overview</span></button>
-    <button class="ky-nav-item tab-btn" data-tab="tab-backups"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z M4 9h16 M9 14h6"/></svg><span>Backups</span></button>
-    <button class="ky-nav-item tab-btn" data-tab="tab-capsules"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6z M9 7h6 M9 11h6 M9 15h4"/></svg><span>Capsules</span></button>
-    <button class="ky-nav-item tab-btn" data-tab="tab-pairing"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 8l-2-2a4 4 0 0 0-5 6l4 4a4 4 0 0 0 6 0 M15 16l2 2a4 4 0 0 0 5-6l-4-4a4 4 0 0 0-6 0 M8 12h8"/></svg><span>Paired Products</span></button>
-    <button class="ky-nav-item tab-btn" data-tab="tab-custodians"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M2 21v-3a6 6 0 0 1 12 0v3 M16 5a4 4 0 0 1 0 8 M17 16a5 5 0 0 1 5 5"/></svg><span>Custodians & Quorum</span></button>
-    <button class="ky-nav-item tab-btn" data-tab="tab-replication"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4z M14 14h6v6h-6z M16 4h4v4 M20 4l-8 8 M4 16v4h4 M4 20l8-8"/></svg><span>Offsite Replication</span></button>
-    <button class="ky-nav-item tab-btn" data-tab="tab-audit"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5z M8 7h8 M8 11h8 M8 15h5"/></svg><span>Audit Ledger</span></button>
-    <button class="ky-nav-item tab-btn" data-tab="tab-appearance"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-2-1-3-3-3h-3c-1 0-2-1-2-2V3z M7 8h.01 M6 13h.01 M9 17h.01"/></svg><span>Appearance</span></button>
-  </nav>
+  <aside class="app-sidebar">
+    <div class="brand">
+      <img src="/favicon.svg" alt="" class="brand-icon app-mark">
+      <span class="brand-title">KyRecovery</span>
+    </div>
+    <div id="system-status-pill" class="status-pill warning">
+      <span class="dot"></span> Loading
+    </div>
+    <nav class="nav-tabs" aria-label="Primary">
+      <button class="ky-nav-item tab-btn active" aria-current="page" data-tab="tab-overview"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z"/></svg><span>Overview</span></button>
+      <button class="ky-nav-item tab-btn" data-tab="tab-backups"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z M4 9h16 M9 14h6"/></svg><span>Backups</span></button>
+      <button class="ky-nav-item tab-btn" data-tab="tab-capsules"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6z M9 7h6 M9 11h6 M9 15h4"/></svg><span>Capsules</span></button>
+      <button class="ky-nav-item tab-btn" data-tab="tab-pairing"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 8l-2-2a4 4 0 0 0-5 6l4 4a4 4 0 0 0 6 0 M15 16l2 2a4 4 0 0 0 5-6l-4-4a4 4 0 0 0-6 0 M8 12h8"/></svg><span>Paired Products</span></button>
+      <button class="ky-nav-item tab-btn" data-tab="tab-custodians"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M2 21v-3a6 6 0 0 1 12 0v3 M16 5a4 4 0 0 1 0 8 M17 16a5 5 0 0 1 5 5"/></svg><span>Custodians & Quorum</span></button>
+      <button class="ky-nav-item tab-btn" data-tab="tab-replication"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4z M14 14h6v6h-6z M16 4h4v4 M20 4l-8 8 M4 16v4h4 M4 20l8-8"/></svg><span>Offsite Replication</span></button>
+      <button class="ky-nav-item tab-btn" data-tab="tab-audit"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5z M8 7h8 M8 11h8 M8 15h5"/></svg><span>Audit Ledger</span></button>
+      <button class="ky-nav-item tab-btn" data-tab="tab-account"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M4 21a8 8 0 0 1 16 0"/></svg><span>Account</span></button>
+      <button class="ky-nav-item tab-btn" data-tab="tab-appearance"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-2-1-3-3-3h-3c-1 0-2-1-2-2V3z M7 8h.01 M6 13h.01 M9 17h.01"/></svg><span>Appearance</span></button>
+    </nav>
+  </aside>
 
   <!-- Main Content Area -->
   <main>
 
     <!-- Tab 1: Overview -->
     <div id="tab-overview" class="tab-content active">
-      <div class="overview-heading">
-        <h1>Recovery overview</h1>
-        <p>Review the evidence held by this vault, then check backup health and your recovery plan.</p>
-      </div>
-      <dl class="overview-facts">
+      <header class="ky-page-head">
         <div>
-          <dt>Sealed capsules stored</dt><dd id="metric-capsules">--</dd>
-          <p>Stored bytes are attested by the verify sweep. Nothing here can read a capsule.</p>
+          <h1 class="ky-page-title">Recovery overview</h1>
+          <p class="ky-page-lede">What this vault can show about each part of your recovery path, and what to do next.</p>
         </div>
-        <div>
-          <dt>Custodians of record</dt><dd id="metric-custodians">--</dd>
-          <p id="metric-custodians-sub">Named on the custodian list. The quorum that can reconstruct the key is set by the ceremony.</p>
+      </header>
+      <!-- Each row states its evidence and one next action. A blind store never claims a verified restore. -->
+      <section class="evidence" aria-label="Recovery evidence">
+        <div id="overview-backups-row" class="evidence-row">
+          <div><div class="evidence-head"><span id="evidence-backups-state" class="status-pill warning">Checking</span><h2>Backup freshness</h2></div><p id="evidence-backups-summary">Loading backup status…</p></div>
+          <button id="overview-backups-action" type="button" class="btn btn-secondary" data-go="tab-backups">Review backups</button>
         </div>
-        <div>
-          <dt>Audit ledger</dt><dd id="overview-audit-status" class="overview-text-value">Loading…</dd>
-          <p>Append availability is separate from verification of the complete audit chain.</p>
+        <div id="overview-key-row" class="evidence-row">
+          <div><div class="evidence-head"><span id="evidence-key-state" class="status-pill warning">Checking</span><h2>Key and quorum</h2></div><p id="evidence-key-summary">Loading the recovery key…</p></div>
+          <button id="overview-key-action" type="button" class="btn btn-secondary" data-go="tab-custodians">View custodians</button>
         </div>
-      </dl>
-      <section class="overview-next" aria-labelledby="overview-next-heading">
-        <h2 id="overview-next-heading">Check your recovery path</h2>
-        <div id="overview-backups-row" class="overview-next-row"><div><h3>Backup coverage</h3><p>Review stale or missing backups and open a service's restore plan.</p></div><button id="overview-backups-action" type="button" class="btn btn-secondary" onclick="document.querySelector('[data-tab=tab-backups]').click()">Review backups</button></div>
-        <div id="overview-key-row" class="overview-next-row"><div><h3>Key and custodians</h3><p>Check the ceremony record and the people holding the recovery cards.</p></div><button id="overview-key-action" type="button" class="btn btn-secondary" onclick="document.querySelector('[data-tab=tab-custodians]').click()">View custodians &amp; quorum</button></div>
-        <div class="overview-next-row"><div><h3>Independent copies</h3><p>Review your offsite destinations and their replication results.</p></div><button type="button" class="btn btn-secondary" onclick="document.querySelector('[data-tab=tab-replication]').click()">View replication</button></div>
+        <div id="overview-copies-row" class="evidence-row">
+          <div><div class="evidence-head"><span id="evidence-copies-state" class="status-pill warning">Checking</span><h2>Independent copies</h2></div><p id="evidence-copies-summary">Loading replication targets…</p></div>
+          <button id="overview-copies-action" type="button" class="btn btn-secondary" data-go="tab-replication">View replication</button>
+        </div>
       </section>
-
-      <div class="panel">
-        <div class="panel-body">
-          <p style="color: var(--text-muted); font-size: 13px;">
-            KyRecovery is a blind store. Products seal their own backup capsules to the suite recovery public key before deposit, so nothing here can read what it holds — and a stolen copy of this server yields no plaintext.
-          </p>
-        </div>
-      </div>
+      <dl class="overview-facts">
+        <div><dt>Sealed capsules stored</dt><dd id="metric-capsules">--</dd></div>
+        <div><dt>Custodians of record</dt><dd id="metric-custodians">--</dd></div>
+        <div><dt>Audit ledger</dt><dd id="overview-audit-status">Loading…</dd></div>
+      </dl>
+      <p class="overview-note">KyRecovery is a blind store. Products seal their own backup capsules to the suite recovery public key before deposit, so nothing here can read what it holds, and a stolen copy of this server yields no plaintext.</p>
     </div>
 
     <!-- Tab: Backups -->
     <div id="tab-backups" class="tab-content">
       <p id="backups-banner" class="backups-banner" role="status" hidden></p>
-      <div class="page-heading"><h1>Backups</h1></div>
+      <header class="ky-page-head">
+        <div>
+          <h1 class="ky-page-title">Backups</h1>
+          <p class="ky-page-lede">Capsule and restic backup freshness for each service, read from metadata only.</p>
+        </div>
+      </header>
       <div class="metrics-grid backups-metrics">
         <div class="metric-card"><div class="metric-label">services healthy</div><div id="backups-healthy" class="metric-value">--</div></div>
         <div class="metric-card"><div class="metric-label">stale or never backed up</div><div id="backups-stale" class="metric-value">--</div></div>
@@ -202,19 +182,25 @@
 
     <!-- Tab 2: Capsules -->
     <div id="tab-capsules" class="tab-content">
-      <div class="page-heading"><h1>Capsules</h1><div class="heading-actions"><button class="btn btn-secondary btn-sm" onclick="openDiffModal()">Compare versions</button></div></div>
+      <header class="ky-page-head">
+        <div>
+          <h1 class="ky-page-title">Capsules</h1>
+          <p class="ky-page-lede">Sealed backups deposited by paired products. Nothing here can open them.</p>
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="openDiffModal()">Compare versions</button>
+      </header>
       <div class="panel">
         <div style="overflow-x: auto;">
-          <table class="data-table">
+          <table class="data-table capsules-table">
             <thead>
               <tr>
-                <th>Capsule ID</th>
-                <th>Target Service</th>
-                <th>Quorum Policy</th>
-                <th>Size</th>
-                <th>Payload Hash</th>
-                <th>Deposited At</th>
-                <th>Actions</th>
+                <th><span class="visually-hidden">Details</span></th>
+                <th>Service</th>
+                <th>Deposited</th>
+                <th class="num">Size</th>
+                <th>Status</th>
+                <th>Capsule</th>
+                <th><span class="visually-hidden">Download</span></th>
               </tr>
             </thead>
             <tbody id="capsules-table-body">
@@ -222,6 +208,7 @@
             </tbody>
           </table>
         </div>
+        <p id="capsules-status" class="visually-hidden" role="status" aria-live="polite"></p>
       </div>
       <div class="panel">
         <div class="panel-header"><h2 class="panel-title">Backup retention</h2><button class="btn btn-primary btn-sm admin-only" style="display:none;" onclick="saveRetention()">Save retention</button></div>
@@ -255,7 +242,13 @@
 
     <!-- Tab: Paired Products -->
     <div id="tab-pairing" class="tab-content">
-      <div class="page-heading"><h1>Paired products</h1><div class="heading-actions"><button class="btn btn-primary btn-sm" onclick="openPairingGenModal()">New pairing code</button></div></div>
+      <header class="ky-page-head">
+        <div>
+          <h1 class="ky-page-title">Paired products</h1>
+          <p class="ky-page-lede">Products that deposit sealed backups here, each with its own token.</p>
+        </div>
+        <button type="button" class="ky-page-action" onclick="openPairingGenModal()">New pairing code</button>
+      </header>
       <div class="panel">
         <div class="panel-header">
 
@@ -286,7 +279,13 @@
 
     <!-- Tab 3: Custodians -->
     <div id="tab-custodians" class="tab-content">
-      <div class="page-heading"><h1>Custodians &amp; quorum</h1><div class="heading-actions"><a id="ceremony-link" class="btn btn-primary btn-sm" href="/admin/ceremony" target="_blank" rel="noopener">Run recovery key ceremony</a></div></div>
+      <header class="ky-page-head">
+        <div>
+          <h1 class="ky-page-title">Custodians &amp; quorum</h1>
+          <p class="ky-page-lede">The recovery key and the people who hold its cards.</p>
+        </div>
+        <a id="ceremony-link" class="ky-page-action" href="/admin/ceremony" target="_blank" rel="noopener">Run recovery key ceremony</a>
+      </header>
       <div class="panel">
         <div class="panel-header">
           <h2 class="panel-title">Recovery key</h2>
@@ -297,7 +296,7 @@
       <div class="panel">
         <div class="panel-header">
           <h2 class="panel-title">Custodians</h2>
-          <button class="btn btn-secondary btn-sm" onclick="openCustodianModal()">+ Register Custodian</button>
+          <button class="btn btn-secondary btn-sm" onclick="openCustodianModal()">Add custodian</button>
         </div>
         <div style="overflow-x: auto;">
           <table class="data-table">
@@ -319,10 +318,13 @@
 
     <!-- Tab: Offsite Replication -->
     <div id="tab-replication" class="tab-content">
-      <div class="page-heading">
-        <h1>Offsite replication</h1>
-        <div class="heading-actions"><button class="btn btn-primary btn-sm" onclick="openReplicationModal()">Add target</button></div>
-      </div>
+      <header class="ky-page-head">
+        <div>
+          <h1 class="ky-page-title">Offsite replication</h1>
+          <p class="ky-page-lede">Independent copies of every capsule on storage you control.</p>
+        </div>
+        <button type="button" class="ky-page-action" onclick="openReplicationModal()">Add target</button>
+      </header>
       <div class="panel">
         <div class="panel-header">
           <h2 class="panel-title">Replication targets</h2>
@@ -378,7 +380,13 @@
 
     <!-- Tab 5: Audit -->
     <div id="tab-audit" class="tab-content">
-      <div class="page-heading"><h1>Audit ledger</h1><div class="heading-actions"><button class="btn btn-secondary btn-sm" onclick="verifyAuditChain()">Verify Cryptographic Chain</button></div></div>
+      <header class="ky-page-head">
+        <div>
+          <h1 class="ky-page-title">Audit ledger</h1>
+          <p class="ky-page-lede">A hash-chained record of every change to this vault.</p>
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="verifyAuditChain()">Verify chain</button>
+      </header>
       <div class="panel">
         <div class="panel-header">
           <div style="display: flex; align-items: center; gap: 12px;">
@@ -407,15 +415,35 @@
       </div>
     </div>
 
-    <!-- Appearance: browser-local theme; theme.js fills the cards -->
+    <!-- Account: the signed-in user's password and, for admins, single sign-on. -->
+    <div id="tab-account" class="tab-content">
+      <header class="ky-page-head">
+        <div>
+          <h1 class="ky-page-title">Account</h1>
+          <p class="ky-page-lede">Your local password and this vault's single sign-on.</p>
+        </div>
+      </header>
+      <section class="settings-row">
+        <div><h2>Password</h2><p>Changing it signs out every other session of this account.</p></div>
+        <button id="btn-change-pass-header" type="button" class="btn btn-secondary" onclick="openChangePasswordModal()">Change password</button>
+      </section>
+      <section id="sso-settings-row" class="settings-row" style="display: none;">
+        <div><h2>Single sign-on</h2><p>Let people sign in with KySignOn (OpenID Connect). Unknown roles become viewers.</p></div>
+        <button id="btn-sso-pair-header" type="button" class="btn btn-secondary" onclick="openSSOConfigModal()">Set up SSO</button>
+      </section>
+    </div>
+
+    <!-- Appearance: browser-local theme; theme.js fills the pair cards -->
     <div id="tab-appearance" class="tab-content">
-      <div class="overview-heading">
-        <h1>Appearance</h1>
-      </div>
-      <p class="ky-appearance-description">Pick a theme. It applies straight away and is saved in this browser only. Match system follows your device’s light or dark setting.</p>
+      <header class="ky-page-head">
+        <div>
+          <h1 class="ky-page-title">Appearance</h1>
+          <p class="ky-page-lede">Pick a palette and how it handles light and dark. Match system switches with your device’s setting; Light or Dark keeps one. Your choice applies straight away and is saved in this browser only.</p>
+        </div>
+      </header>
       <fieldset class="ky-appearance" data-theme-picker>
         <legend class="ky-appearance-legend">Theme</legend>
-        <div class="ky-appearance-grid"></div>
+        <div class="ky-appearance-grid appearance-pairs"></div>
       </fieldset>
     </div>
   </main>
@@ -447,7 +475,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" onclick="closePairingGenModal()">Cancel</button>
-          <button type="submit" class="btn btn-primary">Generate Pairing Code</button>
+          <button type="submit" class="btn btn-primary">Generate pairing code</button>
         </div>
       </form>
     </div>
@@ -500,7 +528,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" onclick="closeCustodianModal()">Cancel</button>
-          <button type="submit" class="btn btn-primary">Register Custodian</button>
+          <button type="submit" class="btn btn-primary">Register custodian</button>
         </div>
       </form>
     </div>
@@ -578,9 +606,9 @@
           <div id="repl-test-status" style="display: none; font-size: 13px; padding: 8px 12px; border-radius: 4px; margin-top: 8px;"></div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="testReplicationConnection()">Test Connection</button>
+          <button type="button" class="btn btn-secondary" onclick="testReplicationConnection()">Test connection</button>
           <button type="button" class="btn btn-secondary" onclick="closeReplicationModal()">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Target</button>
+          <button type="submit" class="btn btn-primary">Save target</button>
         </div>
       </form>
     </div>
@@ -633,6 +661,51 @@
     </div>
   </dialog>
 
+  <!-- Sidebar foot: after main in the DOM so focus order matches phones, where it sits at the page end. -->
+  <div class="sidebar-foot">
+    <div class="ky-user">
+      <div class="ky-user-copy">
+        <p id="user-display-name" class="ky-user-name"></p>
+        <p id="user-role-badge" class="ky-user-role"></p>
+      </div>
+      <button id="btn-auth-action" class="ky-user-signout" type="button" onclick="handleLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sign out</button>
+    </div>
+    <footer>
+      <button class="ky-license-link" type="button" commandfor="ky-about" command="show-modal">&copy; <span data-year>2026</span> &middot; MIT License</button>
+    </footer>
+  </div>
+
+  <dialog class="ky-about" id="ky-about" aria-label="About KyRecovery" closedby="any">
+    <div class="ky-about-head">
+      <div>
+        <h2 class="ky-about-name">KyRecovery <span id="about-version" class="ky-about-version" hidden></span></h2>
+        <p class="ky-about-meta">Developed by Busnes.app</p>
+        <p class="ky-about-meta">&copy; <span data-year>2026</span> &middot; Licensed under the MIT License</p>
+      </div>
+      <form method="dialog"><button class="ky-about-close">Close</button></form>
+    </div>
+    <textarea class="ky-about-license" readonly aria-label="MIT License">MIT License
+
+Copyright (c) 2026 Busnes.app
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</textarea>
+  </dialog>
   </div> <!-- End #dashboard-view -->
 
   <!-- SSO Pairing & Configuration Modal -->
@@ -650,7 +723,7 @@
 
           <div class="form-group" style="display: flex; align-items: center; gap: 10px; background: var(--bg-card); padding: 12px 16px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 16px;">
             <input id="sso-enabled-check" type="checkbox" style="width: 18px; height: 18px; cursor: pointer;">
-            <label for="sso-enabled-check" style="font-size: 14px; font-weight: bold; color: #fff; cursor: pointer; margin: 0;">Enable KySignOn SSO Authentication</label>
+            <label for="sso-enabled-check" style="font-size: 14px; font-weight: 600; color: var(--paper); cursor: pointer; margin: 0;">Enable KySignOn sign-in</label>
           </div>
 
           <div class="form-group">
@@ -684,9 +757,9 @@
           <div id="sso-test-status" style="display: none; font-size: 13px; padding: 10px 14px; border-radius: 6px; margin-top: 12px;"></div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="testSSOConnection()">Test Connection</button>
+          <button type="button" class="btn btn-secondary" onclick="testSSOConnection()">Test connection</button>
           <button type="button" class="btn btn-secondary" onclick="closeSSOConfigModal()">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save & Apply SSO Pairing</button>
+          <button type="submit" class="btn btn-primary">Save SSO settings</button>
         </div>
       </form>
     </div>
@@ -718,15 +791,12 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" onclick="closeChangePasswordModal()">Cancel</button>
-          <button type="submit" class="btn btn-primary">Update Password</button>
+          <button type="submit" class="btn btn-primary">Update password</button>
         </div>
       </form>
     </div>
   </dialog>
 
-  <footer>
-    KyRecovery Server &copy; 2026 Busnes.app. Privacy-safe, content-blind recovery verification.
-  </footer>
 
   <script src="/static/js/app.js"></script>
 </body>

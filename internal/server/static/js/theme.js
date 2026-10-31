@@ -1,16 +1,26 @@
 // Follow the OS until the user chooses a palette. No server state is changed.
 // The suite catalog comes from ky-ui's classic themes-browser.js, loaded first in <head>,
-// so the saved choice applies before first paint. Busnes keeps its original saved values
-// ("system", "light", "dark"); other themes save their catalog ID.
+// so the saved choice applies before first paint. The saved value is "system" (Busnes
+// following the OS), a pair ID (that pair following the OS) or a half ID (a fixed mode).
+// Busnes halves keep their original saved values ("light", "dark"); removed IDs fall back
+// to "system".
 (() => {
 'use strict';
-const { SYSTEM_THEME, THEME_CATALOG, THEME_PALETTES, findTheme } = window.kyThemes;
+const { SYSTEM_THEME, THEME_PAIRS, THEME_PALETTES, findPair, findTheme } = window.kyThemes;
 
 const key = 'kyrecovery-theme';
 const legacy = { light: 'busnes-light', dark: 'busnes-dark' };
 const saved = { 'busnes-light': 'light', 'busnes-dark': 'dark' };
-const options = [SYSTEM_THEME, ...THEME_CATALOG];
 const media = window.matchMedia('(prefers-color-scheme: dark)');
+// KyCalendar's reference: per pair, Match system / Light / Dark. Busnes's Match system is "system".
+const choices = THEME_PAIRS.map(pair => ({
+  pair,
+  modes: [
+    { label: 'Match system', value: pair.id === 'busnes-pair' ? SYSTEM_THEME.id : pair.id },
+    { label: 'Light', value: pair.light },
+    { label: 'Dark', value: pair.dark },
+  ],
+}));
 
 // KyRecovery's local --ink is its surface colour, so the shared helper's product
 // variables would collide. Its stylesheet reads the --ky-* tokens instead; a named
@@ -23,13 +33,17 @@ const tokens = {
 };
 
 function stored() {
-  try { const value = localStorage.getItem(key); return findTheme(legacy[value] ?? value)?.id ?? 'system'; } catch { return 'system'; }
+  try {
+    const value = localStorage.getItem(key);
+    const id = legacy[value] ?? value;
+    return findPair(id)?.id ?? findTheme(id)?.id ?? SYSTEM_THEME.id;
+  } catch { return SYSTEM_THEME.id; }
 }
 let choice = stored();
 
 function apply() {
   const root = document.documentElement;
-  const id = choice === 'system' ? (media.matches ? 'busnes-dark' : 'busnes-light') : choice;
+  const id = choice === SYSTEM_THEME.id ? (media.matches ? 'busnes-dark' : 'busnes-light') : findTheme(choice, media.matches).id;
   const palette = THEME_PALETTES[id];
   for (const names of Object.values(tokens)) for (const name of names) root.style.removeProperty(name);
   if (palette) for (const [field, names] of Object.entries(tokens)) for (const name of names) if (palette[field]) root.style.setProperty(name, palette[field]);
@@ -46,39 +60,67 @@ function choose(id) {
   apply();
 }
 
-// Native radio cards built with DOM calls; ky-ui's stylesheets draw them and their previews.
+// One native radio group across the pair cards: arrow keys move through every choice.
 function picker(grid) {
-  for (const theme of options) {
-    const option = document.createElement('label');
-    option.className = 'ky-appearance-option';
-    const radio = document.createElement('input');
-    radio.className = 'ky-appearance-radio';
-    radio.type = 'radio';
-    radio.name = 'kyrecovery-theme';
-    radio.value = theme.id;
-    radio.addEventListener('change', () => choose(theme.id));
+  for (const { pair, modes } of choices) {
+    const card = document.createElement('div');
+    card.className = 'appearance-pair';
+    card.setAttribute('role', 'group');
+    card.setAttribute('aria-labelledby', `${pair.id}-name`);
+    const head = document.createElement('div');
+    head.className = 'appearance-pair-head';
+    const name = document.createElement('h2');
+    name.id = `${pair.id}-name`;
+    name.className = 'appearance-pair-name';
+    name.textContent = pair.name;
+    const halves = document.createElement('span');
+    halves.className = 'appearance-pair-halves';
+    halves.textContent = `${findTheme(pair.light).name} · ${findTheme(pair.dark).name}`;
+    head.append(name, halves);
     const preview = document.createElement('span');
     preview.className = 'ky-appearance-preview';
     preview.setAttribute('aria-hidden', 'true');
-    preview.dataset.kyPreview = theme.id;
-    const name = document.createElement('span');
-    name.className = 'ky-appearance-name';
-    name.textContent = theme.name;
-    const mode = document.createElement('small');
-    mode.className = 'ky-appearance-mode';
-    mode.textContent = theme.scheme === 'system' ? 'Follows device' : theme.scheme === 'light' ? 'Light' : 'Dark';
-    option.append(radio, preview, name, mode);
-    grid.append(option);
+    preview.dataset.kyPreview = pair.id;
+    const row = document.createElement('div');
+    row.className = 'appearance-modes';
+    for (const mode of modes) {
+      const option = document.createElement('label');
+      option.className = 'appearance-mode';
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = key;
+      radio.value = mode.value;
+      radio.addEventListener('change', () => choose(mode.value));
+      // KyCalendar's ✓ before the selected label; CSS shows it only on the checked mode.
+      const check = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      check.setAttribute('viewBox', '0 0 24 24');
+      check.setAttribute('aria-hidden', 'true');
+      check.classList.add('appearance-check');
+      const tick = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      tick.setAttribute('d', 'M20 6 9 17l-5-5');
+      check.append(tick);
+      const label = document.createElement('span');
+      label.textContent = mode.label;
+      option.append(radio, check, label);
+      row.append(option);
+    }
+    card.append(head, preview, row);
+    grid.append(card);
   }
 }
 
-// The header shortcut lists the same catalog.
+// The sign-in switcher lists the same choices, grouped by pair.
 function shortcut(select) {
-  select.replaceChildren(...options.map(theme => new Option(theme.name, theme.id)));
+  select.replaceChildren(...choices.map(({ pair, modes }) => {
+    const group = document.createElement('optgroup');
+    group.label = pair.name;
+    group.append(...modes.map(mode => new Option(`${pair.name} · ${mode.label}`, mode.value)));
+    return group;
+  }));
   select.addEventListener('change', () => choose(select.value));
 }
 
-media.addEventListener('change', () => { if (choice === 'system') apply(); });
+media.addEventListener('change', () => { if (choice === SYSTEM_THEME.id || findPair(choice)) apply(); });
 window.addEventListener('storage', event => { if (event.key === key || event.key === null) { choice = stored(); apply(); } });
 apply();
 document.addEventListener('DOMContentLoaded', () => {

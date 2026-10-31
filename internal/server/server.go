@@ -23,6 +23,7 @@ import (
 
 	"github.com/Busnes-app/ky-primitives/logging"
 	"github.com/Busnes-app/ky-primitives/offsite"
+	"github.com/Busnes-app/kyrecovery-server/internal/appversion"
 	"github.com/Busnes-app/kyrecovery-server/internal/audit"
 	"github.com/Busnes-app/kyrecovery-server/internal/auth"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
@@ -432,6 +433,7 @@ func (s *Server) handleReadiness(w http.ResponseWriter, r *http.Request) {
 		"capsule_count":         len(capsules),
 		"custodian_count":       len(custodians),
 		"audit_append_disabled": s.ledger.Healthy() != nil,
+		"version":               appversion.String(), // the About dialog's pill; signed-in only
 	})
 }
 

@@ -86,4 +86,42 @@ for (const failure of ['http', 'network', 'json']) {
   assert.equal(elements.get('metric-custodians').textContent, '2');
   assert(!elements.get('system-status-pill').innerHTML.includes('restore'));
 }
-console.log('Overview audit, count, failure and recovery states passed.');
+// Evidence rows: every missing piece gets an explicit state and a next action.
+{
+  const { context } = runtime({});
+  const day = new Date(Date.now() - 86400e3).toISOString();
+  const report = (services, counts) => ({ report: { services, counts } });
+  const svc = { instances: [{ newest: { deposited_at: day } }] };
+  const cases = [
+    [context.backupsEvidence(undefined), 'checking'],
+    [context.backupsEvidence(null), 'unavailable'],
+    [context.backupsEvidence(report([], {})), 'missing', 'tab-pairing'],
+    [context.backupsEvidence(report([svc, svc], { ok: 1, corrupt: 1 })), 'failing', 'tab-backups'],
+    [context.backupsEvidence(report([svc, svc], { ok: 1, stale: 1 })), 'attention', 'tab-backups'],
+    [context.backupsEvidence(report([svc, svc], { ok: 1, pending: 1 })), 'ok', 'tab-backups'],
+    [context.keyEvidence(undefined), 'checking'],
+    [context.keyEvidence(null), 'unavailable'],
+    [context.keyEvidence([], 3), 'missing', 'tab-custodians'],
+    [context.keyEvidence([{ status: 'current', threshold: 3, total_shares: 5 }], 3), 'attention', 'tab-custodians'],
+    [context.keyEvidence([{ status: 'current', threshold: 3, total_shares: 5 }], 5), 'ok', 'tab-custodians'],
+    [context.keyEvidence([{ status: 'current', threshold: 3, total_shares: 5 }, { status: 'previous', pinned_products: [{}] }], 5), 'attention'],
+    [context.copiesEvidence(undefined), 'checking'],
+    [context.copiesEvidence(null), 'unavailable'],
+    [context.copiesEvidence([]), 'missing', 'tab-replication'],
+    [context.copiesEvidence([{ status: 'error', last_sync_at: day }, { status: 'active' }]), 'failing'],
+    [context.copiesEvidence([{ status: 'active' }]), 'attention'],
+    [context.copiesEvidence([{ status: 'active', last_sync_at: day }]), 'ok'],
+  ];
+  for (const [[state, summary, label, go], want, target] of cases) {
+    assert.equal(state, want, summary);
+    assert(summary && label, `${want} needs a summary and an action`);
+    if (target) assert.equal(go, target);
+    assert(!/restor(ed|able)|verified restore/i.test(summary), `evidence must not claim a restore: ${summary}`);
+  }
+  for (const [states, want] of [
+    [['attention', 'ok', 'missing'], 2], [['ok', 'failing', 'missing'], 1], [['ok', 'attention', 'unavailable'], 1],
+    [['ok', 'ok', 'ok'], -1], [['checking', 'ok', 'checking'], -1], [['missing', 'missing', 'attention'], 0],
+  ]) assert.equal(context.leadRow(states), want, states.join());
+  assert.match(context.keyEvidence([{ status: 'current', threshold: 3, total_shares: 5 }], 5)[1], /^3 of 5 cards/);
+}
+console.log('Overview audit, count, failure, recovery and evidence states passed.');

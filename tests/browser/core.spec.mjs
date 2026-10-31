@@ -14,7 +14,7 @@ test('real login, cookies, reload and logout enforce the session', async ({ page
   expect((await valid.json()).authenticated).toBe(true);
   await page.reload();
   await expect(page.locator('#dashboard-view')).toBeVisible();
-  await account(page, 'Sign Out');
+  await account(page, 'Sign out');
   await expect(page.locator('#login-gateway-view')).toBeVisible();
   const replay = await fetch(vault.url + '/api/auth/me', { headers: { Cookie: cookie } });
   expect((await replay.json()).authenticated).not.toBe(true);
@@ -25,20 +25,20 @@ test('password validation and replacement revoke another existing session', asyn
   const other = await browser.newContext();
   try {
     expect((await other.request.post(vault.url + '/api/auth/login/local', { data: { username: 'admin', password: vault.password } })).ok()).toBe(true);
-    await account(page, 'Password');
+    await account(page, 'Change password');
     await page.locator('#pass-current').fill(vault.password);
     await page.locator('#pass-new').fill('Replacement-Test-Password-71!');
     await page.locator('#pass-confirm').fill('Mismatched-Test-Password-71!');
-    await page.getByRole('button', { name: 'Update Password' }).click();
+    await page.getByRole('button', { name: 'Update password' }).click();
     await expect(page.locator('#change-pass-error')).toContainText('do not match');
     expect((await (await other.request.get(vault.url + '/api/auth/me')).json()).authenticated).toBe(true);
     await page.locator('#pass-confirm').fill('Replacement-Test-Password-71!');
     await page.locator('#pass-current').fill('wrong-current-password');
-    await page.getByRole('button', { name: 'Update Password' }).click();
+    await page.getByRole('button', { name: 'Update password' }).click();
     await expect(page.locator('#change-pass-error')).toContainText('incorrect');
     await page.locator('#pass-current').fill(vault.password);
     page.once('dialog', dialog => dialog.accept());
-    await page.getByRole('button', { name: 'Update Password' }).click();
+    await page.getByRole('button', { name: 'Update password' }).click();
     await expect(page.locator('#change-password-modal')).toBeHidden();
     expect((await (await other.request.get(vault.url + '/api/auth/me')).json()).authenticated).not.toBe(true);
     expect((await page.request.post(vault.url + '/api/auth/login/local', { data: { username: 'admin', password: vault.password } })).status()).toBe(401);
@@ -50,11 +50,11 @@ test('password validation and replacement revoke another existing session', asyn
 test('custodian values persist as literal text and update the directory count', async ({ page, vault }) => {
   await enter(page, vault);
   await tab(page, 'Custodians & Quorum');
-  await page.getByRole('button', { name: '+ Register Custodian' }).click();
+  await page.getByRole('button', { name: 'Add custodian' }).click();
   const name = 'Alice <img src=x onerror="window.injected=true">';
   await page.locator('#custodian-name').fill(name);
   await page.locator('#custodian-email').fill('alice@example.invalid');
-  await page.getByRole('button', { name: 'Register Custodian', exact: true }).click();
+  await page.getByRole('button', { name: 'Register custodian', exact: true }).click();
   await expect(page.locator('#custodians-table-body')).toContainText(name);
   await expect(page.locator('#custodians-table-body img')).toHaveCount(0);
   expect(await page.evaluate(() => window.injected)).toBeUndefined();
@@ -94,7 +94,7 @@ test('retention validates fields, persists values and refuses a cross-origin wri
 test('actual WASM ceremony refuses invalid topology, imports only public fields and rotates explicitly', async ({ page, vault }) => {
   await enter(page, vault);
   await expect(page.locator('#overview-key-action')).toHaveClass('btn btn-primary');
-  await expect(page.locator('.overview-next-row').first()).toHaveAttribute('id', 'overview-key-row');
+  await expect(page.locator('.evidence-row').first()).toHaveAttribute('id', 'overview-key-row');
   await page.goto(vault.url + '/admin/ceremony');
   await page.locator('#k').fill('4');
   await page.locator('#n').fill('3');
@@ -109,7 +109,7 @@ test('actual WASM ceremony refuses invalid topology, imports only public fields 
   expect(keys.find(k => k.key_id === second).status).toBe('current');
   await page.goto(vault.url);
   await expect(page.locator('#overview-backups-action')).toHaveClass('btn btn-primary');
-  await expect(page.locator('.overview-next-row').first()).toHaveAttribute('id', 'overview-backups-row');
+  await expect(page.locator('.evidence-row').first()).toHaveAttribute('id', 'overview-backups-row');
   await tab(page, 'Custodians & Quorum');
   const previous = page.locator('#recovery-keys-body tr').filter({ hasText: first });
   page.once('dialog', dialog => dialog.accept());
@@ -124,7 +124,7 @@ test('pairing requires ceremony, claims once, revokes and clears the registratio
   await page.locator('#pairing-service').fill('browser-fixture');
   await page.locator('#pairing-app-name').fill('Disposable Browser Client');
   await page.locator('#pairing-ttl').fill('15');
-  await page.getByRole('button', { name: 'Generate Pairing Code' }).click();
+  await page.getByRole('button', { name: 'Generate pairing code' }).click();
   await expect(page.locator('#display-pairing-code')).toHaveText(/^\d{6}$/);
   const code = await page.locator('#display-pairing-code').textContent();
   const claim = { pairing_code: code, service_name: 'browser-fixture', app_name: 'Disposable Browser Client' };
@@ -171,9 +171,9 @@ test('local replication form tests an owned directory, persists and deletes its 
   await page.locator('#repl-name').fill('Owned test destination');
   await page.locator('#repl-endpoint').fill(destination);
   await page.locator('#repl-auto-sync').uncheck();
-  await page.getByRole('button', { name: 'Test Connection', exact: true }).click();
+  await page.getByRole('button', { name: 'Test connection', exact: true }).click();
   await expect(page.locator('#repl-test-status')).toContainText('✓');
-  await page.getByRole('button', { name: 'Save Target' }).click();
+  await page.getByRole('button', { name: 'Save target' }).click();
   const row = page.locator('#replication-targets-table-body tr').filter({ hasText: 'Owned test destination' });
   await expect(row).toContainText('MANUAL');
   const targets = await (await page.request.get(vault.url + '/api/replication/targets')).json();
@@ -191,17 +191,18 @@ test('Appearance follows the OS, persists across reload and synchronizes tabs', 
   await page.emulateMedia({ colorScheme: 'dark' });
   await enter(page, vault);
   await tab(page, 'Appearance');
-  await expect(page.getByRole('radio', { name: /Match system/i })).toBeChecked();
+  const busnes = p => p.getByRole('group', { name: 'Busnes', exact: true });
+  await expect(busnes(page).getByRole('radio', { name: 'Match system' })).toBeChecked();
   await expect(page.locator('html')).toHaveCSS('color-scheme', 'dark');
-  await page.getByRole('radio', { name: /^Busnes Light/ }).check();
+  await busnes(page).getByRole('radio', { name: 'Light' }).check();
   await page.reload();
   await tab(page, 'Appearance');
-  await expect(page.getByRole('radio', { name: /^Busnes Light/ })).toBeChecked();
+  await expect(busnes(page).getByRole('radio', { name: 'Light' })).toBeChecked();
   await expect(page.locator('html')).toHaveCSS('color-scheme', 'light');
   const other = await context.newPage();
   await other.goto(vault.url);
   await other.locator('nav.nav-tabs').getByRole('button', { name: 'Appearance', exact: true }).click();
-  await other.getByRole('radio', { name: /^Busnes Dark/ }).check();
+  await busnes(other).getByRole('radio', { name: 'Dark' }).check();
   await expect(page.locator('html')).toHaveCSS('color-scheme', 'dark');
   await other.close();
   const geometry = await page.evaluate(() => ({ width: innerWidth, content: document.documentElement.scrollWidth }));

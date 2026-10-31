@@ -8,8 +8,10 @@ test('navigation, account and dialog actions remain reachable at the shipped siz
   if (page.viewportSize().width >= 900) {
     const box = await nav.boundingBox();
     expect(box.x).toBe(0);
-    expect(box.width).toBe(240);
-    const account = await page.locator('#user-auth-area').boundingBox();
+    const region = await page.locator('.app-sidebar').boundingBox();
+    expect(region.x).toBe(0);
+    expect(region.width).toBe(240);
+    const account = await page.locator('.sidebar-foot').boundingBox();
     expect(account.x).toBeLessThan(240);
     expect(account.y).toBeGreaterThan(box.y);
     await page.setViewportSize({ width: 390, height: 844 });
@@ -21,7 +23,7 @@ test('navigation, account and dialog actions remain reachable at the shipped siz
   await tab(page, 'Offsite Replication');
   await page.getByRole('button', { name: 'Add target', exact: true }).click();
   const dialog = page.locator('#replication-modal');
-  for (const name of ['Test Connection', 'Cancel', 'Save Target']) {
+  for (const name of ['Test connection', 'Cancel', 'Save target']) {
     const button = dialog.getByRole('button', { name, exact: true });
     const box = await button.boundingBox();
     expect(box.height).toBeGreaterThanOrEqual(40);
@@ -39,7 +41,7 @@ test('dialogs contain keyboard focus, close with Escape and restore their trigge
   await enter(page, vault);
   for (const [destination, name, id] of [
     ['Paired Products', 'New pairing code', 'pairing-gen-modal'],
-    ['Custodians & Quorum', '+ Register Custodian', 'custodian-modal'],
+    ['Custodians & Quorum', 'Add custodian', 'custodian-modal'],
     ['Offsite Replication', 'Add target', 'replication-modal'],
   ]) {
     await tab(page, destination);
@@ -67,16 +69,15 @@ test('dialogs contain keyboard focus, close with Escape and restore their trigge
     await expect(trigger).toBeFocused();
   }
   for (const [action, id, triggerId] of [
-    ['Password', 'change-password-modal', 'btn-change-pass-header'],
-    ['SSO pairing', 'sso-config-modal', 'btn-sso-pair-header'],
+    ['Change password', 'change-password-modal', 'btn-change-pass-header'],
+    ['Set up SSO', 'sso-config-modal', 'btn-sso-pair-header'],
   ]) {
     await account(page, action);
     const dialog = page.locator('#' + id);
     await expect(dialog.getByRole('button', { name: 'Close dialog', exact: true })).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
-    const returned = page.viewportSize().width < 900 ? page.getByRole('button', { name: 'Account', exact: true }) : page.locator('#' + triggerId);
-    await expect(returned).toBeFocused();
+    await expect(page.locator('#' + triggerId)).toBeFocused();
   }
 });
 
@@ -128,4 +129,22 @@ test('ledger layouts display untrusted values as text and keep all fields reacha
     await expect(rendered).toContainText(hash);
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
+});
+
+test('shared sign-in card and the licence link opening the About dialog', async ({ page, vault }) => {
+  await page.goto(vault.url);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('KyRecovery');
+  await expect(page.locator('.ky-auth-help')).toContainText('initial-admin-password');
+  await expect(page.locator('.ky-auth-sso')).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeVisible();
+  await enter(page, vault);
+  const link = page.getByRole('button', { name: /^© \d{4} · MIT License$/ });
+  await link.click();
+  const about = page.getByRole('dialog', { name: 'About KyRecovery' });
+  await expect(about).toBeVisible();
+  await expect(about.locator('.ky-about-version')).toHaveText(/^v\d+\.\d+\.\d+/);
+  await expect(about.getByRole('textbox', { name: 'MIT License' })).toHaveValue(/^MIT License\n\nCopyright/);
+  await about.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(about).toBeHidden();
+  await expect(link).toBeFocused();
 });
