@@ -390,7 +390,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--brass); }
 .evidence-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
 .settings-row:first-of-type { border-top: 1px solid var(--rule); }
 .evidence-row h2, .settings-row h2 { font-size: var(--ky-type-body); font-weight: 600; color: var(--paper); }
-.evidence-row p, .settings-row p { margin-top: 4px; max-width: 65ch; color: var(--paper-muted); font-size: var(--ky-type-meta); }
+.evidence-row p, .settings-row p { margin-top: 4px; color: var(--paper-muted); font-size: var(--ky-type-meta); }
 .evidence-row .btn, .settings-row .btn { justify-self: end; white-space: nowrap; }
 .overview-facts { display: flex; flex-wrap: wrap; gap: 8px 32px; margin-bottom: 12px; font-size: var(--ky-type-meta); }
 .overview-facts > div { display: flex; align-items: baseline; gap: 8px; }

@@ -70,7 +70,7 @@ test('dialogs contain keyboard focus, close with Escape and restore their trigge
   }
   for (const [action, id, triggerId] of [
     ['Change password', 'change-password-modal', 'btn-change-pass-header'],
-    ['SSO pairing', 'sso-config-modal', 'btn-sso-pair-header'],
+    ['Set up SSO', 'sso-config-modal', 'btn-sso-pair-header'],
   ]) {
     await account(page, action);
     const dialog = page.locator('#' + id);
