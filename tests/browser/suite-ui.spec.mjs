@@ -1,10 +1,10 @@
-import { test, expect, enter, tab, account } from './fixtures.mjs';
+import { test, expect, enter, tab, settings, account } from './fixtures.mjs';
 
 test('navigation, account and dialog actions remain reachable at the shipped sizes', async ({ page, vault }) => {
   await enter(page, vault);
   const nav = page.getByRole('navigation', { name: 'Primary' });
   await expect(nav).toHaveCount(1);
-  await tab(page, 'Appearance');
+  await settings(page, 'Appearance');
   if (page.viewportSize().width > 720) {
     const box = await nav.boundingBox();
     const region = await page.locator('.ky-sidebar').boundingBox();
@@ -12,7 +12,7 @@ test('navigation, account and dialog actions remain reachable at the shipped siz
     expect(region.width).toBe(240);
     // Nothing between the brand row and the first destination; content starts at the shared inset.
     expect(Math.round((await nav.getByRole('button').first().boundingBox()).y)).toBe(88);
-    expect((await page.locator('#tab-appearance .ky-page-head').boundingBox()).x).toBe(272);
+    expect((await page.locator('#tab-settings .ky-page-head').boundingBox()).x).toBe(272);
     // The user block and licence line close the sidebar.
     const account = await page.locator('.ky-sidebar-foot').boundingBox();
     expect(account.x).toBeLessThan(240);
@@ -154,4 +154,44 @@ test('shared sign-in card and the licence link opening the About dialog', async 
   await about.getByRole('button', { name: 'Close', exact: true }).click();
   await expect(about).toBeHidden();
   await expect(link).toBeFocused();
+});
+
+test('Settings holds Account and Appearance as tabs with their own hash; Sign out is an icon', async ({ page, vault }) => {
+  await enter(page, vault);
+  const nav = page.getByRole('navigation', { name: 'Primary' });
+  // Admin console: Settings is a navigation item, and Account and Appearance are not.
+  await expect(nav.getByRole('button')).toHaveText(['Overview', 'Backups', 'Capsules', 'Paired Products', 'Custodians & Quorum', 'Offsite Replication', 'Audit Ledger', 'Settings']);
+  if (page.viewportSize().width > 720) {
+    const user = page.locator('.ky-user');
+    await expect(user.getByRole('button', { name: 'Sign out', exact: true })).toHaveAttribute('title', 'Sign out');
+    await expect(user).not.toContainText('Sign out');
+    await expect(user.getByRole('link')).toHaveCount(0);
+  } else {
+    await expect(page.locator('.ky-mobile-head')).not.toContainText('Sign out');
+  }
+  await tab(page, 'Settings');
+  await expect(page).toHaveURL(/#settings\/account$/);
+  await expect(nav.getByRole('button', { name: 'Settings', exact: true })).toHaveAttribute('aria-current', 'page');
+  const sections = page.getByRole('navigation', { name: 'Settings sections' });
+  await expect(sections.getByRole('link')).toHaveText(['Account', 'Appearance']);
+  await expect(sections.getByRole('link', { name: 'Account' })).toHaveAttribute('aria-current', 'page');
+  await expect(page.getByRole('region', { name: 'Account', exact: true })).toBeVisible();
+  await sections.getByRole('link', { name: 'Appearance' }).click();
+  await expect(page).toHaveURL(/#settings\/appearance$/);
+  await expect(page.getByRole('region', { name: 'Account', exact: true })).toBeHidden();
+  await tab(page, 'Capsules');
+  await expect(page).not.toHaveURL(/#/);
+  // Back returns to the section, and Forward to the page after it.
+  await page.goBack();
+  await expect(page.getByRole('region', { name: 'Appearance', exact: true })).toBeVisible();
+  await expect(sections.getByRole('link', { name: 'Appearance' })).toHaveAttribute('aria-current', 'page');
+  await page.goBack();
+  await expect(page.getByRole('region', { name: 'Account', exact: true })).toBeVisible();
+  await page.goForward();
+  await page.goForward();
+  await expect(nav.getByRole('button', { name: 'Capsules', exact: true })).toHaveAttribute('aria-current', 'page');
+  // The bare #account alias lands on the Account section.
+  await page.goto(vault.url + '/#account');
+  await expect(page).toHaveURL(/#settings\/account$/);
+  await expect(page.getByRole('region', { name: 'Account', exact: true })).toBeVisible();
 });

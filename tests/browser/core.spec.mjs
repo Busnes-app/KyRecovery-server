@@ -1,4 +1,4 @@
-import { test, expect, signIn, enter, tab, account, ceremony } from './fixtures.mjs';
+import { test, expect, signIn, enter, tab, settings, account, ceremony } from './fixtures.mjs';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -193,18 +193,20 @@ test('local replication form tests an owned directory, persists and deletes its 
 test('Appearance follows the OS, persists across reload and synchronizes tabs', async ({ page, context, vault }) => {
   await page.emulateMedia({ colorScheme: 'dark' });
   await enter(page, vault);
-  await tab(page, 'Appearance');
+  await settings(page, 'Appearance');
   const busnes = p => p.getByRole('group', { name: 'Busnes', exact: true });
   await expect(busnes(page).getByRole('radio', { name: 'Match system' })).toBeChecked();
   await expect(page.locator('html')).toHaveCSS('color-scheme', 'dark');
   await busnes(page).getByRole('radio', { name: 'Light' }).check();
+  // The section's hash survives a reload.
   await page.reload();
-  await tab(page, 'Appearance');
+  await expect(page).toHaveURL(/#settings\/appearance$/);
   await expect(busnes(page).getByRole('radio', { name: 'Light' })).toBeChecked();
   await expect(page.locator('html')).toHaveCSS('color-scheme', 'light');
   const other = await context.newPage();
-  await other.goto(vault.url);
-  await other.getByRole('navigation', { name: 'Primary' }).getByRole('button', { name: 'Appearance', exact: true }).click();
+  // The bare #appearance alias still opens the section.
+  await other.goto(vault.url + '/#appearance');
+  await expect(other).toHaveURL(/#settings\/appearance$/);
   await busnes(other).getByRole('radio', { name: 'Dark' }).check();
   await expect(page.locator('html')).toHaveCSS('color-scheme', 'dark');
   await other.close();

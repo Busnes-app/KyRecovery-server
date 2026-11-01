@@ -359,6 +359,8 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--brass); }
 .overview-facts dt { color: var(--paper-muted); }
 .overview-facts dd { color: var(--paper); font-weight: 600; font-variant-numeric: tabular-nums; }
 .overview-note { max-width: 72ch; color: var(--paper-dim); font-size: var(--ky-type-meta); }
+/* Settings: the open section under the tabs. */
+.appearance-intro { max-width: 72ch; margin-bottom: 24px; color: var(--paper-muted); }
 @media (max-width: 720px) {
   .evidence-row { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 16px 0; }
   .evidence-row .btn { justify-self: start; }

@@ -50,20 +50,59 @@ function revealTab(tab) {
 }
 
 // Tab Navigation
-function initTabs() {
-  const tabs = document.querySelectorAll('.tab-btn');
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => { t.classList.remove('active'); t.removeAttribute('aria-current'); });
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+function showTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(t => { t.classList.remove('active'); t.removeAttribute('aria-current'); });
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  tab.classList.add('active');
+  tab.setAttribute('aria-current', 'page');
+  const target = document.getElementById(tab.dataset.tab);
+  if (target) target.classList.add('active');
+  revealTab(tab);
+}
 
-      tab.classList.add('active');
-      tab.setAttribute('aria-current', 'page');
-      const target = document.getElementById(tab.dataset.tab);
-      if (target) target.classList.add('active');
-      revealTab(tab);
+// Settings sections each have a hash, #settings/account and #settings/appearance; the bare
+// #account and #appearance are kept as aliases.
+function settingsSection() {
+  const m = /^#(?:settings\/)?(account|appearance)$/.exec(location.hash);
+  return m ? m[1] : null;
+}
+
+function routeHash() {
+  const id = settingsSection();
+  const settings = document.querySelector('.tab-btn[data-tab="tab-settings"]');
+  if (!id) {
+    // Back or Forward to a page without a hash: the tab its history entry recorded.
+    const recorded = document.querySelector(`.tab-btn[data-tab="${history.state?.tab}"]`);
+    if (recorded) showTab(recorded);
+    else if (settings.classList.contains('active')) showTab(document.querySelector('.tab-btn[data-tab="tab-overview"]'));
+    return;
+  }
+  if (location.hash !== '#settings/' + id) history.replaceState(null, '', '#settings/' + id);
+  showTab(settings);
+  document.querySelectorAll('#tab-settings .settings-section').forEach(s => { s.hidden = s.id !== 'settings-' + id; });
+  document.querySelectorAll('#tab-settings .ky-settings-tabs a').forEach(a => {
+    if (a.getAttribute('href') === '#settings/' + id) a.setAttribute('aria-current', 'page');
+    else a.removeAttribute('aria-current');
+  });
+}
+
+function initTabs() {
+  document.querySelectorAll('.tab-btn').forEach(tab => {
+    tab.addEventListener('click', () => {
+      if (tab.dataset.tab === 'tab-settings') {
+        // Opening Settings from the navigation lands on its first section.
+        if (settingsSection()) showTab(tab);
+        else location.hash = 'settings/account';
+        return;
+      }
+      showTab(tab);
+      if (location.hash) history.pushState({ tab: tab.dataset.tab }, '', location.pathname + location.search);
     });
   });
+  // A section link or a typed hash fires hashchange; Back and Forward fire popstate.
+  window.addEventListener('hashchange', routeHash);
+  window.addEventListener('popstate', routeHash);
+  routeHash();
   const revealCurrent = () => {
     const current = document.querySelector('.tab-btn[aria-current="page"]');
     if (current) revealTab(current);
