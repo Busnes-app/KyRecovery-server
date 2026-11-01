@@ -174,6 +174,9 @@ test('Settings holds Account and Appearance as tabs with their own hash; Sign ou
   await expect(nav.getByRole('button', { name: 'Settings', exact: true })).toHaveAttribute('aria-current', 'page');
   const sections = page.getByRole('navigation', { name: 'Settings sections' });
   await expect(sections.getByRole('link')).toHaveText(['Account', 'Appearance']);
+  // The inactive tab is legible: KyRecovery's local --ink is a surface colour, so the row remaps it.
+  const inactive = await sections.getByRole('link', { name: 'Appearance' }).evaluate(a => [getComputedStyle(a).color, getComputedStyle(document.body).backgroundColor]);
+  expect(inactive[0]).not.toBe(inactive[1]);
   await expect(sections.getByRole('link', { name: 'Account' })).toHaveAttribute('aria-current', 'page');
   await expect(page.getByRole('region', { name: 'Account', exact: true })).toBeVisible();
   await sections.getByRole('link', { name: 'Appearance' }).click();

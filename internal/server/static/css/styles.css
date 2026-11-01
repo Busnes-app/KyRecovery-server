@@ -337,7 +337,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--brass); }
 
 /* ---------- Suite shell (ky-ui shell.css owns the ky-* classes) ---------- */
 /* Shell and Appearance read --ink as secondary text; here --ink names the surface. */
-.ky-auth, .ky-sidebar, .ky-about, .ky-page-head, .ky-license-link, .ky-appearance { --ink: var(--paper-muted); }
+.ky-auth, .ky-sidebar, .ky-about, .ky-page-head, .ky-settings-tabs, .ky-license-link, .ky-appearance { --ink: var(--paper-muted); }
 .ky-sidebar { --sidebar-start: var(--ky-sidebar-start); --sidebar-end: var(--ky-sidebar-end); }
 /* The mark is a dark tile; dark schemes get the shell's inverted tile (light tile, dark mark). */
 :root[data-theme="busnes-dark"] .app-mark { filter: invert(1) hue-rotate(180deg); }
