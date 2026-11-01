@@ -12,6 +12,10 @@
 
 ### Changed
 
+- ky-ui 0.10.0: Account and Appearance move from the navigation into a new Settings
+  item, as tabs with their own addresses (`#settings/account`, `#settings/appearance`;
+  `#account` and `#appearance` still open them). Sign out in the sidebar and the phone
+  header is an icon button.
 - ky-ui 0.8.0: status pills use the shared `.ky-status` with danger, warning and
   success colours that no longer borrow the accent. Replication shows Automatic or
   Manual instead of ENABLED or MANUAL, and a revoked pairing reads as neutral.

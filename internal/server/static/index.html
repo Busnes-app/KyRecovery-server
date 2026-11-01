@@ -51,7 +51,7 @@
   <header class="ky-sidebar">
     <div class="ky-mobile-head">
       <div class="ky-brand"><img class="app-mark" src="/static/app-icon.png" width="28" height="28" alt=""><span>KyRecovery</span></div>
-      <button class="ky-mobile-signout" type="button" aria-label="Sign out" onclick="handleLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
+      <div class="ky-mobile-actions"><button class="ky-icon-button" type="button" aria-label="Sign out" title="Sign out" onclick="handleLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></button></div>
     </div>
     <nav class="ky-nav" aria-label="Primary">
       <button class="ky-nav-item tab-btn active" aria-current="page" data-tab="tab-overview"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z"/></svg><span>Overview</span></button>
@@ -61,8 +61,7 @@
       <button class="ky-nav-item tab-btn" data-tab="tab-custodians"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M2 21v-3a6 6 0 0 1 12 0v3 M16 5a4 4 0 0 1 0 8 M17 16a5 5 0 0 1 5 5"/></svg><span>Custodians & Quorum</span></button>
       <button class="ky-nav-item tab-btn" data-tab="tab-replication"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4z M14 14h6v6h-6z M16 4h4v4 M20 4l-8 8 M4 16v4h4 M4 20l8-8"/></svg><span>Offsite Replication</span></button>
       <button class="ky-nav-item tab-btn" data-tab="tab-audit"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5z M8 7h8 M8 11h8 M8 15h5"/></svg><span>Audit Ledger</span></button>
-      <button class="ky-nav-item tab-btn" data-tab="tab-account"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M4 21a8 8 0 0 1 16 0"/></svg><span>Account</span></button>
-      <button class="ky-nav-item tab-btn" data-tab="tab-appearance"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-2-1-3-3-3h-3c-1 0-2-1-2-2V3z M7 8h.01 M6 13h.01 M9 17h.01"/></svg><span>Appearance</span></button>
+      <button class="ky-nav-item tab-btn" data-tab="tab-settings"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16 M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg><span>Settings</span></button>
     </nav>
     <div class="ky-sidebar-foot">
       <div class="ky-user">
@@ -70,7 +69,7 @@
           <p id="user-display-name" class="ky-user-name"></p>
           <p id="user-role-badge" class="ky-user-role"></p>
         </div>
-        <button id="btn-auth-action" class="ky-user-signout" type="button" onclick="handleLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sign out</button>
+        <div class="ky-user-actions"><button class="ky-icon-button" type="button" aria-label="Sign out" title="Sign out" onclick="handleLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></button></div>
       </div>
       <footer>
         <button class="ky-license-link" type="button" commandfor="ky-about" command="show-modal">&copy; <span data-year>2026</span> &middot; MIT License</button>
@@ -435,36 +434,38 @@
       </div>
     </div>
 
-    <!-- Account: the signed-in user's password and, for admins, single sign-on. -->
-    <div id="tab-account" class="tab-content">
+    <!-- Settings: the personal sections as tabs, one hash each (#settings/account), so links
+         and Back work. KyRecovery is an admin console, so Settings is a navigation item. -->
+    <div id="tab-settings" class="tab-content">
       <header class="ky-page-head">
         <div>
-          <h1 class="ky-page-title">Account</h1>
-          <p class="ky-page-lede">Your local password and this vault's single sign-on.</p>
+          <h1 class="ky-page-title">Settings</h1>
+          <p class="ky-page-lede">Your password, this vault’s single sign-on, and how KyRecovery looks.</p>
         </div>
       </header>
-      <section class="settings-row">
-        <div><h2>Password</h2><p>Changing it signs out every other session of this account.</p></div>
-        <button id="btn-change-pass-header" type="button" class="btn btn-secondary" onclick="openChangePasswordModal()">Change password</button>
+      <nav class="ky-settings-tabs" aria-label="Settings sections">
+        <a class="ky-nav-item" href="#settings/account" aria-current="page">Account</a>
+        <a class="ky-nav-item" href="#settings/appearance">Appearance</a>
+      </nav>
+      <!-- Account: the signed-in user's password and, for admins, single sign-on. -->
+      <section id="settings-account" class="settings-section" aria-label="Account">
+        <section class="settings-row">
+          <div><h2>Password</h2><p>Changing it signs out every other session of this account.</p></div>
+          <button id="btn-change-pass-header" type="button" class="btn btn-secondary" onclick="openChangePasswordModal()">Change password</button>
+        </section>
+        <section id="sso-settings-row" class="settings-row" style="display: none;">
+          <div><h2>Single sign-on</h2><p>Let people sign in with KySignOn (OpenID Connect). Unknown roles become viewers.</p></div>
+          <button id="btn-sso-pair-header" type="button" class="btn btn-secondary" onclick="openSSOConfigModal()">Set up SSO</button>
+        </section>
       </section>
-      <section id="sso-settings-row" class="settings-row" style="display: none;">
-        <div><h2>Single sign-on</h2><p>Let people sign in with KySignOn (OpenID Connect). Unknown roles become viewers.</p></div>
-        <button id="btn-sso-pair-header" type="button" class="btn btn-secondary" onclick="openSSOConfigModal()">Set up SSO</button>
+      <!-- Appearance: browser-local theme; theme.js fills the pair cards -->
+      <section id="settings-appearance" class="settings-section" aria-label="Appearance" hidden>
+        <p class="appearance-intro">Pick a palette and how it handles light and dark. Match system switches with your device’s setting; Light or Dark keeps one. Your choice applies straight away and is saved in this browser only.</p>
+        <fieldset class="ky-appearance" data-theme-picker>
+          <legend class="ky-appearance-legend">Theme</legend>
+          <div class="ky-appearance-grid appearance-pairs"></div>
+        </fieldset>
       </section>
-    </div>
-
-    <!-- Appearance: browser-local theme; theme.js fills the pair cards -->
-    <div id="tab-appearance" class="tab-content">
-      <header class="ky-page-head">
-        <div>
-          <h1 class="ky-page-title">Appearance</h1>
-          <p class="ky-page-lede">Pick a palette and how it handles light and dark. Match system switches with your device’s setting; Light or Dark keeps one. Your choice applies straight away and is saved in this browser only.</p>
-        </div>
-      </header>
-      <fieldset class="ky-appearance" data-theme-picker>
-        <legend class="ky-appearance-legend">Theme</legend>
-        <div class="ky-appearance-grid appearance-pairs"></div>
-      </fieldset>
     </div>
     <footer class="ky-content-foot"><button class="ky-license-link" type="button" commandfor="ky-about" command="show-modal">&copy; <span data-year>2026</span> &middot; MIT License</button></footer>
   </main>

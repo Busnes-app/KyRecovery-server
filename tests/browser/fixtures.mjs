@@ -60,11 +60,19 @@ export async function tab(page, name) {
   await page.getByRole('navigation', { name: 'Primary' }).getByRole('button', { name, exact: true }).click();
 }
 
-// Sign out sits in the sidebar foot (the phone header on phones); password and SSO live on the Account page.
+// Settings is a navigation item; its sections (Account, Appearance) are tabs under its page head.
+export async function settings(page, section) {
+  await tab(page, 'Settings');
+  await page.getByRole('navigation', { name: 'Settings sections' }).getByRole('link', { name: section, exact: true }).click();
+  await expect(page.getByRole('region', { name: section, exact: true })).toBeVisible();
+}
+
+// Sign out is the icon button in the sidebar foot (the phone header on phones); password and SSO
+// live in Settings, Account.
 export async function account(page, name) {
   if (name === 'Sign out') return page.getByRole('button', { name, exact: true }).click();
-  await tab(page, 'Account');
-  await page.locator('#tab-account').getByRole('button', { name, exact: true }).click();
+  await settings(page, 'Account');
+  await page.locator('#settings-account').getByRole('button', { name, exact: true }).click();
 }
 
 export async function ceremony(page, vault) {
