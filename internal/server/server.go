@@ -131,6 +131,9 @@ func (s *Server) routes() {
 			return
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		// The page names the running build's scripts: browsers revalidate it, so a tab opened
+		// after an upgrade loads the new build.
+		w.Header().Set("Cache-Control", "no-cache")
 		w.Write(data)
 	})
 
