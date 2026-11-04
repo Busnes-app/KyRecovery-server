@@ -1212,11 +1212,6 @@ func (s *Server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusUnauthorized, "This sign-in was already ended at the identity provider; sign in again")
 		return
 	}
-	if errors.Is(err, db.ErrRoleSuperseded) {
-		log.Printf("sso callback: stale sign-in refused for subject %q: a newer sign-in carries another role", userInfo.Subject)
-		writeError(w, http.StatusUnauthorized, "A newer sign-in changed your role; sign in again")
-		return
-	}
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "Failed creating session")
 		return

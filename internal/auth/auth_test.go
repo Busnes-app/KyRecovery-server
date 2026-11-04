@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/Busnes-app/kyrecovery-server/internal/auth"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
@@ -108,75 +107,5 @@ func TestClearedAdminEmailSurvivesRestart(t *testing.T) {
 	}
 	if got := auth.NewManager(env, nil).GetConfig().AdminEmail; got != env.AdminEmail {
 		t.Fatalf("without saved settings the default applies; got %q", got)
-	}
-}
-
-// A user demoted at the identity provider signs in again: the older session that still
-// carries the admin role ends, and a second session with the same role is left alone.
-func TestSSORoleChangeEndsSessionsWithTheOldRole(t *testing.T) {
-	database, err := db.Open(":memory:")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer database.Close()
-	m := auth.NewManager(auth.OIDCConfig{}, database)
-	login := func(role string) string {
-		c, err := m.CreateSession(t.Context(), &auth.UserInfo{Issuer: "https://id.example", Subject: "s1", Role: role}, false)
-		if err != nil {
-			t.Fatal(err)
-		}
-		return c.Value
-	}
-	admin := login(auth.RoleAdmin)
-	viewer1 := login(auth.RoleViewer)
-	viewer2 := login(auth.RoleViewer)
-	for id, want := range map[string]bool{admin: false, viewer1: true, viewer2: true} {
-		if s, _ := database.GetSession(t.Context(), id); (s != nil) != want {
-			t.Fatalf("session %s alive = %v, want %v", id[:6], s != nil, want)
-		}
-	}
-}
-
-// Callbacks can finish out of order. An admin sign-in whose ID token predates the viewer
-// sign-in that already completed is the stale grant: it is refused and the viewer stays.
-func TestStaleSSOCallbackCannotRestoreTheOldRole(t *testing.T) {
-	database, err := db.Open(":memory:")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer database.Close()
-	m := auth.NewManager(auth.OIDCConfig{}, database)
-	now := time.Now().UTC()
-	viewer, err := m.CreateSession(t.Context(), &auth.UserInfo{Issuer: "https://id.example", Subject: "s1", Role: auth.RoleViewer, IssuedAt: now}, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := m.CreateSession(t.Context(), &auth.UserInfo{Issuer: "https://id.example", Subject: "s1", Role: auth.RoleAdmin, IssuedAt: now.Add(-time.Minute)}, false); err == nil {
-		t.Fatal("a stale admin callback created a session")
-	}
-	if s, _ := database.GetSession(t.Context(), viewer.Value); s == nil {
-		t.Fatal("the stale callback ended the newer viewer session")
-	}
-}
-
-// Two sign-ins with different roles and ID tokens from the same second cannot be ordered,
-// so neither grant stands: both sessions end and the user signs in again.
-func TestSSORoleTieFailsClosed(t *testing.T) {
-	database, err := db.Open(":memory:")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer database.Close()
-	m := auth.NewManager(auth.OIDCConfig{}, database)
-	at := time.Now().UTC().Truncate(time.Second)
-	admin, err := m.CreateSession(t.Context(), &auth.UserInfo{Issuer: "https://id.example", Subject: "s1", Role: auth.RoleAdmin, IssuedAt: at}, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := m.CreateSession(t.Context(), &auth.UserInfo{Issuer: "https://id.example", Subject: "s1", Role: auth.RoleViewer, IssuedAt: at}, false); err == nil {
-		t.Fatal("a same-second sign-in with another role was accepted")
-	}
-	if s, _ := database.GetSession(t.Context(), admin.Value); s != nil {
-		t.Fatal("the same-second admin session survived a viewer sign-in")
 	}
 }

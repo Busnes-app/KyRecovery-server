@@ -672,14 +672,6 @@ func (m *Manager) CreateSession(ctx context.Context, u *UserInfo, secure bool) (
 	if err := m.db.InsertSession(ctx, rec); err != nil {
 		return nil, fmt.Errorf("failed storing session: %w", err)
 	}
-	if rec.NativeSSO && rec.SSOIssuer != "" {
-		// SSO roles follow the identity provider: a sign-in with a new role ends the
-		// subject's sessions that still carry the old one.
-		if err := m.db.EndSSORoleChange(ctx, rec); err != nil {
-			_ = m.db.DeleteSession(ctx, sessionID)
-			return nil, fmt.Errorf("applying the SSO role: %w", err)
-		}
-	}
 
 	cookie := &http.Cookie{
 		Name:     SessionCookieName,

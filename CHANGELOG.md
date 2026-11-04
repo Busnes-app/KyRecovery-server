@@ -18,7 +18,6 @@
   the ledger cannot record them (as rotation and retention already were).
 - A password change ends the user's other sessions in the same transaction, including a
   sign-in with the old password that was still in progress, and fails if it cannot.
-- An SSO sign-in with a different role ends that user's sessions with the old role.
 - The audit actor of an SSO user without a verified email is their subject, never their
   display name.
 - A cleared SSO admin email stays cleared after a restart instead of falling back to

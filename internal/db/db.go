@@ -1221,40 +1221,6 @@ func (d *DB) DeleteUserSessionsExcept(ctx context.Context, userID, keepSessionID
 	return err
 }
 
-// ErrRoleSuperseded refuses a sign-in whose ID token is older than one already used to
-// sign the same subject in with another role.
-var ErrRoleSuperseded = errors.New("a newer sign-in carries another role")
-
-// EndSSORoleChange applies the role of the session s just inserted to its SSO subject,
-// ordered by ID-token issue time (created_at): sessions issued earlier with another role
-// end, and if a later one carries another role, s itself is the stale grant and ends.
-// Each racing callback runs both statements after its insert, so the newest token wins.
-func (d *DB) EndSSORoleChange(ctx context.Context, s SessionRecord) error {
-	// Tokens issued in the same second cannot be ordered: both grants end (fail closed),
-	// and the user signs in again with a fresh token.
-	tie, err := d.conn.ExecContext(ctx, `DELETE FROM sessions WHERE sso_issuer = ? AND sso_subject = ? AND role != ? AND id != ? AND created_at = ?`,
-		s.SSOIssuer, s.SSOSubject, s.Role, tokenHash(s.ID), s.CreatedAt.UTC())
-	if err != nil {
-		return err
-	}
-	if n, err := tie.RowsAffected(); err != nil || n > 0 {
-		return ErrRoleSuperseded
-	}
-	if _, err := d.conn.ExecContext(ctx, `DELETE FROM sessions WHERE sso_issuer = ? AND sso_subject = ? AND role != ? AND id != ? AND created_at < ?`,
-		s.SSOIssuer, s.SSOSubject, s.Role, tokenHash(s.ID), s.CreatedAt.UTC()); err != nil {
-		return err
-	}
-	var newer bool
-	if err := d.conn.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM sessions WHERE sso_issuer = ? AND sso_subject = ? AND role != ? AND created_at > ?)`,
-		s.SSOIssuer, s.SSOSubject, s.Role, s.CreatedAt.UTC()).Scan(&newer); err != nil {
-		return err
-	}
-	if newer {
-		return ErrRoleSuperseded
-	}
-	return nil
-}
-
 // DeleteSession removes a session, given its raw ID, from SQLite.
 func (d *DB) DeleteSession(ctx context.Context, id string) error {
 	q := `DELETE FROM sessions WHERE id = ?`
