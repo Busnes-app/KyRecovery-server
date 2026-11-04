@@ -78,6 +78,9 @@ func retentionCandidates(caps []db.CapsuleRecord, p retentionPolicy, now time.Ti
 	type bucket struct{ app, service, period string }
 	newest := make(map[bucket]db.CapsuleRecord)
 	selectNewest := func(rec db.CapsuleRecord, period string) {
+		if rec.Status == "corrupt" {
+			return // a known-bad capsule never displaces an intact one as the period's survivor
+		}
 		key := bucket{rec.PairedAppID, rec.ServiceName, period}
 		prev, ok := newest[key]
 		if !ok || rec.DepositedAt.After(prev.DepositedAt) || (rec.DepositedAt.Equal(prev.DepositedAt) && rec.ID > prev.ID) {

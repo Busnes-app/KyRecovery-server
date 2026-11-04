@@ -434,3 +434,23 @@ func TestDepositNeverOverwritesAnExistingFile(t *testing.T) {
 		t.Fatal("a refused deposit left a row")
 	}
 }
+
+// A retry of a capsule the sweep already found corrupt is not "already stored": a 200
+// would tell the product its backup is safe while the store holds damaged bytes.
+func TestDuplicateOfACorruptCapsuleIsRefused(t *testing.T) {
+	srv, cookie, database := newAdminServer(t)
+	k, _ := recoverykey.Generate()
+	importKey(t, srv, cookie, k.Public(), 3, 5)
+	token, _ := pairProduct(t, srv, cookie, "kynotes")
+	raw := sealFor(t, k.Public(), "kynotes")
+	if rec := deposit(srv, token, raw); rec.Code != http.StatusCreated {
+		t.Fatalf("deposit: %d %s", rec.Code, rec.Body.String())
+	}
+	m, _ := capsule.ReadUnverifiedManifest(raw)
+	if err := database.SetCapsuleStatus(t.Context(), m.CapsuleID, "corrupt"); err != nil {
+		t.Fatal(err)
+	}
+	if rec := deposit(srv, token, raw); rec.Code != http.StatusConflict {
+		t.Fatalf("identical retry of a corrupt capsule: %d %s, want 409", rec.Code, rec.Body.String())
+	}
+}

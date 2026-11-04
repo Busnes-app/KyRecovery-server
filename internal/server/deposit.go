@@ -161,6 +161,8 @@ func (s *Server) handleDeposit(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, errDepositUnrecorded):
 			writeError(w, http.StatusServiceUnavailable, "Failed recording the deposit in the audit chain; deposit refused")
+		case errors.Is(err, db.ErrRecoveryKeyRetired):
+			writeError(w, http.StatusConflict, "capsule is sealed to a recovery key that was retired; re-pair this product")
 		case errors.Is(err, errCapsuleFileExists):
 			writeError(w, http.StatusConflict, "A capsule file with this ID already exists")
 		default:
@@ -193,6 +195,12 @@ func (s *Server) respondToDuplicate(ctx context.Context, w http.ResponseWriter, 
 		}
 		log.Printf("deposit: capsule %s has a row but no file on disk", stored.ID)
 		writeError(w, http.StatusConflict, "A capsule with this ID is recorded but its file is missing")
+		return
+	}
+	if stored.Status == "corrupt" {
+		// The stored file failed verification: answering 200 would tell the product its
+		// backup is safe while the store holds damaged bytes under this ID.
+		writeError(w, http.StatusConflict, "A capsule with this ID is recorded but its stored file is corrupt")
 		return
 	}
 	if stored.Digest == digest {

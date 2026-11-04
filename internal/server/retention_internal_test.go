@@ -145,3 +145,18 @@ func TestRetentionPreviewDoesNotWaitForPublish(t *testing.T) {
 		t.Fatal("preview blocked on an in-flight publish")
 	}
 }
+
+// A capsule the sweep found corrupt never becomes a week's or month's only survivor: the
+// intact capsule it would displace may be the last good recovery point for that period.
+func TestCorruptCapsuleNeverDisplacesAnIntactSurvivor(t *testing.T) {
+	now := time.Date(2026, 11, 3, 12, 0, 0, 0, time.UTC)
+	intact := db.CapsuleRecord{ID: "intact", PairedAppID: "a", ServiceName: "notes", Status: "active", DepositedAt: time.Date(2026, 10, 27, 9, 0, 0, 0, time.UTC)}
+	rotten := db.CapsuleRecord{ID: "rotten", PairedAppID: "a", ServiceName: "notes", Status: "corrupt", DepositedAt: time.Date(2026, 10, 28, 9, 0, 0, 0, time.UTC)}
+	for _, p := range []retentionPolicy{{Days: 1, Weeks: 8}, {Days: 1, Months: 3}} {
+		for _, rec := range retentionCandidates([]db.CapsuleRecord{intact, rotten}, p, now) {
+			if rec.ID == "intact" {
+				t.Fatalf("%+v: the intact capsule expires while a corrupt one survives", p)
+			}
+		}
+	}
+}
