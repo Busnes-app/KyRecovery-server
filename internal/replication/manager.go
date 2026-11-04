@@ -2,7 +2,10 @@ package replication
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -39,18 +42,7 @@ func (m *Manager) SyncCapsule(ctx context.Context, capsuleID, targetID string) (
 		return nil, fmt.Errorf("capsule not found: %s", capsuleID)
 	}
 
-	capFile, err := os.Open(capRec.FilePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed opening capsule file %s: %w", capRec.FilePath, err)
-	}
-	defer capFile.Close()
-
-	stat, err := capFile.Stat()
-	if err != nil {
-		return nil, fmt.Errorf("stat capsule: %w", err)
-	}
-	sizeBytes := stat.Size()
-	transferErr := m.transfer(ctx, *target, capRec, capFile, sizeBytes)
+	sizeBytes, transferErr := m.sendVerified(ctx, *target, capRec)
 
 	completedAt := time.Now().UTC()
 	durationMs := completedAt.Sub(startedAt).Milliseconds()
@@ -89,6 +81,32 @@ func (m *Manager) SyncCapsule(ctx context.Context, capsuleID, targetID string) (
 		return &logRec, transferErr
 	}
 	return &logRec, nil
+}
+
+// sendVerified transfers the stored bytes only when they are still the bytes that were
+// deposited. A replica may be the last good copy, so a corrupt or changed local file must
+// never be written over it. Every failure here is a failed sync, logged like one.
+func (m *Manager) sendVerified(ctx context.Context, target db.ReplicationTargetRecord, capRec *db.CapsuleRecord) (int64, error) {
+	if capRec.Status == "corrupt" {
+		return 0, fmt.Errorf("capsule %s is marked corrupt; not replicating it", capRec.ID)
+	}
+	capFile, err := os.Open(capRec.FilePath)
+	if err != nil {
+		return 0, fmt.Errorf("failed opening capsule file: %w", err)
+	}
+	defer capFile.Close()
+	h := sha256.New()
+	size, err := io.Copy(h, capFile)
+	if err != nil {
+		return 0, fmt.Errorf("failed reading capsule file: %w", err)
+	}
+	if size != capRec.SizeBytes || hex.EncodeToString(h.Sum(nil)) != capRec.Digest {
+		return size, fmt.Errorf("capsule %s no longer matches its recorded digest; not replicating it", capRec.ID)
+	}
+	if _, err := capFile.Seek(0, io.SeekStart); err != nil {
+		return size, fmt.Errorf("failed rewinding capsule file: %w", err)
+	}
+	return size, m.transfer(ctx, target, capRec, capFile, size)
 }
 
 // SyncAllAutoTargets replicates a capsule across all targets configured for auto-sync.

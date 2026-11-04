@@ -118,6 +118,9 @@ var ErrStaleRotation = errors.New("the key to replace is not the current recover
 // ErrRetireRefused means the key is current, already retired, unknown, or still has capsules.
 var ErrRetireRefused = errors.New("recovery key cannot be retired")
 
+// ErrRecoveryKeyRetired is returned by InsertCapsule for a capsule sealed to a retired key.
+var ErrRecoveryKeyRetired = errors.New("capsule is sealed to a retired recovery key")
+
 // ErrCapsuleExists reports that a capsule row with this ID is already stored. The row is the
 // mutual-exclusion primitive for a deposit: whoever inserts it owns the file path.
 var ErrCapsuleExists = errors.New("a capsule with this ID is already stored")
@@ -628,15 +631,27 @@ func (d *DB) addColumn(table, column, def string, then ...string) error {
 
 // InsertCapsule saves a new capsule record.
 func (d *DB) InsertCapsule(ctx context.Context, c CapsuleRecord) error {
+	// The retired-key guard lives in the statement: RetireRecoveryKey refuses while a row
+	// names the key, and this refuses a row once the key is retired, so a deposit checked
+	// against the current key cannot land after its key was rotated out and retired.
 	q := `INSERT INTO capsules (id, service_name, app_name, app_version, file_path, size_bytes, digest, payload_hash, threshold, total_shares, recovery_key_id, encapsulated_key, created_at, deposited_at, paired_app_id, status)
-	      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-	_, err := d.conn.ExecContext(ctx, q, c.ID, c.ServiceName, c.AppName, c.AppVersion, c.FilePath, c.SizeBytes,
+	      SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+	      WHERE NOT EXISTS (SELECT 1 FROM recovery_keys WHERE key_id = ? AND status = 'retired')`
+	res, err := d.conn.ExecContext(ctx, q, c.ID, c.ServiceName, c.AppName, c.AppVersion, c.FilePath, c.SizeBytes,
 		c.Digest, c.PayloadHash, c.Threshold, c.TotalShares, c.RecoveryKeyID, c.EncapsulatedKey,
-		c.CreatedAt.UTC(), c.DepositedAt.UTC(), c.PairedAppID, c.Status)
+		c.CreatedAt.UTC(), c.DepositedAt.UTC(), c.PairedAppID, c.Status, c.RecoveryKeyID)
 	if err != nil && strings.Contains(err.Error(), "UNIQUE constraint failed") {
 		return ErrCapsuleExists
 	}
-	return err
+	if err != nil {
+		return err
+	}
+	if n, err := res.RowsAffected(); err != nil {
+		return err
+	} else if n == 0 {
+		return ErrRecoveryKeyRetired
+	}
+	return nil
 }
 
 // MarkCapsuleVerified records that the stored bytes matched the digest at t.

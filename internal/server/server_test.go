@@ -2,12 +2,14 @@ package server_test
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -194,6 +196,9 @@ func TestServerEndpoints(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("POST /api/auth/sso/config expected 200, got %d: %s", rec.Code, rec.Body.String())
 	}
+	if strings.Contains(rec.Body.String(), "secret123456") {
+		t.Fatalf("saving SSO settings echoed the client secret: %s", rec.Body.String())
+	}
 
 	// 13. Test GET /api/auth/sso/config
 	req = httptest.NewRequest(http.MethodGet, "/api/auth/sso/config", nil)
@@ -306,11 +311,12 @@ func seedCapsule(t *testing.T, database *db.DB, dataDir, service, payloadHash st
 	t.Helper()
 	id := fmt.Sprintf("cap-%s-%s", service, payloadHash)
 	path := filepath.Join(dataDir, "capsules", id+".kycap")
-	if err := os.WriteFile(path, []byte("sealed-"+payloadHash), 0600); err != nil {
+	content := []byte("sealed-" + payloadHash)
+	if err := os.WriteFile(path, content, 0600); err != nil {
 		t.Fatalf("writing capsule file failed: %v", err)
 	}
 	rec := db.CapsuleRecord{
-		ID: id, ServiceName: service, FilePath: path, SizeBytes: 16,
+		ID: id, ServiceName: service, FilePath: path, SizeBytes: int64(len(content)), Digest: fmt.Sprintf("%x", sha256.Sum256(content)),
 		PayloadHash: payloadHash, Threshold: 2, TotalShares: 3,
 		Status: "active", CreatedAt: time.Now().UTC(),
 	}
@@ -396,5 +402,50 @@ func TestSuccessfulClaimsDoNotConsumeRateBudget(t *testing.T) {
 		if rec.Code != http.StatusOK {
 			t.Fatalf("pairing %d from a shared address expected 200, got %d: %s", i, rec.Code, rec.Body.String())
 		}
+	}
+}
+
+// Distinct guesses never hit the per-code count and an IPv6 client has a whole /64, so
+// failed claims from every address share one budget per window.
+func TestPairingClaimGuessesShareAGlobalBudget(t *testing.T) {
+	database, err := db.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	srv, err := server.New(server.Config{DataDir: t.TempDir()}, database, audit.NewLedger(database))
+	if err != nil {
+		t.Fatal(err)
+	}
+	seedRecoveryKey(t, database)
+	claim := func(addr, code string) int {
+		body, _ := json.Marshal(map[string]string{"pairing_code": code, "app_name": "guesser"})
+		req := httptest.NewRequest(http.MethodPost, "/api/pairing/claim", bytes.NewReader(body))
+		req.RemoteAddr = addr
+		rec := httptest.NewRecorder()
+		srv.ServeHTTP(rec, req)
+		return rec.Code
+	}
+	// One /64 is one address: the eleventh guess is refused whatever the host part.
+	for i := 0; i < 10; i++ {
+		if code := claim(fmt.Sprintf("[2001:db8:7::%x]:4000", i+1), fmt.Sprintf("%06d", 200000+i)); code != http.StatusBadRequest {
+			t.Fatalf("guess %d from the /64: %d", i, code)
+		}
+	}
+	if code := claim("[2001:db8:7::ffff]:4000", "299999"); code != http.StatusTooManyRequests {
+		t.Fatalf("guess from a fresh address in the same /64: %d, want 429", code)
+	}
+	// Many IPv4 addresses, each under its own cap, still exhaust the shared budget.
+	guesses := 10
+	for host := 1; guesses < 100; host++ {
+		for i := 0; i < 10 && guesses < 100; i++ {
+			if code := claim(fmt.Sprintf("198.51.100.%d:4000", host), fmt.Sprintf("%06d", 300000+guesses)); code != http.StatusBadRequest {
+				t.Fatalf("guess %d: %d", guesses, code)
+			}
+			guesses++
+		}
+	}
+	if code := claim("192.0.2.200:4000", "399999"); code != http.StatusTooManyRequests {
+		t.Fatalf("guess after %d failures from many addresses: %d, want 429", guesses, code)
 	}
 }

@@ -136,8 +136,9 @@ sequenceDiagram
     been imported yet, meaning the ceremony has not run. In the second case the code
     is *not* consumed and no rate-limit attempt is charged: run the ceremony and claim
     again with the same code.
-  - `429 Too Many Requests`: More than 10 claim attempts from one source address, or 5
-    for one code, within 15 minutes.
+  - `429 Too Many Requests`: More than 10 failed claims from one source address (an IPv6
+    /64 counts as one), or 5 for one code, or 100 from all addresses together, within 15
+    minutes. The last can refuse a correct code too: wait and claim again.
 
 A client that receives no `recovery_public_key` must treat the pairing as failed;
 `pkg/client.ClaimPairing` does exactly that.
@@ -193,7 +194,7 @@ offsite replication.
 | `400 Bad Request` | The body is not a kycap/3 container, or its `capsule_id` / `service_name` is not a usable name. |
 | `401 Unauthorized` | Missing, invalid or revoked bearer token. |
 | `403 Forbidden` | The manifest names a service this token is not paired for. Both names are in the message. |
-| `409 Conflict` | Sealed to a key other than the current recovery key (both key IDs are in the message; after a rotation the message says the key was rotated out and the product must re-pair, and the body adds `"code": "recovery_key_rotated"`, `sealed_key_id` and `current_key_id`; act on `code`, not the wording, and learn the new key only by re-pairing); or this capsule ID is stored with different bytes; or its row exists but the file is missing (the row is flagged corrupt — retry with a new capsule ID); or no recovery key is imported. |
+| `409 Conflict` | Sealed to a key other than the current recovery key (both key IDs are in the message; after a rotation the message says the key was rotated out and the product must re-pair, and the body adds `"code": "recovery_key_rotated"`, `sealed_key_id` and `current_key_id`; act on `code`, not the wording, and learn the new key only by re-pairing); or this capsule ID is stored with different bytes; or its row exists but the file is missing (the row is flagged corrupt) or the stored file is flagged corrupt — retry with a new capsule ID; or the key it is sealed to was retired while the deposit was in flight (re-pair); or no recovery key is imported. |
 | `413 Content Too Large` | Body over `capsule.MaxContainerBytes`. |
 | `429 Too Many Requests` | Deposit rate limit exceeded for this paired product. |
 | `503 Service Unavailable` | The audit ledger is not writable — deposits are refused until an operator repairs the log and restarts — or the request was abandoned while waiting for a deposit slot. |

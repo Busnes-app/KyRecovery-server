@@ -192,20 +192,15 @@ func cmdServe(args []string) {
 // 2. Audit
 func cmdAudit(args []string) {
 	if len(args) == 0 || args[0] != "verify" {
-		fmt.Println("Usage: kyrecovery audit verify [--data-dir DIR]")
-		return
+		fmt.Fprintln(os.Stderr, "Usage: kyrecovery audit verify [--data-dir DIR]")
+		os.Exit(2)
 	}
 
 	fs := flag.NewFlagSet("audit verify", flag.ExitOnError)
 	dataDir := fs.String("data-dir", defaultDataDir(), "Data directory containing SQLite database")
 	fs.Parse(args[1:])
 
-	dbPath := filepath.Join(*dataDir, "kyrecovery.db")
-	database, err := db.Open(dbPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed opening database: %v\n", err)
-		os.Exit(1)
-	}
+	database := openStore(*dataDir)
 	defer database.Close()
 
 	ledger := audit.NewLedger(database)
@@ -238,13 +233,13 @@ func cmdPair(args []string) {
 		app := fs.String("app", "Connected App", "Expected app name")
 		dataDir := fs.String("data-dir", defaultDataDir(), "Data directory")
 		fs.Parse(args[1:])
-
-		dbPath := filepath.Join(*dataDir, "kyrecovery.db")
-		database, err := db.Open(dbPath)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed opening database: %v\n", err)
-			os.Exit(1)
+		if *ttl < 1 || *ttl > 60 {
+			// The dashboard caps a code's life at an hour; six digits stay guessable that long.
+			fmt.Fprintln(os.Stderr, "Error: --ttl must be between 1 and 60 minutes")
+			os.Exit(2)
 		}
+
+		database := openStore(*dataDir)
 		defer database.Close()
 
 		rec, err := pairing.GeneratePairingCode(context.Background(), database, time.Duration(*ttl)*time.Minute, *service, *app)
@@ -264,12 +259,7 @@ func cmdPair(args []string) {
 		dataDir := fs.String("data-dir", defaultDataDir(), "Data directory")
 		fs.Parse(args[1:])
 
-		dbPath := filepath.Join(*dataDir, "kyrecovery.db")
-		database, err := db.Open(dbPath)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed opening database: %v\n", err)
-			os.Exit(1)
-		}
+		database := openStore(*dataDir)
 		defer database.Close()
 
 		list, err := database.ListPairedApps(context.Background())
@@ -299,6 +289,7 @@ func cmdPair(args []string) {
 		serverURL := fs.String("server", "http://localhost:8080", "KyRecovery server URL")
 		code := fs.String("code", "", "6-digit pairing code")
 		appName := fs.String("app", "Ky Suite client", "Client application name")
+		service := fs.String("service", "", "Service the capsules will name (default: generic)")
 		fs.Parse(args[1:])
 
 		if *code == "" {
@@ -306,7 +297,7 @@ func cmdPair(args []string) {
 			os.Exit(1)
 		}
 
-		_, resp, err := client.ClaimPairing(context.Background(), *serverURL, *code, *appName)
+		_, resp, err := client.ClaimPairingForService(context.Background(), *serverURL, *code, *appName, *service)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Claiming failed: %v\n", err)
 			os.Exit(1)
@@ -394,6 +385,23 @@ func announceAdmin(w io.Writer, path string) {
 		fmt.Fprintln(w, "   Sign in, change it, then delete that file.")
 	}
 	fmt.Fprintln(w, "================================================================================")
+}
+
+// openStore opens the store an admin command acts on. It never creates one: a mistyped
+// --data-dir would otherwise get a fresh empty store and a new secret key, and audit
+// verify would report an empty chain as valid.
+func openStore(dataDir string) *db.DB {
+	dbPath := filepath.Join(dataDir, "kyrecovery.db")
+	if _, err := os.Stat(dbPath); err != nil {
+		fmt.Fprintf(os.Stderr, "No KyRecovery store at %s (%v); pass --data-dir or set KYRECOVERY_DATA_DIR\n", dbPath, err)
+		os.Exit(1)
+	}
+	database, err := db.Open(dbPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed opening database: %v\n", err)
+		os.Exit(1)
+	}
+	return database
 }
 
 // defaultDataDir is KYRECOVERY_DATA_DIR, else ./data, so every subcommand opens the

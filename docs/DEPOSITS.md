@@ -30,19 +30,21 @@ body = a kycap/3 container sealed to the pinned public key.
 | Status | Meaning |
 | :--- | :--- |
 | `201 Created` | Stored. Body: `{capsule_id, digest, size_bytes, deposited_at}`. |
-| `200 OK` | The same capsule ID with the same bytes was already stored; the original record is returned. Re-sending is safe. |
+| `200 OK` | The same capsule ID with the same bytes was already stored and its file is not marked corrupt; the original record is returned. Re-sending is safe. |
 | `400 Bad Request` | Not a kycap/3 container, or its `capsule_id`/`service_name` is not a usable name. |
 | `401 Unauthorized` | Missing, invalid or revoked bearer token. |
 | `403 Forbidden` | The manifest names a service this token is not paired for. |
-| `409 Conflict` | Sealed to a key other than the current recovery key (both IDs are named; a key [rotated out](CEREMONY.md#rotating-the-recovery-key) says so and asks for a re-pair), or this capsule ID is stored with different bytes, or no key has been imported. |
+| `409 Conflict` | Sealed to a key other than the current recovery key (both IDs are named; a key [rotated out](CEREMONY.md#rotating-the-recovery-key) says so and asks for a re-pair), or this capsule ID is stored with different bytes, or its stored file is missing or corrupt (send it again under a new capsule ID), or the key it is sealed to was retired while the deposit was in flight, or no key has been imported. |
 | `413 Content Too Large` | Body over the container ceiling `capsule.MaxContainerBytes` (384 MiB). Larger data needs the streaming container, which does not exist yet. |
 | `429 Too Many Requests` | More than 60 deposits from this product in 15 minutes. |
 | `503 Service Unavailable` | The audit ledger cannot append, or all 4 deposit slots are busy and the client went away. |
 
-`pkg/client` is the Go SDK for both halves: `ClaimPairing` and `Client.Deposit`.
+`pkg/client` is the Go SDK for both halves: `ClaimPairingForService` (or `ClaimPairing`, which pairs as `generic`) and `Client.Deposit`.
 
 A stored capsule is replicated to every auto-sync offsite target configured
-under `/api/replication/targets`. The bytes are as opaque there as they are
+under `/api/replication/targets`. A capsule marked corrupt, or whose file no longer
+matches its recorded size and digest, is never sent: the sync is logged as failed, so
+a bad local copy cannot overwrite a good replica. The bytes are as opaque there as they are
 here. Target types:
 
 - `s3`: any S3-compatible bucket, signed with SigV4.

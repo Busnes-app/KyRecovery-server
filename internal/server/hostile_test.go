@@ -166,29 +166,74 @@ func TestLocalLoginIsThrottled(t *testing.T) {
 		t.Fatalf("EnsureAdminUser failed: %v", err)
 	}
 
-	login := func(password string) *httptest.ResponseRecorder {
-		body, _ := json.Marshal(map[string]string{"username": "admin", "password": password})
+	login := func(addr, username, password string) *httptest.ResponseRecorder {
+		body, _ := json.Marshal(map[string]string{"username": username, "password": password})
 		req := httptest.NewRequest(http.MethodPost, "/api/auth/login/local", bytes.NewReader(body))
-		req.RemoteAddr = "203.0.113.9:5555"
+		req.RemoteAddr = addr
 		rec := httptest.NewRecorder()
 		srv.ServeHTTP(rec, req)
 		return rec
 	}
 
-	var throttled bool
-	for i := 0; i < 8; i++ {
-		if login("wrong-password").Code == http.StatusTooManyRequests {
+	// Past the account cap the guesser's address gets the same 401 as a wrong password,
+	// for the right password too, so the cap reveals nothing and still stops guessing.
+	const guesser = "203.0.113.9:5555"
+	for i := 0; i < 6; i++ {
+		if code := login(guesser, "admin", "wrong-password").Code; code != http.StatusUnauthorized {
+			t.Fatalf("failed sign-in %d: %d", i, code)
+		}
+	}
+	if code := login(guesser, "admin", adminPass).Code; code != http.StatusUnauthorized {
+		t.Fatalf("the account cap should apply to the guessing address, got %d", code)
+	}
+	// Padding the name reaches the same account, so it must reach the same bucket.
+	if code := login(guesser, strings.Repeat(" ", 61)+"admin", adminPass).Code; code != http.StatusUnauthorized {
+		t.Fatalf("a padded name escaped the account cap: %d", code)
+	}
+
+	// The cap is per account and address: the real admin elsewhere still signs in,
+	// from an address the guesser does not control.
+	if code := login("198.51.100.4:6000", "admin", adminPass).Code; code != http.StatusOK {
+		t.Fatalf("the admin is locked out by someone else's guesses: %d", code)
+	}
+
+	// The address cap still ends a guesser's run across many account names, and an IPv6
+	// client's whole /64 counts as one address.
+	throttled := false
+	for i := 0; i < 25; i++ {
+		addr := fmt.Sprintf("[2001:db8:1:2::%x]:5555", i+1)
+		if login(addr, fmt.Sprintf("user%d", i), "wrong").Code == http.StatusTooManyRequests {
 			throttled = true
 			break
 		}
 	}
 	if !throttled {
-		t.Fatal("repeated failed sign-ins were never throttled")
+		t.Fatal("guesses rotating addresses within one /64 were never throttled")
 	}
+}
 
-	// The correct password is refused too while the account is locked out.
-	if code := login(adminPass).Code; code != http.StatusTooManyRequests {
-		t.Fatalf("throttle should apply to the account, got %d", code)
+// A failed sign-in's claimed name is bounded before it reaches the append-only ledger.
+func TestFailedLoginRecordsABoundedName(t *testing.T) {
+	srv, database := newTestServer(t)
+	body, _ := json.Marshal(map[string]string{"username": strings.Repeat("x", 100000), "password": "p"})
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/login/local", bytes.NewReader(body))
+	rec := httptest.NewRecorder()
+	srv.ServeHTTP(rec, req)
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("login: %d", rec.Code)
+	}
+	events, _ := database.ListAuditEvents(t.Context(), 10)
+	found := false
+	for _, e := range events {
+		if e.Action == "user_login_failed" {
+			found = true
+			if len(e.DetailsJSON) > 512 {
+				t.Fatalf("ledger row of %d bytes for one failed sign-in", len(e.DetailsJSON))
+			}
+		}
+	}
+	if !found {
+		t.Fatal("the failed sign-in was not recorded")
 	}
 }
 
@@ -238,5 +283,32 @@ func TestSessionCookieIsSecureOverTLS(t *testing.T) {
 	cookies := rec.Result().Cookies()
 	if len(cookies) == 0 || !cookies[0].Secure {
 		t.Fatalf("a session created over HTTPS must set Secure: %+v", cookies)
+	}
+}
+
+// GetSession accepts a session as a bearer token, so logout must end that session too,
+// not only a cookie's.
+func TestBearerLogoutEndsTheSession(t *testing.T) {
+	srv, database := newTestServer(t)
+	id := sessionCookie(t, database, auth.RoleViewer).Value
+	call := func(path string) int {
+		method := http.MethodGet
+		if path == "/api/auth/logout" {
+			method = http.MethodPost
+		}
+		req := httptest.NewRequest(method, path, nil)
+		req.Header.Set("Authorization", "Bearer "+id)
+		rec := httptest.NewRecorder()
+		srv.ServeHTTP(rec, req)
+		return rec.Code
+	}
+	if code := call("/api/readiness"); code != http.StatusOK {
+		t.Fatalf("bearer session before logout: %d", code)
+	}
+	if code := call("/api/auth/logout"); code != http.StatusOK {
+		t.Fatalf("logout: %d", code)
+	}
+	if code := call("/api/readiness"); code != http.StatusUnauthorized {
+		t.Fatalf("bearer session after logout: %d, want 401", code)
 	}
 }

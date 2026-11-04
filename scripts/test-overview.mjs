@@ -100,6 +100,8 @@ for (const failure of ['http', 'network', 'json']) {
     [context.backupsEvidence(report([svc, svc], { ok: 1, corrupt: 1 })), 'failing', 'tab-backups'],
     [context.backupsEvidence(report([svc, svc], { ok: 1, stale: 1 })), 'attention', 'tab-backups'],
     [context.backupsEvidence(report([svc, svc], { ok: 1, pending: 1 })), 'ok', 'tab-backups'],
+    // A service that has never deposited is not "backed up".
+    [context.backupsEvidence(report([svc], { pending: 1 })), 'missing', 'tab-backups'],
     [context.keyEvidence(undefined), 'checking'],
     [context.keyEvidence(null), 'unavailable'],
     [context.keyEvidence([], 3), 'missing', 'tab-custodians'],
@@ -112,7 +114,11 @@ for (const failure of ['http', 'network', 'json']) {
     [context.copiesEvidence([{ status: 'error', last_sync_at: day }, { status: 'active' }]), 'failing'],
     [context.copiesEvidence([{ status: 'active' }]), 'attention'],
     [context.copiesEvidence([{ status: 'active', last_sync_at: day }]), 'ok'],
+    // The server records a sync as success or failed, and stamps the time either way.
+    [context.copiesEvidence([{ status: 'failed', last_sync_at: day }]), 'failing'],
+    [context.copiesEvidence([{ status: 'success', last_sync_at: day }]), 'ok'],
   ];
+  assert(!/^All /.test(context.backupsEvidence(report([svc, svc], { ok: 1, pending: 1 }))[1]), 'a pending service is not backed up');
   for (const [[state, summary, label, go], want, target] of cases) {
     assert.equal(state, want, summary);
     assert(summary && label, `${want} needs a summary and an action`);

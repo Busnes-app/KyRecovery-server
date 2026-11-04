@@ -43,7 +43,7 @@ func NewS3Client(endpoint, bucket, region, accessKey, secretKey string) *S3Clien
 		Region:    region,
 		AccessKey: accessKey,
 		SecretKey: secretKey,
-		client:    &http.Client{Timeout: 60 * time.Second, CheckRedirect: func(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse }},
+		client:    &http.Client{Timeout: defaultTransferBudget, CheckRedirect: func(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse }},
 		now:       time.Now,
 		// S3 object keys are escaped once, never twice as other SigV4 services are.
 		signer: v4.NewSigner(func(o *v4.SignerOptions) { o.DisableURIPathEscaping = true }),
@@ -105,7 +105,7 @@ func (c *S3Client) PutObject(ctx context.Context, key string, data io.Reader, si
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusNoContent {
-		body, _ := io.ReadAll(resp.Body)
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
 		return fmt.Errorf("S3 upload returned HTTP %d: %s", resp.StatusCode, string(body))
 	}
 

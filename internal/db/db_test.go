@@ -2,6 +2,7 @@ package db_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"testing"
@@ -214,5 +215,38 @@ func TestInsertSessionHonoursSSOLogoutFence(t *testing.T) {
 	bob.ID, bob.SSOIssuer, bob.CreatedAt = "bob-other-issuer", "https://other.example", cutoff.Add(-time.Minute)
 	if err := database.InsertSession(ctx, bob); err != nil {
 		t.Fatalf("another issuer's subject was fenced: %v", err)
+	}
+}
+
+// A deposit checked against the current key can stall until its key is rotated out and
+// retired. Retirement refuses while a row names the key; the insert must refuse once the
+// key is retired, or the store acknowledges a capsule whose cards may be destroyed.
+func TestCapsuleInsertRefusesARetiredKey(t *testing.T) {
+	ctx := context.Background()
+	database, err := db.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	now := time.Now()
+	if err := database.InsertRecoveryKey(ctx, db.RecoveryKeyRecord{KeyID: "key-a", PublicKey: []byte{1}, Threshold: 2, TotalShares: 3, ImportedBy: "admin", ImportedAt: now}); err != nil {
+		t.Fatal(err)
+	}
+	if err := database.RotateRecoveryKey(ctx, "key-a", db.RecoveryKeyRecord{KeyID: "key-b", PublicKey: []byte{2}, Threshold: 2, TotalShares: 3, ImportedBy: "admin", ImportedAt: now}); err != nil {
+		t.Fatal(err)
+	}
+	if err := database.RetireRecoveryKey(ctx, "key-a", "admin", now); err != nil {
+		t.Fatal(err)
+	}
+	late := db.CapsuleRecord{ID: "cap-late", RecoveryKeyID: "key-a", Status: "active", CreatedAt: now, DepositedAt: now}
+	if err := database.InsertCapsule(ctx, late); !errors.Is(err, db.ErrRecoveryKeyRetired) {
+		t.Fatalf("insert sealed to a retired key: %v", err)
+	}
+	if got, _ := database.GetCapsule(ctx, "cap-late"); got != nil {
+		t.Fatal("a capsule sealed to a retired key was stored")
+	}
+	late.ID, late.RecoveryKeyID = "cap-current", "key-b"
+	if err := database.InsertCapsule(ctx, late); err != nil {
+		t.Fatalf("insert sealed to the current key: %v", err)
 	}
 }

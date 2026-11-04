@@ -45,18 +45,29 @@ document.getElementById('ceremony-form').addEventListener('submit', async ev => 
 
 document.getElementById('print-btn').addEventListener('click', () => window.print());
 
-document.getElementById('import-btn').addEventListener('click', async () => {
+document.getElementById('import-btn').addEventListener('click', async ev => {
   if (!result) return;
+  // One import per key: a second click would be refused and overwrite the success line.
+  const button = ev.currentTarget;
+  button.disabled = true;
   const status = document.getElementById('import-status');
   // Only these fields are sent: the public half, the topology and, for a rotation, the
   // key being replaced. The shares are never in this request.
   const fields = { public_key: result.public_key_b64, threshold: result.threshold, total_shares: result.total_shares };
   if (replaces) fields.replaces_key_id = replaces;
-  const res = await fetch(replaces ? '/api/recovery-key/rotate' : '/api/recovery-key', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields),
-  });
+  let res;
+  try {
+    res = await fetch(replaces ? '/api/recovery-key/rotate' : '/api/recovery-key', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields),
+    });
+  } catch {
+    // Nothing reached the store: the same cards can be imported again.
+    status.textContent = 'Import failed: the server could not be reached. Try again.';
+    button.disabled = false;
+    return;
+  }
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) { status.textContent = `Import failed: ${body.error || res.status}`; return; }
+  if (!res.ok) { status.textContent = `Import failed: ${body.error || res.status}`; button.disabled = false; return; }
   const repair = (body.products_to_repair || []).map(p => `${p.service_name} (${p.app_name})`).join(', ');
   status.textContent = replaces
     ? `Rotated to key ${body.key_id}; ${body.replaces_key_id} is now previous. Re-pair ${repair || 'each product'} and confirm this key ID there. Print the cards, then close this tab.`

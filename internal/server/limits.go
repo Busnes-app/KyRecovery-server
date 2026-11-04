@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/Busnes-app/ky-primitives/capsule"
@@ -173,7 +174,26 @@ func (s *Server) publishCapsule(ctx context.Context, rec db.CapsuleRecord, capsu
 		return fmt.Errorf("failed publishing capsule file: %w", err)
 	}
 	cleanup()
+	// The file's bytes were synced, but its new name lives in the directory. Until the
+	// directory is synced a power cut can keep the row and the receipt and lose the file.
+	// A filesystem that cannot sync a directory (some FUSE and network mounts) says so
+	// with EINVAL or "unsupported"; that is no worse than before, so it is not a refusal.
+	if err := syncDir(filepath.Dir(rec.FilePath)); err != nil && !errors.Is(err, syscall.EINVAL) && !errors.Is(err, errors.ErrUnsupported) {
+		os.Remove(rec.FilePath)
+		_ = s.db.DeleteCapsule(ctx, rec.ID)
+		_, _ = s.ledger.Record(ctx, "capsule_deposit_failed", "system", rec.ID, map[string]interface{}{"error": err.Error()})
+		return fmt.Errorf("failed syncing the capsules directory: %w", err)
+	}
 	return nil
+}
+
+func syncDir(dir string) error {
+	d, err := os.Open(dir)
+	if err != nil {
+		return err
+	}
+	defer d.Close()
+	return d.Sync()
 }
 
 // capsulePath returns the on-disk location for a capsule ID.

@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -176,5 +177,24 @@ func TestAdminBootstrapFailsWhenThePasswordFileCannotBeWritten(t *testing.T) {
 	}
 	if out.Len() != 0 {
 		t.Errorf("failed bootstrap printed:\n%s", out.String())
+	}
+}
+
+// A mistyped --data-dir must not get a fresh empty store (and a new secret key) whose
+// empty chain audit verify then reports as valid.
+func TestAdminCommandsNeverCreateAStore(t *testing.T) {
+	if dir := os.Getenv("KYRECOVERY_TEST_MISSING_STORE"); dir != "" {
+		cmdAudit([]string{"verify", "--data-dir", dir})
+		return
+	}
+	dir := filepath.Join(t.TempDir(), "typo")
+	cmd := exec.Command(os.Args[0], "-test.run=^TestAdminCommandsNeverCreateAStore$")
+	cmd.Env = append(os.Environ(), "KYRECOVERY_TEST_MISSING_STORE="+dir)
+	out, err := cmd.CombinedOutput()
+	if err == nil || strings.Contains(string(out), "Valid") {
+		t.Fatalf("audit verify on a missing store: err=%v\n%s", err, out)
+	}
+	if _, err := os.Stat(dir); !os.IsNotExist(err) {
+		t.Fatalf("audit verify created %s: %v", dir, err)
 	}
 }

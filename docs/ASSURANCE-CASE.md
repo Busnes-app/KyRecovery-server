@@ -110,11 +110,11 @@ ceremony and deployment guidance, not by the software.
 | Path traversal and overwrite through a capsule ID | ID held to `capsuleIDPattern` with no `..`; published by `os.Link`, which refuses an existing target, under a per-ID lock | `internal/server/limits.go` |
 | Broken access control | `apiPolicy` table, default `admin`; `TestRequiredRolePolicy` covers each route | `internal/server/server.go`, `internal/server/authz_test.go` |
 | Credential leaks in responses | Tokens, pairing codes, session IDs and file paths are `json:"-"`; `TestSessionTokenNeverAppearsInAResponseBody` checks real bodies | `internal/db/db.go`, `internal/server/regression_test.go` |
-| Password guessing | Argon2id PHC hashes via `ky-primitives/password`; 20 login attempts per address and 5 per account per 15 minutes | `internal/auth/auth.go`, `internal/server/limits.go` |
-| Pairing-code guessing and double claims | Six-digit code from `crypto/rand`, at most 60 minutes, rate limited; the single-use and expiry guards are in the SQL `UPDATE` | `internal/pairing/pairing.go`, `internal/db/db.go` |
+| Password guessing | Argon2id PHC hashes via `ky-primitives/password`; 20 failed logins per address and 5 per account and address per 15 minutes (an IPv6 /64 is one address); a spent account budget answers the same 401 as a wrong password, so nobody can lock the admin out from elsewhere | `internal/auth/auth.go`, `internal/server/limits.go` |
+| Pairing-code guessing and double claims | Six-digit code from `crypto/rand`, at most 60 minutes; 10 failed claims per address (IPv6 by /64) and 100 from all addresses per 15 minutes; the single-use and expiry guards are in the SQL `UPDATE` | `internal/pairing/pairing.go`, `internal/db/db.go` |
 | Session theft | 24-byte random session ID in an `HttpOnly`, `SameSite=Lax` cookie, `Secure` over TLS; a password change ends the user's other sessions | `internal/auth/auth.go`, `internal/db/db.go` (`DeleteUserSessionsExcept`) |
 | Credentials read from a copy of the database or a backup | Only hashes are stored: SHA-256 of session IDs and API tokens, HMAC-SHA256 of pairing codes under a keyring key; lookups hash the presented value. The API token is minted at claim and returned once. Stores from before hashing are rewritten in place on open. `TestStolenDatabaseYieldsNoUsableCredentials` presents the stored values as credentials; `TestOpenHashesCredentialsStoredAsIssued` covers the rewrite | `internal/db/db.go` (`tokenHash`, `codeHash`, `hashStoredTokens`), `internal/db/tokens_test.go` |
-| Cross-site request forgery | `SameSite=Lax` session cookie on every route, plus `http.NewCrossOriginProtection` on key rotation and retirement, retention, pairing clear and the backup writes | `internal/server/server.go` |
+| Cross-site request forgery | `SameSite=Lax` session cookie, plus `http.NewCrossOriginProtection` in `ServeHTTP` on every `/api/` write except the routes with their own credential (deposit, pairing claim, back-channel logout, installer directory); `TestEveryCookieWriteRefusesCrossOrigin` | `internal/server/server.go` |
 | Cross-site scripting in the dashboard | Every interpolated value goes through `esc` or `escJs`; `TestEmbeddedDashboardEscapesEveryInnerHTMLSink` fails on a new unescaped sink; CSP with `frame-ancestors 'none'`, and a stricter one with no inline script on `/admin/ceremony` | `internal/server/static/`, `internal/server/regression_test.go`, `internal/server/server.go` |
 | SQL injection | `database/sql` with `?` parameters; the one formatted statement, `ALTER TABLE` in `addColumn`, takes table and column names from constants in the migration code | `internal/db/db.go` |
 | Forged sign-in | ID token verified against the issuer's JWKS with nonce check; a failed ID token is never retried against `userinfo`; a callback carrying an IdP `error` is refused before any exchange and its `error_description` is never echoed | `internal/auth/auth.go`, `internal/server/server.go` (`oauthErrorCode`) |
@@ -142,13 +142,14 @@ not a FIPS certification or proof of deployed endpoint policy.
 - **A binary older than the hashing release cannot use a hashed store.** Rolling back after an
   upgrade signs everyone out and makes paired products' deposits fail with `401` until they
   re-pair. Keep the pre-upgrade backup if a rollback may be needed.
-- **Cross-origin protection is uneven.** Older state-changing routes (pairing generate and revoke,
-  recovery-key import, replication targets, SSO configuration, password change) rely on the
-  `SameSite=Lax` cookie alone, which does not stop a request from another site on the same
-  registrable domain.
 - **The dashboard CSP allows `'unsafe-inline'` scripts.** Escaping and its test are the XSS counter
   for the dashboard; the CSP is not. `/admin/ceremony` does not have this weakness.
 - **Rate limits are process-local** and reset on restart.
+- **Anyone can hold pairing closed.** Failed claims from every address share 100 per 15 minutes,
+  so a client with ten IPv4 addresses or ten IPv6 /64s can keep every claim, a correct code
+  included, refused with `429`. That is the price of making a six-digit code unguessable from
+  many addresses; deposits and the dashboard are unaffected, and pairing works again once the
+  failures stop.
 - **Free disk space is not reserved or enforced** for the capsule volume
   ([Recovery and security](RECOVERY-AND-SECURITY.md#security-model)).
 - **No independent security audit** has been done.

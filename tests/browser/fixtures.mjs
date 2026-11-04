@@ -79,6 +79,8 @@ export async function ceremony(page, vault) {
   await page.goto(vault.url + '/admin/ceremony');
   await page.getByRole('button', { name: 'Generate and split' }).click();
   await expect(page.locator('#card-list .share')).toHaveCount(5);
+  // Once cards exist the form is gone: a second Generate would replace them.
+  await expect(page.locator('#ceremony-form')).toBeHidden();
   const keyID = await page.locator('#key-id').textContent();
   expect(keyID).toMatch(/^[0-9a-f]{64}$/);
   const request = page.waitForRequest(r => r.method() === 'POST' && /\/api\/recovery-key(?:\/rotate)?$/.test(r.url()));
@@ -91,5 +93,6 @@ export async function ceremony(page, vault) {
   expect(body.total_shares).toBe(5);
   expect(Buffer.from(body.public_key, 'base64')).toHaveLength(1216);
   await expect(page.locator('#import-status')).toHaveText(new RegExp('^(Imported key|Rotated to key) ' + keyID + '[.;]'));
+  await expect(page.getByRole('button', { name: 'Import public key into KyRecovery' })).toBeDisabled();
   return keyID;
 }
