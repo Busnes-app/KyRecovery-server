@@ -16,7 +16,7 @@
 @media (max-width: 680px) {
   header.ceremony-header { display: flex; flex-wrap: wrap; padding: 16px; }
   .ceremony { margin: 24px auto; padding: 0 16px; }
-  .ceremony #ceremony-form { grid-template-columns: 1fr; }
+  .ceremony #ceremony-form:not([hidden]) { grid-template-columns: 1fr; }
 }
 .ceremony-error { margin: 12px 0; color: var(--danger, var(--ky-danger)); font-weight: 600; }
 .card { padding: 20px; margin-bottom: 20px; border: 1px solid var(--border-color); page-break-inside: avoid; }
