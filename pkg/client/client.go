@@ -42,11 +42,22 @@ type ClaimResponse struct {
 	TotalShares       int    `json:"total_shares"`
 }
 
-// ClaimPairing exchanges a 6-digit PIN code for a permanent client Bearer token.
+// ClaimPairing exchanges a 6-digit PIN code for a permanent client Bearer token. It sends
+// no service name, so the server pairs the token as "generic"; a product whose capsules
+// name a service uses ClaimPairingForService.
 func ClaimPairing(ctx context.Context, serverURL, pairingCode, appName string) (*Client, *ClaimResponse, error) {
+	return ClaimPairingForService(ctx, serverURL, pairingCode, appName, "")
+}
+
+// ClaimPairingForService is ClaimPairing for a named service: deposits are accepted only
+// for capsules whose manifest names the service the token was paired for.
+func ClaimPairingForService(ctx context.Context, serverURL, pairingCode, appName, serviceName string) (*Client, *ClaimResponse, error) {
 	payload := map[string]string{
 		"pairing_code": pairingCode,
 		"app_name":     appName,
+	}
+	if serviceName != "" {
+		payload["service_name"] = serviceName
 	}
 	body, err := json.Marshal(payload)
 	if err != nil {

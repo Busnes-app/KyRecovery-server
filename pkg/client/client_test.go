@@ -71,4 +71,15 @@ func TestClientClaimsPairingCode(t *testing.T) {
 		t.Fatalf("claim did not hand out the pinned key: %q", claimResp.RecoveryPublicKey)
 	}
 
+	// A product whose capsules name a service pairs for that service, so its deposits
+	// are not refused as belonging to "generic".
+	second, err := pairing.GeneratePairingCode(ctx, database, 15*time.Minute, "kynotes", "Pending App")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, named, err := client.ClaimPairingForService(ctx, ts.URL, second.PairingCode, "KyNotes", "kynotes")
+	if err != nil || named.ServiceName != "kynotes" {
+		t.Fatalf("ClaimPairingForService: %+v %v", named, err)
+	}
+
 }
