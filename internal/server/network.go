@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log"
 	"net"
 	"net/http"
 	"net/netip"
@@ -109,6 +110,24 @@ func isTrusted(addr netip.Addr, trusted []netip.Prefix) bool {
 }
 
 func (s *Server) clientIP(r *http.Request) string { return ClientIP(r, s.cfg.TrustedProxies) }
+
+// warnUntrustedProxy says once, in the log, that X-Forwarded-For is arriving from a peer it
+// is not trusted from. Behind an unlisted reverse proxy every client shares the proxy's
+// address, so one stranger's wrong passwords or pairing guesses spend everyone's budget.
+func (s *Server) warnUntrustedProxy(r *http.Request) {
+	if r.Header.Get("X-Forwarded-For") == "" {
+		return
+	}
+	peer := peerIP(r)
+	if addr, err := netip.ParseAddr(peer); err == nil && isTrusted(addr, s.cfg.TrustedProxies) {
+		return
+	}
+	s.proxyWarned.Do(func() {
+		log.Printf("WARNING: a request from %s carries X-Forwarded-For, but %s is not in KYRECOVERY_TRUSTED_PROXIES, so the header is ignored. "+
+			"If %s is your reverse proxy, every client behind it shares one address for sign-in and pairing limits: set KYRECOVERY_TRUSTED_PROXIES=%s and restart.",
+			peer, peer, peer, peer)
+	})
+}
 func (s *Server) handleInstallerNetwork(w http.ResponseWriter, r *http.Request) {
 	ip, trusted, scheme := RequestNetwork(r, s.cfg.TrustedProxies)
 	w.Header().Set("Cache-Control", "no-store")

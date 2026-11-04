@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"slices"
 	"time"
 
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
@@ -64,8 +65,15 @@ func (s *Server) retention(ctx context.Context) (retentionPolicy, error) {
 // each UTC ISO week/month within the respective lookback. Horizons are measured
 // from now, not added together. Ties use ID so preview and purge are deterministic.
 func retentionCandidates(caps []db.CapsuleRecord, p retentionPolicy, now time.Time) []db.CapsuleRecord {
+	expired, _ := retentionPlan(caps, p, now)
+	return expired
+}
+
+// retentionPlan also returns the survivors that displace another capsule of their week or
+// month: the ones whose integrity a purge depends on.
+func retentionPlan(caps []db.CapsuleRecord, p retentionPolicy, now time.Time) (expired []db.CapsuleRecord, displacing []string) {
 	if p.Days == 0 {
-		return nil
+		return nil, nil
 	}
 	now = now.UTC()
 	dailyCutoff := now.Add(-time.Duration(p.Days) * 24 * time.Hour)
@@ -77,11 +85,13 @@ func retentionCandidates(caps []db.CapsuleRecord, p retentionPolicy, now time.Ti
 	keep := make(map[string]bool)
 	type bucket struct{ app, service, period string }
 	newest := make(map[bucket]db.CapsuleRecord)
+	members := make(map[bucket][]string)
 	selectNewest := func(rec db.CapsuleRecord, period string) {
+		key := bucket{rec.PairedAppID, rec.ServiceName, period}
+		members[key] = append(members[key], rec.ID)
 		if rec.Status == "corrupt" {
 			return // a known-bad capsule never displaces an intact one as the period's survivor
 		}
-		key := bucket{rec.PairedAppID, rec.ServiceName, period}
 		prev, ok := newest[key]
 		if !ok || rec.DepositedAt.After(prev.DepositedAt) || (rec.DepositedAt.Equal(prev.DepositedAt) && rec.ID > prev.ID) {
 			newest[key] = rec
@@ -103,13 +113,17 @@ func retentionCandidates(caps []db.CapsuleRecord, p retentionPolicy, now time.Ti
 	for _, rec := range newest {
 		keep[rec.ID] = true
 	}
-	var expired []db.CapsuleRecord
 	for _, rec := range caps {
 		if !keep[rec.ID] {
 			expired = append(expired, rec)
 		}
 	}
-	return expired
+	for key, rec := range newest {
+		if slices.ContainsFunc(members[key], func(id string) bool { return !keep[id] }) {
+			displacing = append(displacing, rec.ID)
+		}
+	}
+	return expired, displacing
 }
 
 // Wait for in-flight publishes before choosing weekly/monthly survivors. A row
@@ -199,9 +213,37 @@ func (s *Server) purgeExpired(ctx context.Context, policy retentionPolicy, now t
 	if err != nil {
 		return 0, err
 	}
+	// A status is only as fresh as the last sweep, and a survivor's is what makes the rest
+	// of its week or month expendable. Each survivor that displaces another is re-hashed
+	// first; one that fails is marked corrupt and the plan is made again without it.
+	at := make(map[string]int, len(caps))
+	for i, c := range caps {
+		at[c.ID] = i
+	}
+	checked := map[string]bool{}
+	var expired []db.CapsuleRecord
+	for replan := true; replan; {
+		replan = false
+		var displacing []string
+		expired, displacing = retentionPlan(caps, policy, now)
+		for _, id := range displacing {
+			if checked[id] {
+				continue
+			}
+			checked[id] = true
+			valid, err := s.verifyCapsule(ctx, &caps[at[id]], actor)
+			if err != nil {
+				return 0, err
+			}
+			if !valid {
+				caps[at[id]].Status = "corrupt"
+				replan = true
+			}
+		}
+	}
 	purged := 0
 	// ponytail: scan the existing capsule list; use a deposited_at index and batches if the catalog outgrows memory.
-	for _, candidate := range retentionCandidates(caps, policy, now) {
+	for _, candidate := range expired {
 		deleted, err := func() (bool, error) {
 			defer s.idLocks.acquire(candidate.ID)()
 			rec, err := s.db.GetCapsule(ctx, candidate.ID)

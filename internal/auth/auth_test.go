@@ -88,3 +88,50 @@ func TestSessionManagement(t *testing.T) {
 		t.Fatalf("expected nil session after deletion")
 	}
 }
+
+// An admin who clears the SSO admin email in Settings must not see the KY_ADMIN_EMAIL
+// default promote that address again after a restart.
+func TestClearedAdminEmailSurvivesRestart(t *testing.T) {
+	database, err := db.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	env := auth.OIDCConfig{AdminEmail: "former-admin@example.com"}
+	m := auth.NewManager(env, database)
+	if err := m.SaveConfig(t.Context(), auth.OIDCConfig{IssuerURL: "https://id.example", ClientID: "c"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := auth.NewManager(env, database).GetConfig().AdminEmail; got != "" {
+		t.Fatalf("admin email after restart = %q, want the saved empty value", got)
+	}
+	if got := auth.NewManager(env, nil).GetConfig().AdminEmail; got != env.AdminEmail {
+		t.Fatalf("without saved settings the default applies; got %q", got)
+	}
+}
+
+// A user demoted at the identity provider signs in again: the older session that still
+// carries the admin role ends, and a second session with the same role is left alone.
+func TestSSORoleChangeEndsSessionsWithTheOldRole(t *testing.T) {
+	database, err := db.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	m := auth.NewManager(auth.OIDCConfig{}, database)
+	login := func(role string) string {
+		c, err := m.CreateSession(t.Context(), &auth.UserInfo{Issuer: "https://id.example", Subject: "s1", Role: role}, false)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return c.Value
+	}
+	admin := login(auth.RoleAdmin)
+	viewer1 := login(auth.RoleViewer)
+	viewer2 := login(auth.RoleViewer)
+	for id, want := range map[string]bool{admin: false, viewer1: true, viewer2: true} {
+		if s, _ := database.GetSession(t.Context(), id); (s != nil) != want {
+			t.Fatalf("session %s alive = %v, want %v", id[:6], s != nil, want)
+		}
+	}
+}

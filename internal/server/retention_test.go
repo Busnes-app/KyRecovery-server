@@ -1,6 +1,8 @@
 package server_test
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
@@ -142,7 +144,7 @@ func TestTieredPurgeAndPoisonedLedger(t *testing.T) {
 		if err := os.WriteFile(path, []byte("sealed"), 0600); err != nil {
 			t.Fatal(err)
 		}
-		if err := database.InsertCapsule(t.Context(), db.CapsuleRecord{ID: id, ServiceName: "notes", PairedAppID: "product", FilePath: path, DepositedAt: at.Add(time.Duration(i) * time.Minute), CreatedAt: now, Status: "active"}); err != nil {
+		if err := database.InsertCapsule(t.Context(), db.CapsuleRecord{ID: id, ServiceName: "notes", PairedAppID: "product", FilePath: path, Digest: fmt.Sprintf("%x", sha256.Sum256([]byte("sealed"))), SizeBytes: 6, DepositedAt: at.Add(time.Duration(i) * time.Minute), CreatedAt: now, Status: "active"}); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -186,5 +188,44 @@ func TestTieredPurgeAndPoisonedLedger(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(dir, "newest.kycap")); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// The newest capsule of a week rotted after the last sweep, so its row still says active.
+// Purge re-hashes it before deleting the week's older capsule, and keeps the intact one.
+func TestPurgeReverifiesTheSurvivorItDependsOn(t *testing.T) {
+	srv, cookie, database := newAdminServer(t)
+	now := time.Now().UTC()
+	dir := t.TempDir()
+	at := now.AddDate(0, 0, -20)
+	at = time.Date(at.Year(), at.Month(), at.Day(), 12, 0, 0, 0, time.UTC)
+	digest := fmt.Sprintf("%x", sha256.Sum256([]byte("sealed")))
+	for i, id := range []string{"intact", "rotted"} {
+		path := filepath.Join(dir, id+".kycap")
+		if err := os.WriteFile(path, []byte("sealed"), 0600); err != nil {
+			t.Fatal(err)
+		}
+		if err := database.InsertCapsule(t.Context(), db.CapsuleRecord{ID: id, ServiceName: "notes", PairedAppID: "product", FilePath: path, Digest: digest, SizeBytes: 6, DepositedAt: at.Add(time.Duration(i) * time.Minute), CreatedAt: now, Status: "active"}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.WriteFile(filepath.Join(dir, "rotted.kycap"), []byte("sealeD"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	policy := `{"days":14,"weeks":8,"months":12}`
+	for _, path := range []string{"/api/retention", "/api/retention/purge"} {
+		req := httptest.NewRequest("POST", path, strings.NewReader(policy))
+		req.AddCookie(cookie)
+		rr := httptest.NewRecorder()
+		srv.ServeHTTP(rr, req)
+		if rr.Code != 200 {
+			t.Fatalf("%s: %d %s", path, rr.Code, rr.Body.String())
+		}
+	}
+	if _, err := os.Stat(filepath.Join(dir, "intact.kycap")); err != nil {
+		t.Fatalf("the only intact capsule of the week was purged: %v", err)
+	}
+	if rec, err := database.GetCapsule(t.Context(), "intact"); err != nil || rec == nil {
+		t.Fatalf("intact row: %v %v", rec, err)
 	}
 }

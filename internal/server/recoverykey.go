@@ -89,6 +89,10 @@ func (s *Server) handleRecoveryKey(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			return
 		}
+		details := map[string]any{"threshold": rec.Threshold, "total_shares": rec.TotalShares}
+		if !s.auditFirst(w, r, "recovery_key_import_requested", rec.KeyID, details) {
+			return
+		}
 		if err := s.db.InsertRecoveryKey(r.Context(), rec); err != nil {
 			if errors.Is(err, db.ErrRecoveryKeyExists) {
 				existing, _ := s.db.GetRecoveryKey(r.Context())
@@ -102,9 +106,9 @@ func (s *Server) handleRecoveryKey(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusInternalServerError, "Failed storing recovery key")
 			return
 		}
-		_, _ = s.ledger.Record(r.Context(), "recovery_key_imported", s.actor(r), rec.KeyID, map[string]interface{}{
-			"threshold": rec.Threshold, "total_shares": rec.TotalShares,
-		})
+		if _, err := s.ledger.Record(r.Context(), "recovery_key_imported", s.actor(r), rec.KeyID, details); err != nil {
+			log.Printf("recovery key import: recording completion: %v", err)
+		}
 		writeJSON(w, http.StatusCreated, map[string]any{"key_id": rec.KeyID, "threshold": rec.Threshold, "total_shares": rec.TotalShares})
 	default:
 		writeError(w, http.StatusMethodNotAllowed, "Method not allowed")

@@ -39,11 +39,22 @@ document.getElementById('ceremony-form').addEventListener('submit', async ev => 
       <p>Share <code class="share">${esc(s)}</code></p>
       <p>Custodian: ____________________ &nbsp; Date: ${new Date().toISOString().slice(0, 10)}</p>
     </div>`).join('');
+  document.getElementById('printed-n').textContent = n;
   document.getElementById('cards').hidden = false;
   document.getElementById('ceremony-form').hidden = true;
 });
 
-document.getElementById('print-btn').addEventListener('click', () => window.print());
+// Import waits for the cards: an imported key whose cards were never printed leaves every
+// product paired to a key nobody can open. The tick unlocks once the print dialog opened.
+let imported = false;
+const printed = document.getElementById('printed');
+document.getElementById('print-btn').addEventListener('click', () => {
+  window.print();
+  if (!imported) printed.disabled = false;
+});
+printed.addEventListener('change', () => {
+  document.getElementById('import-btn').disabled = imported || !printed.checked;
+});
 
 document.getElementById('import-btn').addEventListener('click', async ev => {
   if (!result) return;
@@ -68,8 +79,10 @@ document.getElementById('import-btn').addEventListener('click', async ev => {
   }
   const body = await res.json().catch(() => ({}));
   if (!res.ok) { status.textContent = `Import failed: ${body.error || res.status}`; button.disabled = false; return; }
+  imported = true;
+  printed.disabled = true;
   const repair = (body.products_to_repair || []).map(p => `${p.service_name} (${p.app_name})`).join(', ');
   status.textContent = replaces
-    ? `Rotated to key ${body.key_id}; ${body.replaces_key_id} is now previous. Re-pair ${repair || 'each product'} and confirm this key ID there. Print the cards, then close this tab.`
-    : `Imported key ${body.key_id}. Print the cards, then close this tab.`;
+    ? `Rotated to key ${body.key_id}; ${body.replaces_key_id} is now previous. Re-pair ${repair || 'each product'} and confirm this key ID there, then close this tab.`
+    : `Imported key ${body.key_id}. Hand out the cards, then close this tab.`;
 });

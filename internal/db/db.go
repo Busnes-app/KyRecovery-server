@@ -161,6 +161,8 @@ type SessionRecord struct {
 	SSOIssuer  string `json:"-"`
 	SSOSubject string `json:"-"`
 	SSOSID     string `json:"-"`
+	// PasswordHash, for a local login, is the hash that was verified; it is not stored.
+	PasswordHash string `json:"-"`
 }
 
 // ReplicationTargetRecord defines an offsite backup target (S3, Cloudflare R2, MinIO, Local).
@@ -179,6 +181,9 @@ type ReplicationTargetRecord struct {
 	Status     string     `json:"status"` // "active", "disabled", "error"
 	LastSyncAt *time.Time `json:"last_sync_at,omitempty"`
 	CreatedAt  time.Time  `json:"created_at"`
+	// Unreplicated counts intact capsules with no successful copy on this target. Status is
+	// only the last transfer's result, so it cannot say whether every capsule is offsite.
+	Unreplicated int `json:"unreplicated"`
 }
 
 // ReplicationLogRecord tracks an individual capsule transfer to a remote target.
@@ -458,6 +463,7 @@ func (d *DB) migrate() error {
 	CREATE INDEX IF NOT EXISTS idx_paired_token ON paired_apps(api_token);
 	CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 	CREATE INDEX IF NOT EXISTS idx_repl_logs_target ON replication_logs(target_id);
+	CREATE INDEX IF NOT EXISTS idx_repl_logs_copy ON replication_logs(target_id, capsule_id, status);
 	`
 
 	if _, err := d.conn.Exec(schema); err != nil {
@@ -1113,6 +1119,12 @@ func (d *DB) InsertSession(ctx context.Context, s SessionRecord) error {
 		q += ` WHERE EXISTS (SELECT 1 FROM system_settings WHERE key=? AND json_extract(value,'$.Active')=1 AND json_extract(value,'$.Issuer')=? AND json_extract(value,'$.Subject')=?)`
 		args = append(args, "installer.identity."+s.UserID, s.IdentityIssuer, s.IdentitySubject)
 	}
+	if s.PasswordHash != "" {
+		// Same statement as the insert: a password changed since the login read the hash
+		// refuses the session, and one changed after it deletes it (UpdateUserPassword).
+		q += ` WHERE EXISTS (SELECT 1 FROM users WHERE id = ? AND password_hash = ?)`
+		args = append(args, s.UserID, s.PasswordHash)
+	}
 	if s.NativeSSO {
 		// Same statement as the insert, so activation cannot land between check and write.
 		q += ` WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE key=?)`
@@ -1209,6 +1221,14 @@ func (d *DB) DeleteUserSessionsExcept(ctx context.Context, userID, keepSessionID
 	return err
 }
 
+// EndSSORoleChange ends the other sessions of an SSO subject that carry a role other than
+// role: the identity provider's mapping changed, and the old grant must not outlive it.
+func (d *DB) EndSSORoleChange(ctx context.Context, issuer, subject, role, keepSessionID string) error {
+	_, err := d.conn.ExecContext(ctx, `DELETE FROM sessions WHERE sso_issuer = ? AND sso_subject = ? AND role != ? AND id != ?`,
+		issuer, subject, role, tokenHash(keepSessionID))
+	return err
+}
+
 // DeleteSession removes a session, given its raw ID, from SQLite.
 func (d *DB) DeleteSession(ctx context.Context, id string) error {
 	q := `DELETE FROM sessions WHERE id = ?`
@@ -1286,6 +1306,29 @@ func (d *DB) ListReplicationTargets(ctx context.Context) ([]ReplicationTargetRec
 		list = append(list, t)
 	}
 	return list, rows.Err()
+}
+
+// UnreplicatedCounts returns, per target ID, how many capsules not marked corrupt have
+// never been copied to it successfully. Capsules are immutable, so one success is a copy.
+func (d *DB) UnreplicatedCounts(ctx context.Context) (map[string]int, error) {
+	rows, err := d.conn.QueryContext(ctx, `SELECT t.id, COUNT(c.id) FROM replication_targets t
+	      JOIN capsules c ON c.status != 'corrupt'
+	      WHERE NOT EXISTS (SELECT 1 FROM replication_logs l WHERE l.target_id = t.id AND l.capsule_id = c.id AND l.status = 'success')
+	      GROUP BY t.id`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	counts := map[string]int{}
+	for rows.Next() {
+		var id string
+		var n int
+		if err := rows.Scan(&id, &n); err != nil {
+			return nil, err
+		}
+		counts[id] = n
+	}
+	return counts, rows.Err()
 }
 
 // UpdateReplicationTargetLastSync updates the sync timestamp and status.
@@ -1371,11 +1414,21 @@ func (d *DB) GetUserByID(ctx context.Context, id string) (*UserRecord, error) {
 	return &u, nil
 }
 
-// UpdateUserPassword updates the password hash for a user.
-func (d *DB) UpdateUserPassword(ctx context.Context, id, passwordHash string) error {
-	q := `UPDATE users SET password_hash = ? WHERE id = ?`
-	_, err := d.conn.ExecContext(ctx, q, passwordHash, id)
-	return err
+// UpdateUserPassword replaces a user's password hash and, in the same transaction, ends
+// every session of that user except keepSessionID (a raw session ID, or "" for none).
+func (d *DB) UpdateUserPassword(ctx context.Context, id, passwordHash, keepSessionID string) error {
+	tx, err := d.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if _, err := tx.ExecContext(ctx, `UPDATE users SET password_hash = ? WHERE id = ?`, passwordHash, id); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, `DELETE FROM sessions WHERE user_id = ? AND id != ?`, id, tokenHash(keepSessionID)); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // CountUsers returns the total count of registered local users.

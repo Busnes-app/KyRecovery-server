@@ -64,11 +64,13 @@ func (m *Manager) SyncCapsule(ctx context.Context, capsuleID, targetID string) (
 		CreatedAt:        completedAt,
 	}
 
-	_ = m.db.InsertReplicationLog(ctx, logRec)
-	_ = m.db.UpdateReplicationTargetLastSync(ctx, target.ID, status)
+	// A caller that hung up cancelled the transfer, not the record of it.
+	done := context.WithoutCancel(ctx)
+	_ = m.db.InsertReplicationLog(done, logRec)
+	_ = m.db.UpdateReplicationTargetLastSync(done, target.ID, status)
 
 	if m.ledger != nil {
-		_, _ = m.ledger.Record(ctx, "capsule_replicated", "replication-daemon", capRec.ID, map[string]interface{}{
+		_, _ = m.ledger.Record(done, "capsule_replicated", "replication-daemon", capRec.ID, map[string]interface{}{
 			"target_id":   target.ID,
 			"target_name": target.Name,
 			"status":      status,
