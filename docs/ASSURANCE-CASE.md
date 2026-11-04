@@ -148,8 +148,9 @@ not a FIPS certification or proof of deployed endpoint policy.
 - **Anyone can hold pairing closed.** Failed claims from every address share 100 per 15 minutes,
   so a client with ten IPv4 addresses or ten IPv6 /64s can keep every claim, a correct code
   included, refused with `429`. That is the price of making a six-digit code unguessable from
-  many addresses; deposits and the dashboard are unaffected, and pairing works again once the
-  failures stop.
+  many addresses. The dashboard and deposits from paired products are unaffected, and pairing
+  works again once the failures stop. After a key rotation, though, every product must re-pair
+  before it can deposit again, so while such an attack lasts those products cannot back up.
 - **Free disk space is not reserved or enforced** for the capsule volume
   ([Recovery and security](RECOVERY-AND-SECURITY.md#security-model)).
 - **No independent security audit** has been done.

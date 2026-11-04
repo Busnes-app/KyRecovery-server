@@ -15,6 +15,9 @@ compiled from this repository and served over an admin session.
    n printable custodian shares in the tab; **only** `{public_key, threshold,
    total_shares}` is posted to `POST /api/recovery-key`.
 3. Print the cards, hand them to the custodians, confirm the import, close the tab.
+   *Import* stays disabled until *Print cards* has opened the print dialog and you tick
+   "I have printed n cards": a key imported without its cards leaves every product paired
+   to a key nobody can open.
 
 Rules for the ceremony tab — the seed lives in the tab's memory from generate
 until the tab closes and cannot be erased before that:
