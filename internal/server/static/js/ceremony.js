@@ -61,6 +61,7 @@ document.getElementById('import-btn').addEventListener('click', async ev => {
   // One import per key: a second click would be refused and overwrite the success line.
   const button = ev.currentTarget;
   button.disabled = true;
+  printed.disabled = true; // unticking and re-ticking must not re-enable Import mid-request
   const status = document.getElementById('import-status');
   // Only these fields are sent: the public half, the topology and, for a rotation, the
   // key being replaced. The shares are never in this request.
@@ -75,10 +76,11 @@ document.getElementById('import-btn').addEventListener('click', async ev => {
     // Nothing reached the store: the same cards can be imported again.
     status.textContent = 'Import failed: the server could not be reached. Try again.';
     button.disabled = false;
+    printed.disabled = false;
     return;
   }
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) { status.textContent = `Import failed: ${body.error || res.status}`; button.disabled = false; return; }
+  if (!res.ok) { status.textContent = `Import failed: ${body.error || res.status}`; button.disabled = false; printed.disabled = false; return; }
   imported = true;
   printed.disabled = true;
   const repair = (body.products_to_repair || []).map(p => `${p.service_name} (${p.app_name})`).join(', ');

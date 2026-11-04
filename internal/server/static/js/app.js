@@ -907,7 +907,7 @@ async function loadReplicationTargets() {
         </td>
         <td>
           ${kyStatus(t.status === 'active' || t.status === 'success' ? 'success' : t.status === 'failed' || t.status === 'error' ? 'danger' : 'warning', sentence(t.status))}
-          ${t.unreplicated > 0 ? `<br>${Number(t.unreplicated)} capsule${t.unreplicated === 1 ? '' : 's'} not copied` : ''}
+          ${(t.unreplicated > 0) ? `<br>${Number(t.unreplicated)} capsule${t.unreplicated === 1 ? '' : 's'} not copied` : ''}
         </td>
         <td>${t.last_sync_at ? new Date(t.last_sync_at).toLocaleString() : '<span style="color: var(--text-dim);">Never</span>'}</td>
         <td class="row-actions">
