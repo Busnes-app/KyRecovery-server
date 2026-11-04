@@ -387,8 +387,6 @@ func announceAdmin(w io.Writer, path string) {
 	fmt.Fprintln(w, "================================================================================")
 }
 
-// defaultDataDir is KYRECOVERY_DATA_DIR, else ./data, so every subcommand opens the
-// store serve and apply-setup use.
 // openStore opens the store an admin command acts on. It never creates one: a mistyped
 // --data-dir would otherwise get a fresh empty store and a new secret key, and audit
 // verify would report an empty chain as valid.
@@ -406,6 +404,8 @@ func openStore(dataDir string) *db.DB {
 	return database
 }
 
+// defaultDataDir is KYRECOVERY_DATA_DIR, else ./data, so every subcommand opens the
+// store serve and apply-setup use.
 func defaultDataDir() string {
 	if dir := os.Getenv("KYRECOVERY_DATA_DIR"); dir != "" {
 		return dir

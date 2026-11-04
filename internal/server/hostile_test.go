@@ -192,7 +192,7 @@ func TestLocalLoginIsThrottled(t *testing.T) {
 	}
 
 	// The cap is per account and address: the real admin elsewhere still signs in,
-	// including from another address in an IPv6 /64 the guesser does not control.
+	// from an address the guesser does not control.
 	if code := login("198.51.100.4:6000", "admin", adminPass).Code; code != http.StatusOK {
 		t.Fatalf("the admin is locked out by someone else's guesses: %d", code)
 	}

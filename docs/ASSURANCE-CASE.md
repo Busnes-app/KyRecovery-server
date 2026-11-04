@@ -145,6 +145,11 @@ not a FIPS certification or proof of deployed endpoint policy.
 - **The dashboard CSP allows `'unsafe-inline'` scripts.** Escaping and its test are the XSS counter
   for the dashboard; the CSP is not. `/admin/ceremony` does not have this weakness.
 - **Rate limits are process-local** and reset on restart.
+- **Anyone can hold pairing closed.** Failed claims from every address share 100 per 15 minutes,
+  so a client with ten IPv4 addresses or ten IPv6 /64s can keep every claim, a correct code
+  included, refused with `429`. That is the price of making a six-digit code unguessable from
+  many addresses; deposits and the dashboard are unaffected, and pairing works again once the
+  failures stop.
 - **Free disk space is not reserved or enforced** for the capsule volume
   ([Recovery and security](RECOVERY-AND-SECURITY.md#security-model)).
 - **No independent security audit** has been done.

@@ -1,5 +1,32 @@
 # Changelog
 
+## Unreleased
+
+### Security
+
+- Every dashboard write refuses a request from another origin, sibling subdomains included.
+- `KY_ADMIN_EMAIL` matches only an email the issuer marks verified (`email_verified: true`).
+  Microsoft Entra does not send that claim by default: map a verified claim or use
+  installer-managed subject grants, or the address no longer grants `admin` after upgrading.
+- Sign-in: five failed passwords now block that account only from the address that sent
+  them, and the block answers `401` like a wrong password (it was `429` from everywhere,
+  so anyone could lock the admin out). An IPv6 client's /64 counts as one address.
+- Pairing claims: failed claims from all addresses share 100 per 15 minutes, and an IPv6
+  /64 counts as one address.
+
+### Fixed
+
+- Replication never sends a capsule marked corrupt or whose file no longer matches its
+  digest, so a bad local copy cannot overwrite a good replica.
+- Retention never keeps a corrupt capsule as a week's or month's survivor in place of an
+  intact one.
+- A deposit retry of a capsule marked corrupt is refused with `409` instead of `200`.
+- Overview shows a failed replication target as Failing, a service with no deposit yet as
+  not backed up, and reloads backup evidence while it is open.
+- The ceremony form hides after Generate, so printed cards always match the imported key.
+- A pasted SFTP private key works from the dashboard.
+- `pair claim --service` works; `audit` and `pair` refuse a data directory with no store.
+
 ## 0.6.0 — 2026-11-01
 
 ### Added

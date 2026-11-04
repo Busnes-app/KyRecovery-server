@@ -36,7 +36,7 @@ never a code: generate a new one if a code is lost.
 | :--- | :--- |
 | `KYRECOVERY_SECRET_KEY` | The keyring master key, hex or base64. Falls back to `<data-dir>/secret.key` (0600), created on first start. |
 | `KY_SSO_ISSUER`, `KY_SSO_CLIENT_ID`, `KY_SSO_CLIENT_SECRET`, `KY_SSO_REDIRECT_URL` | KySignOn OIDC defaults for the matching `serve` flags. SSO is enabled when an issuer is set. |
-| `KY_ADMIN_EMAIL` | The SSO identity granted `admin`. |
+| `KY_ADMIN_EMAIL` | The SSO identity granted `admin`. It matches only an address the issuer marks verified (`email_verified: true` in the ID token); an unverified address is ignored. KyIdentity sends the claim for a user whose email it has verified. Microsoft Entra does not send it by default: map a verified claim, or use installer-managed subject grants (`docs/INSTALLER_SETUP.md`). |
 | `KY_ADMIN_INITIAL_PASSWORD` | The local `admin` password on first start, never printed. Without it one is generated into `<data-dir>/initial-admin-password` (0600; `/app/data/initial-admin-password` in the image) and only that path is logged; startup fails if the file cannot be written. Delete the file after the first sign-in. |
 | `KYRECOVERY_COOKIE_SECURE` | `true`, `false`, or empty to follow the request transport. |
 | `KYRECOVERY_RESTIC_DIR` | rest-server's data directory, mounted read-only, for restic backup status. Empty disables the scanner. |
