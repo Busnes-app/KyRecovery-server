@@ -35,6 +35,9 @@
 
 ### Fixed
 
+- An incomplete deposit that times out keeps its read deadline while HTTP/1.1 finalizes
+  the error response, so it closes without waiting for more body bytes.
+
 - A failed full audit verification persists across restarts until a successful verify.
   Overview says Chain broken, readiness reports `audit_chain_broken`, and `/healthz`
   reports `chain_broken` in its body without changing HTTP status. Deposits continue

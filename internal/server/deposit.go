@@ -62,8 +62,6 @@ func (s *Server) handleDeposit(w http.ResponseWriter, r *http.Request) {
 
 	transfer := newTransferDeadline(http.NewResponseController(w).SetReadDeadline, capsuleTransferIdle, capsuleTransferMax)
 	raw, err := io.ReadAll(&transferReader{Reader: r.Body, deadline: transfer}) // MaxBytesReader caps the bytes
-	// Body delivery is complete: do not cancel subsequent disk work on a read-ahead timeout.
-	_ = http.NewResponseController(w).SetReadDeadline(time.Time{})
 	if err != nil {
 		var tooLarge *http.MaxBytesError
 		if errors.As(err, &tooLarge) {
@@ -73,6 +71,8 @@ func (s *Server) handleDeposit(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "Failed reading request body")
 		return
 	}
+	// Only complete bodies release the deadline: failed reads still need a bounded response drain.
+	_ = http.NewResponseController(w).SetReadDeadline(time.Time{})
 	m, err := capsule.ReadUnverifiedManifest(raw)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "Body is not a kycap/3 container")
