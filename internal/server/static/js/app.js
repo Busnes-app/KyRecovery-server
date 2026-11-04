@@ -100,6 +100,7 @@ function initTabs() {
       }
       showTab(tab);
       if (location.hash) history.pushState({ tab: tab.dataset.tab }, '', location.pathname + location.search);
+      else history.replaceState({ tab: tab.dataset.tab }, '');
     });
   });
   // A section link or a typed hash fires hashchange; Back and Forward fire popstate.
@@ -336,11 +337,15 @@ function copiesEvidence(targets) {
   if (targets === undefined) return ['checking', 'Loading replication targets…', 'View replication', 'tab-replication'];
   if (targets === null) return ['unavailable', 'Replication targets could not be loaded.', 'View replication', 'tab-replication'];
   if (targets.length === 0) return ['missing', 'No offsite copy. Every capsule exists only on this server.', 'Add a target', 'tab-replication'];
-  const n = targets.length, failing = targets.filter(t => t.status === 'failed' || t.status === 'error').length;
+  // A target's status is only its last transfer; unreplicated counts the capsules it lacks.
+  const n = targets.length, behind = targets.filter(t => t.status !== 'disabled' && t.unreplicated > 0);
+  const failing = targets.filter(t => t.status === 'failed' || t.status === 'error').length;
+  const missing = behind.reduce((sum, t) => sum + t.unreplicated, 0);
   const synced = newestTime(targets.map(t => t.last_sync_at));
   const of = x => `${x} of ${n} target${n === 1 ? '' : 's'}`;
   if (failing) return ['failing', `${of(failing)} failed the last sync.`, 'View replication', 'tab-replication'];
   if (!synced) return ['attention', `${of(n)} configured, never synced.`, 'View replication', 'tab-replication'];
+  if (behind.length) return ['attention', `${of(behind.length)} ${behind.length === 1 ? 'lacks' : 'lack'} ${missing} capsule cop${missing === 1 ? 'y' : 'ies'}. Use Sync all on the Replication tab.`, 'View replication', 'tab-replication'];
   return ['ok', `${n} target${n === 1 ? '' : 's'}, last synced ${fmtAgo(synced)}.`, 'View replication', 'tab-replication'];
 }
 
@@ -902,6 +907,7 @@ async function loadReplicationTargets() {
         </td>
         <td>
           ${kyStatus(t.status === 'active' || t.status === 'success' ? 'success' : t.status === 'failed' || t.status === 'error' ? 'danger' : 'warning', sentence(t.status))}
+          ${(t.unreplicated > 0) ? `<br>${Number(t.unreplicated)} capsule${t.unreplicated === 1 ? '' : 's'} not copied` : ''}
         </td>
         <td>${t.last_sync_at ? new Date(t.last_sync_at).toLocaleString() : '<span style="color: var(--text-dim);">Never</span>'}</td>
         <td class="row-actions">
@@ -1097,7 +1103,7 @@ async function deleteReplicationTarget(id) {
 
   try {
     const res = await fetch(`/api/replication/targets/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Failed deleting target');
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed deleting target');
     loadReplication();
     loadAudit();
   } catch (err) {
@@ -1320,7 +1326,7 @@ async function loadBackups() {
   }
 }
 
-function renderBackups({ report, scan, samples }) {
+function renderBackups({ report, scan, samples, restorable_services: restorableServices }) {
   const services = report.services || [];
   const unassigned = report.unassigned || [];
   const count = state => Number((report.counts || {})[state]) || 0;
@@ -1352,12 +1358,14 @@ function renderBackups({ report, scan, samples }) {
     : unassigned.map(r => repoHtml(r, samplesFor(r.path))).join('');
 
   document.getElementById('backups-service-names').innerHTML = services.map(s => `<option value="${esc(s.service_name)}">`).join('');
+  // Revoked products drop out of the report, but their capsules can still be restored.
+  const restorable = restorableServices || services.map(s => s.service_name);
   const select = document.getElementById('restore-service');
-  document.getElementById('restore-controls').hidden = services.length === 0;
-  document.getElementById('restore-empty').hidden = services.length !== 0;
+  document.getElementById('restore-controls').hidden = restorable.length === 0;
+  document.getElementById('restore-empty').hidden = restorable.length !== 0;
   const previous = select.value;
-  select.innerHTML = services.map(s => `<option value="${esc(s.service_name)}">${esc(s.service_name)}</option>`).join('');
-  if (services.some(s => s.service_name === previous)) select.value = previous;
+  select.innerHTML = restorable.map(name => `<option value="${esc(name)}">${esc(name)}</option>`).join('');
+  if (restorable.includes(previous)) select.value = previous;
 }
 
 function serviceRows(s, samplesFor) {

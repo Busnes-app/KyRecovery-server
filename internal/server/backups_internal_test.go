@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Busnes-app/ky-primitives/recoverykey"
 	"github.com/Busnes-app/kyrecovery-server/internal/audit"
 	"github.com/Busnes-app/kyrecovery-server/internal/auth"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
@@ -385,5 +387,84 @@ func TestClearedPairingCapsuleStaysRestorable(t *testing.T) {
 	}
 	if plan.Instance != "app-1" || plan.Capsule == nil || plan.Capsule.ID != "cap-kynotes-1" {
 		t.Fatalf("plan = %s", rr.Body.String())
+	}
+}
+
+// A restic directory that cannot be read from the first scan leaves no repository row to
+// flag; health still degrades.
+func TestScanFailureWithNoReposDegrades(t *testing.T) {
+	f := newBackupFixture(t)
+	srv := fixtureServer(t, f.db, filepath.Join(t.TempDir(), "absent"))
+	srv.scanRestic(t.Context())
+	if h, _ := backupCheck(t, srv); reason(h) != "degraded/backup_scan_failed" {
+		t.Fatalf("backups check = %s", reason(h))
+	}
+}
+
+// Revoking a product drops it from the report, which lists what is still backed up, but
+// its capsules stay restorable, so the restore picker still offers the service.
+func TestRevokedServiceStaysRestorable(t *testing.T) {
+	f := newBackupFixture(t)
+	if err := f.db.RevokePairedApp(t.Context(), "app-1"); err != nil {
+		t.Fatal(err)
+	}
+	rr := call(t, f.srv, cookieFor(t, f.db, auth.RoleViewer), http.MethodGet, "/api/backups/status", nil)
+	var st struct {
+		Restorable []string `json:"restorable_services"`
+		Report     struct {
+			Services []any `json:"services"`
+		} `json:"report"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &st); err != nil || rr.Code != http.StatusOK {
+		t.Fatalf("status %d %s", rr.Code, rr.Body.String())
+	}
+	if len(st.Report.Services) != 0 || len(st.Restorable) != 1 || st.Restorable[0] != "kynotes" {
+		t.Fatalf("status = %s", rr.Body.String())
+	}
+}
+
+// Pinning the first recovery key, repointing SSO and adding or removing an offsite target
+// are recorded before they are made; with the ledger unwritable none of them happens.
+func TestSecurityWritesFailClosedOnAudit(t *testing.T) {
+	f := newBackupFixture(t)
+	admin := cookieFor(t, f.db, auth.RoleAdmin)
+	if rr := call(t, f.srv, admin, http.MethodPost, "/api/replication/targets",
+		map[string]any{"id": "keep", "type": "local", "endpoint": t.TempDir()}); rr.Code != http.StatusOK {
+		t.Fatalf("target before poisoning = %d %s", rr.Code, rr.Body.String())
+	}
+	last, err := f.db.GetLastAuditEvent(t.Context())
+	if err != nil || last == nil {
+		t.Fatal(err)
+	}
+	if err := f.db.DeleteAuditEventForTest(t.Context(), last.Seq); err != nil {
+		t.Fatal(err)
+	}
+	poisoned := fixtureServer(t, f.db, f.resticDir)
+	k, err := recoverykey.Generate()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		method, path string
+		body         any
+	}{
+		{http.MethodPost, "/api/recovery-key", map[string]any{"public_key": base64.StdEncoding.EncodeToString(k.Public().Bytes()), "threshold": 3, "total_shares": 5}},
+		{http.MethodPost, "/api/auth/sso/config", map[string]any{"enabled": true, "issuer_url": "https://evil.example", "client_id": "c"}},
+		{http.MethodPost, "/api/replication/targets", map[string]any{"id": "new", "type": "local", "endpoint": t.TempDir()}},
+		{http.MethodDelete, "/api/replication/targets/keep", nil},
+	} {
+		if rr := call(t, poisoned, admin, tc.method, tc.path, tc.body); rr.Code != http.StatusServiceUnavailable {
+			t.Fatalf("%s %s on a poisoned ledger = %d %s", tc.method, tc.path, rr.Code, rr.Body.String())
+		}
+	}
+	if key, _ := f.db.GetRecoveryKey(t.Context()); key != nil {
+		t.Fatal("unaudited recovery key import applied")
+	}
+	if issuer, _ := f.db.GetSetting(t.Context(), auth.SettingSSOIssuerURL); issuer != "" {
+		t.Fatalf("unaudited SSO change applied: %q", issuer)
+	}
+	targets, _ := f.db.ListReplicationTargets(t.Context())
+	if len(targets) != 1 || targets[0].ID != "keep" {
+		t.Fatalf("unaudited target change applied: %+v", targets)
 	}
 }

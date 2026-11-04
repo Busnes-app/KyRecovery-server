@@ -21,6 +21,7 @@ import (
 	"github.com/Busnes-app/kyrecovery-server/internal/auth"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
 	"github.com/Busnes-app/kyrecovery-server/internal/pairing"
+	"github.com/Busnes-app/kyrecovery-server/internal/secrets"
 	"github.com/Busnes-app/kyrecovery-server/internal/server"
 	"github.com/Busnes-app/kyrecovery-server/pkg/client"
 )
@@ -395,6 +396,14 @@ func openStore(dataDir string) *db.DB {
 	if _, err := os.Stat(dbPath); err != nil {
 		fmt.Fprintf(os.Stderr, "No KyRecovery store at %s (%v); pass --data-dir or set KYRECOVERY_DATA_DIR\n", dbPath, err)
 		os.Exit(1)
+	}
+	// Nor a key: run without the key the server is given, db.Open would write a new
+	// secret.key into the live store and every check here would use the wrong key.
+	if strings.TrimSpace(os.Getenv(secrets.EnvKey)) == "" {
+		if _, err := os.Stat(filepath.Join(dataDir, secrets.KeyFileName)); err != nil {
+			fmt.Fprintf(os.Stderr, "No %s set and no %s in %s (%v); run with the key the server uses\n", secrets.EnvKey, secrets.KeyFileName, dataDir, err)
+			os.Exit(1)
+		}
 	}
 	database, err := db.Open(dbPath)
 	if err != nil {

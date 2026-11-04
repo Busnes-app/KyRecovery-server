@@ -39,17 +39,30 @@ document.getElementById('ceremony-form').addEventListener('submit', async ev => 
       <p>Share <code class="share">${esc(s)}</code></p>
       <p>Custodian: ____________________ &nbsp; Date: ${new Date().toISOString().slice(0, 10)}</p>
     </div>`).join('');
+  document.getElementById('printed-n').textContent = n;
   document.getElementById('cards').hidden = false;
   document.getElementById('ceremony-form').hidden = true;
 });
 
-document.getElementById('print-btn').addEventListener('click', () => window.print());
+// Import waits for the cards: an imported key whose cards were never printed leaves every
+// product paired to a key nobody can open. The tick unlocks once the print dialog opened.
+let imported = false, importing = false;
+const printed = document.getElementById('printed');
+document.getElementById('print-btn').addEventListener('click', () => {
+  window.print();
+  if (!imported && !importing) printed.disabled = false;
+});
+printed.addEventListener('change', () => {
+  document.getElementById('import-btn').disabled = imported || !printed.checked;
+});
 
 document.getElementById('import-btn').addEventListener('click', async ev => {
   if (!result) return;
   // One import per key: a second click would be refused and overwrite the success line.
   const button = ev.currentTarget;
   button.disabled = true;
+  printed.disabled = true; // unticking and re-ticking must not re-enable Import mid-request
+  importing = true;
   const status = document.getElementById('import-status');
   // Only these fields are sent: the public half, the topology and, for a rotation, the
   // key being replaced. The shares are never in this request.
@@ -61,15 +74,20 @@ document.getElementById('import-btn').addEventListener('click', async ev => {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields),
     });
   } catch {
+    importing = false;
     // Nothing reached the store: the same cards can be imported again.
     status.textContent = 'Import failed: the server could not be reached. Try again.';
     button.disabled = false;
+    printed.disabled = false;
     return;
   }
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) { status.textContent = `Import failed: ${body.error || res.status}`; button.disabled = false; return; }
+  importing = false;
+  if (!res.ok) { status.textContent = `Import failed: ${body.error || res.status}`; button.disabled = false; printed.disabled = false; return; }
+  imported = true;
+  printed.disabled = true;
   const repair = (body.products_to_repair || []).map(p => `${p.service_name} (${p.app_name})`).join(', ');
   status.textContent = replaces
-    ? `Rotated to key ${body.key_id}; ${body.replaces_key_id} is now previous. Re-pair ${repair || 'each product'} and confirm this key ID there. Print the cards, then close this tab.`
-    : `Imported key ${body.key_id}. Print the cards, then close this tab.`;
+    ? `Rotated to key ${body.key_id}; ${body.replaces_key_id} is now previous. Re-pair ${repair || 'each product'} and confirm this key ID there, then close this tab.`
+    : `Imported key ${body.key_id}. Hand out the cards, then close this tab.`;
 });

@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"maps"
 	"net/http"
 	"os"
+	"slices"
 	"time"
 
 	"github.com/Busnes-app/ky-primitives/health"
@@ -127,7 +129,19 @@ func (s *Server) handleBackupStatus(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "Failed reading backup status")
 		return
 	}
+	// The report lists services something still backs up; a restore also needs the ones
+	// whose products were revoked but whose capsules or repositories remain.
+	restorable := map[string]bool{}
+	for _, c := range in.Capsules {
+		restorable[c.Service] = true
+	}
+	for _, r := range in.Repos {
+		if r.Service != "" {
+			restorable[r.Service] = true
+		}
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
+		"restorable_services":      slices.Sorted(maps.Keys(restorable)),
 		"report":                   backupstatus.Evaluate(in),
 		"scan":                     in.Scan,
 		"samples":                  samples,

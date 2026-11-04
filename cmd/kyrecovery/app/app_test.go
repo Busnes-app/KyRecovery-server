@@ -198,3 +198,28 @@ func TestAdminCommandsNeverCreateAStore(t *testing.T) {
 		t.Fatalf("audit verify created %s: %v", dir, err)
 	}
 }
+
+// The right data directory without the key the server runs with must not get a fresh
+// secret.key: that would later become the master key and lose every sealed secret.
+func TestAdminCommandsNeverCreateAKey(t *testing.T) {
+	if dir := os.Getenv("KYRECOVERY_TEST_KEYLESS_STORE"); dir != "" {
+		cmdAudit([]string{"verify", "--data-dir", dir})
+		return
+	}
+	dir := t.TempDir()
+	t.Setenv("KYRECOVERY_SECRET_KEY", "0000000000000000000000000000000000000000000000000000000000000000")
+	database, err := db.Open(filepath.Join(dir, "kyrecovery.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	database.Close()
+	cmd := exec.Command(os.Args[0], "-test.run=^TestAdminCommandsNeverCreateAKey$")
+	cmd.Env = append(os.Environ(), "KYRECOVERY_TEST_KEYLESS_STORE="+dir, "KYRECOVERY_SECRET_KEY=")
+	out, err := cmd.CombinedOutput()
+	if err == nil || !strings.Contains(string(out), "KYRECOVERY_SECRET_KEY") {
+		t.Fatalf("audit verify without the key: err=%v\n%s", err, out)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "secret.key")); !os.IsNotExist(err) {
+		t.Fatalf("audit verify created secret.key: %v", err)
+	}
+}

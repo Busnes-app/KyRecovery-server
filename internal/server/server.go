@@ -71,6 +71,7 @@ type Server struct {
 	retentionMu sync.Mutex
 	mux         *http.ServeMux
 	health      http.Handler
+	proxyWarned sync.Once
 }
 
 // New creates a new KyRecovery server instance.
@@ -360,6 +361,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.TLS != nil {
 		w.Header().Set("Strict-Transport-Security", "max-age=31536000")
 	}
+	s.warnUntrustedProxy(r)
 
 	// A request that carries a body delivers it on a clock. The deposit and download raise
 	// their own budget from here; nothing lowers it.
@@ -432,11 +434,10 @@ func (s *Server) actor(r *http.Request) string {
 	if err != nil || session == nil {
 		return "anonymous"
 	}
+	// Not the display name: an IdP lets a user type any name, including the local
+	// admin's address. The email is kept only when the issuer verified it.
 	if session.Email != "" {
 		return session.Email
-	}
-	if session.Name != "" {
-		return session.Name
 	}
 	return session.UserID
 }
@@ -788,7 +789,8 @@ func (s *Server) handlePairingClaim(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "PairingCode is required")
 		return
 	}
-	codeKey := "code:" + req.PairingCode
+	// Hashed like the login account key, so a megabyte-long guess cannot sit in the limiter.
+	codeKey := fmt.Sprintf("code:%x", sha256.Sum256([]byte(req.PairingCode)))
 	if s.claimLimit.exceeded(codeKey, claimAttemptsPerCode, now) {
 		writeError(w, http.StatusTooManyRequests, "Too many attempts for this pairing code")
 		return
@@ -1040,15 +1042,11 @@ func (s *Server) handleAuthPasswordChange(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := s.db.UpdateUserPassword(r.Context(), user.ID, newHash); err != nil {
+	// Anyone signed in with the old password loses their session in the same transaction;
+	// the caller keeps the one they are changing it from.
+	if err := s.db.UpdateUserPassword(r.Context(), user.ID, newHash, session.ID); err != nil {
 		writeError(w, http.StatusInternalServerError, "Failed updating password")
 		return
-	}
-
-	// Anyone signed in with the old password loses their session; the caller keeps
-	// the one they are changing it from.
-	if err := s.db.DeleteUserSessionsExcept(r.Context(), user.ID, session.ID); err != nil {
-		audit.Log().Error("session_revoke", session.Email, user.ID, "failed revoking other sessions", err)
 	}
 
 	_, _ = s.ledger.Record(r.Context(), "password_changed", user.Email, user.ID, nil)
@@ -1097,16 +1095,21 @@ func (s *Server) handleSSOConfig(w http.ResponseWriter, r *http.Request) {
 			req.RedirectURL = fmt.Sprintf("http://%s/api/auth/callback", r.Host)
 		}
 
+		details := map[string]any{
+			"enabled":     req.Enabled,
+			"issuer_url":  req.IssuerURL,
+			"client_id":   req.ClientID,
+			"admin_email": req.AdminEmail,
+		}
+		if !s.auditFirst(w, r, "sso_config_change_requested", "sso_settings", details) {
+			return
+		}
 		if err := s.authMgr.SaveConfig(ctx, req); err != nil {
 			writeError(w, http.StatusInternalServerError, fmt.Sprintf("Failed saving SSO config: %v", err))
 			return
 		}
 
-		_, _ = s.ledger.Record(ctx, "sso_config_updated", session.Email, "sso_settings", map[string]interface{}{
-			"enabled":    req.Enabled,
-			"issuer_url": req.IssuerURL,
-			"client_id":  req.ClientID,
-		})
+		_, _ = s.ledger.Record(ctx, "sso_config_updated", s.actor(r), "sso_settings", details)
 
 		saved := s.authMgr.GetConfig()
 		if saved.ClientSecret != "" {
@@ -1300,11 +1303,17 @@ func (s *Server) handleReplicationTargets(w http.ResponseWriter, r *http.Request
 			writeError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+		missing, err := s.db.UnreplicatedCounts(ctx)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 		// Mask secret keys in list response
 		for i := range targets {
 			if targets[i].SecretKey != "" {
 				targets[i].SecretKey = "••••••••"
 			}
+			targets[i].Unreplicated = missing[targets[i].ID]
 		}
 		writeJSON(w, http.StatusOK, targets)
 
@@ -1349,17 +1358,21 @@ func (s *Server) handleReplicationTargets(w http.ResponseWriter, r *http.Request
 		}
 		target.CreatedAt = time.Now().UTC()
 
+		details := map[string]any{
+			"name":      target.Name,
+			"type":      target.Type,
+			"endpoint":  target.Endpoint,
+			"auto_sync": target.AutoSync,
+		}
+		if !s.auditFirst(w, r, "replication_target_save_requested", target.ID, details) {
+			return
+		}
 		if err := s.db.InsertReplicationTarget(ctx, target); err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		_, _ = s.ledger.Record(ctx, "replication_target_saved", s.actor(r), target.ID, map[string]interface{}{
-			"name":      target.Name,
-			"type":      target.Type,
-			"endpoint":  target.Endpoint,
-			"auto_sync": target.AutoSync,
-		})
+		_, _ = s.ledger.Record(ctx, "replication_target_saved", s.actor(r), target.ID, details)
 
 		target.SecretKey = "••••••••"
 		writeJSON(w, http.StatusOK, target)
@@ -1410,6 +1423,9 @@ func (s *Server) handleReplicationTargetDelete(w http.ResponseWriter, r *http.Re
 	targetID := strings.TrimPrefix(r.URL.Path, "/api/replication/targets/")
 	if targetID == "" {
 		writeError(w, http.StatusBadRequest, "Target ID is required")
+		return
+	}
+	if !s.auditFirst(w, r, "replication_target_delete_requested", targetID, nil) {
 		return
 	}
 	if err := s.db.DeleteReplicationTarget(r.Context(), targetID); err != nil {

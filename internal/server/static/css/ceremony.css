@@ -13,6 +13,7 @@
 .ceremony #ceremony-form .btn { grid-column: 1 / -1; justify-self: start; }
 .ceremony .form-label { display: block; margin: 0; }
 .ceremony .form-input { display: block; margin-top: 8px; max-width: 12ch; }
+.ceremony .printed-check { margin: 16px 0 8px; }
 @media (max-width: 680px) {
   header.ceremony-header { display: flex; flex-wrap: wrap; padding: 16px; }
   .ceremony { margin: 24px auto; padding: 0 16px; }

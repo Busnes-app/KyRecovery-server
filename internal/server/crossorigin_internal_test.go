@@ -1,8 +1,10 @@
 package server
 
 import (
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -53,5 +55,31 @@ func TestEveryCookieWriteRefusesCrossOrigin(t *testing.T) {
 	s.ServeHTTP(rec, req)
 	if strings.Contains(rec.Body.String(), "cross-origin") {
 		t.Fatalf("same-origin write refused: %d %s", rec.Code, rec.Body.String())
+	}
+}
+
+// A reverse proxy that is not listed in KYRECOVERY_TRUSTED_PROXIES collapses every client
+// onto its address. The operator is told once, with the value to set.
+func TestUntrustedProxyIsReportedOnce(t *testing.T) {
+	database, err := db.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	s, err := New(Config{DataDir: t.TempDir()}, database, audit.NewLedger(database))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out strings.Builder
+	log.SetOutput(&out)
+	defer log.SetOutput(os.Stderr)
+	for range 3 {
+		req := httptest.NewRequest(http.MethodGet, "/api/installer/network", nil)
+		req.RemoteAddr = "172.18.0.1:40000"
+		req.Header.Set("X-Forwarded-For", "198.51.100.9")
+		s.ServeHTTP(httptest.NewRecorder(), req)
+	}
+	if got := strings.Count(out.String(), "KYRECOVERY_TRUSTED_PROXIES=172.18.0.1"); got != 1 {
+		t.Fatalf("warned %d times, want once: %q", got, out.String())
 	}
 }

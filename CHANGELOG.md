@@ -12,7 +12,19 @@
   them, and the block answers `401` like a wrong password (it was `429` from everywhere,
   so anyone could lock the admin out). An IPv6 client's /64 counts as one address.
 - Pairing claims: failed claims from all addresses share 100 per 15 minutes, and an IPv6
-  /64 counts as one address.
+  /64 counts as one address. A guessed code is held in memory only as a hash.
+- Importing the first recovery key, saving SSO settings and adding or deleting a
+  replication target are recorded in the audit ledger first, and refused with `503` when
+  the ledger cannot record them (as rotation and retention already were).
+- A password change ends the user's other sessions in the same transaction, including a
+  sign-in with the old password that was still in progress, and fails if it cannot.
+- The audit actor of an SSO user without a verified email is their subject, never their
+  display name.
+- A cleared SSO admin email stays cleared after a restart instead of falling back to
+  `KY_ADMIN_EMAIL`.
+- The log warns once when forwarded requests arrive from a proxy that is not in
+  `KYRECOVERY_TRUSTED_PROXIES`. Behind a proxy that setting is required: without it every
+  client shares the proxy's sign-in and pairing limits.
 
 ### Fixed
 
@@ -25,6 +37,19 @@
   not backed up, and reloads backup evidence while it is open.
 - The ceremony form hides after Generate, so printed cards always match the imported key.
 - A pasted SFTP private key works from the dashboard.
+- Overview and Replication count the capsules each target has no copy of, so a later
+  success no longer hides an earlier failure. `GET /api/replication/targets` adds
+  `unreplicated`. A sync cancelled by closing the tab is still logged.
+- Purge re-checks each week's or month's surviving capsule before deleting the ones it
+  replaces, so a capsule damaged since the last daily check cannot cost the intact one.
+- The ceremony enables Import only after the print dialog has opened and the admin ticks
+  "I have printed n cards".
+- The restore picker offers services whose products were revoked but whose capsules remain
+  (`GET /api/backups/status` adds `restorable_services`).
+- A restic directory that fails to scan before any repository was found degrades health.
+- `audit` and `pair` refuse to run without `KYRECOVERY_SECRET_KEY` or an existing
+  `secret.key`, instead of creating a new key in the store.
+- Browser Back after opening Settings returns to the tab you left.
 - `pair claim --service` works; `audit` and `pair` refuse a data directory with no store.
 
 ## 0.6.0 — 2026-11-01

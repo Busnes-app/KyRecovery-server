@@ -231,3 +231,43 @@ func TestOpenHashesCredentialsStoredAsIssued(t *testing.T) {
 		t.Fatalf("minted token does not authenticate: %+v %v", a, err)
 	}
 }
+
+// A local login stores its session only while the hash it verified is still the user's,
+// and a password change ends the user's other sessions in the same transaction: a login
+// in flight across the change keeps no session, whichever side writes first.
+func TestPasswordChangeFencesLoginsInFlight(t *testing.T) {
+	ctx := t.Context()
+	d, err := db.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer d.Close()
+	now := time.Now().UTC()
+	if err := d.InsertUser(ctx, db.UserRecord{ID: "u1", Username: "admin", Email: "a@example.com", PasswordHash: "old", Role: "admin", CreatedAt: now}); err != nil {
+		t.Fatal(err)
+	}
+	session := func(id, hash string) db.SessionRecord {
+		return db.SessionRecord{ID: id, UserID: "u1", Role: "admin", ExpiresAt: now.Add(time.Hour), CreatedAt: now, PasswordHash: hash}
+	}
+	const keep, early, late = "keep-0123456789abcdef0123456789abcdef", "early-0123456789abcdef0123456789abcde", "late-0123456789abcdef0123456789abcdef"
+	for _, id := range []string{keep, early} {
+		if err := d.InsertSession(ctx, session(id, "old")); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := d.UpdateUserPassword(ctx, "u1", "new", keep); err != nil {
+		t.Fatal(err)
+	}
+	if s, _ := d.GetSession(ctx, keep); s == nil {
+		t.Fatal("the changing session was ended")
+	}
+	if s, _ := d.GetSession(ctx, early); s != nil {
+		t.Fatal("a session from the old password survived the change")
+	}
+	if err := d.InsertSession(ctx, session(late, "old")); err == nil {
+		t.Fatal("a login that verified the old password stored a session after the change")
+	}
+	if err := d.InsertSession(ctx, session(late, "new")); err != nil {
+		t.Fatalf("a login with the new password: %v", err)
+	}
+}

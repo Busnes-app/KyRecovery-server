@@ -46,6 +46,15 @@ The port is published on `127.0.0.1` only. Put a TLS reverse proxy on the same
 host in front of it, or set `KYRECOVERY_BIND` in `.env` to the host address your
 proxy reaches.
 
+Behind a proxy, `KYRECOVERY_TRUSTED_PROXIES` is required, not optional. Without it
+every client shares the proxy's address, so a stranger's five wrong passwords lock
+the admin out and ten bad pairing codes block pairing for everyone. Set it to the
+address KyRecovery sees the proxy connect from, which with Docker is usually the
+network gateway (such as `172.18.0.1`), not `127.0.0.1`. To find it, open
+`https://<your host>/api/installer/network` through the proxy: `clientIp` is that
+address until it is trusted. The log also names it, once, when a forwarded request
+arrives from an untrusted peer.
+
 On first start without `KY_ADMIN_INITIAL_PASSWORD`, the generated `admin` password
 is written to `/app/data/initial-admin-password` (0600, owned by uid 10001); the
 log names only the file. Read it with

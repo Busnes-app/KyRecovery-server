@@ -11,6 +11,7 @@ import (
 
 	"github.com/Busnes-app/ky-primitives/capsule"
 	"github.com/Busnes-app/ky-primitives/recoverykey"
+	"github.com/Busnes-app/kyrecovery-server/internal/auth"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
 )
 
@@ -181,5 +182,36 @@ func TestVerifyOfAnUnreadableFileDoesNotFlagCorrupt(t *testing.T) {
 	}
 	if after.Status == "corrupt" {
 		t.Fatal("a transient read failure marked the capsule corrupt")
+	}
+}
+
+// An SSO user without a verified email is recorded by subject, never by the display name
+// the identity provider lets them type, which could be the local admin's address.
+func TestActorIsNeverTheDisplayName(t *testing.T) {
+	srv, cookie, database := newAdminServer(t)
+	k, _ := recoverykey.Generate()
+	importKey(t, srv, cookie, k.Public(), 3, 5)
+	token, _ := pairProduct(t, srv, cookie, "kynotes")
+	if rec := deposit(srv, token, sealFor(t, k.Public(), "kynotes")); rec.Code != http.StatusCreated {
+		t.Fatalf("deposit: %d", rec.Code)
+	}
+	caps, _ := database.ListCapsules(t.Context())
+	const sid = "sso-viewer-session-0123456789abcdef0123"
+	if err := database.InsertSession(t.Context(), db.SessionRecord{ID: sid, UserID: "idp-subject-7", Name: "admin@kyrecovery.local",
+		Role: "viewer", ExpiresAt: time.Now().Add(time.Hour), CreatedAt: time.Now(), NativeSSO: true}); err != nil {
+		t.Fatal(err)
+	}
+	req := httptest.NewRequest(http.MethodGet, "/api/capsules/"+caps[0].ID+"/verify", nil)
+	req.AddCookie(&http.Cookie{Name: auth.SessionCookieName, Value: sid})
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("verify: %d %s", rr.Code, rr.Body.String())
+	}
+	events, _ := database.ListAuditEvents(t.Context(), 50)
+	for _, e := range events {
+		if e.Action == "capsule_verified" && e.Actor != "idp-subject-7" {
+			t.Fatalf("capsule_verified actor = %q, want the subject", e.Actor)
+		}
 	}
 }

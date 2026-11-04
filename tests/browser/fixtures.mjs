@@ -83,8 +83,16 @@ export async function ceremony(page, vault) {
   await expect(page.locator('#ceremony-form')).toBeHidden();
   const keyID = await page.locator('#key-id').textContent();
   expect(keyID).toMatch(/^[0-9a-f]{64}$/);
+  // Import waits for the print dialog and the printed tick.
+  const importButton = page.getByRole('button', { name: 'Import public key into KyRecovery' });
+  const printedTick = page.getByRole('checkbox', { name: 'I have printed 5 cards' });
+  await expect(importButton).toBeDisabled();
+  await expect(printedTick).toBeDisabled();
+  await page.evaluate(() => { window.print = () => {}; });
+  await page.getByRole('button', { name: 'Print cards' }).click();
+  await printedTick.check();
   const request = page.waitForRequest(r => r.method() === 'POST' && /\/api\/recovery-key(?:\/rotate)?$/.test(r.url()));
-  await page.getByRole('button', { name: 'Import public key into KyRecovery' }).click();
+  await importButton.click();
   const body = (await request).postDataJSON();
   const fields = ['public_key', 'threshold', 'total_shares'];
   if (body.replaces_key_id) fields.push('replaces_key_id');

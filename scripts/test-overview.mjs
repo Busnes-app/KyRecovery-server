@@ -111,12 +111,16 @@ for (const failure of ['http', 'network', 'json']) {
     [context.copiesEvidence(undefined), 'checking'],
     [context.copiesEvidence(null), 'unavailable'],
     [context.copiesEvidence([]), 'missing', 'tab-replication'],
-    [context.copiesEvidence([{ status: 'error', last_sync_at: day }, { status: 'active' }]), 'failing'],
+    [context.copiesEvidence([{ status: 'error', last_sync_at: day, unreplicated: 1 }, { status: 'active' }]), 'failing'],
     [context.copiesEvidence([{ status: 'active' }]), 'attention'],
     [context.copiesEvidence([{ status: 'active', last_sync_at: day }]), 'ok'],
     // The server records a sync as success or failed, and stamps the time either way.
-    [context.copiesEvidence([{ status: 'failed', last_sync_at: day }]), 'failing'],
+    [context.copiesEvidence([{ status: 'failed', last_sync_at: day, unreplicated: 2 }]), 'failing'],
     [context.copiesEvidence([{ status: 'success', last_sync_at: day }]), 'ok'],
+    // A later success on another capsule does not make a missing copy current.
+    [context.copiesEvidence([{ status: 'success', last_sync_at: day, unreplicated: 1 }]), 'attention'],
+    // A failed last transfer stays visible even when every capsule has a copy on record.
+    [context.copiesEvidence([{ status: 'failed', last_sync_at: day, unreplicated: 0 }]), 'failing'],
   ];
   assert(!/^All /.test(context.backupsEvidence(report([svc, svc], { ok: 1, pending: 1 }))[1]), 'a pending service is not backed up');
   for (const [[state, summary, label, go], want, target] of cases) {

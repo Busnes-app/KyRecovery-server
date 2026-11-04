@@ -161,6 +161,8 @@ type SessionRecord struct {
 	SSOIssuer  string `json:"-"`
 	SSOSubject string `json:"-"`
 	SSOSID     string `json:"-"`
+	// PasswordHash, for a local login, is the hash that was verified; it is not stored.
+	PasswordHash string `json:"-"`
 }
 
 // ReplicationTargetRecord defines an offsite backup target (S3, Cloudflare R2, MinIO, Local).
@@ -179,6 +181,9 @@ type ReplicationTargetRecord struct {
 	Status     string     `json:"status"` // "active", "disabled", "error"
 	LastSyncAt *time.Time `json:"last_sync_at,omitempty"`
 	CreatedAt  time.Time  `json:"created_at"`
+	// Unreplicated counts intact capsules with no successful copy on this target. Status is
+	// only the last transfer's result, so it cannot say whether every capsule is offsite.
+	Unreplicated int `json:"unreplicated"`
 }
 
 // ReplicationLogRecord tracks an individual capsule transfer to a remote target.
@@ -458,6 +463,7 @@ func (d *DB) migrate() error {
 	CREATE INDEX IF NOT EXISTS idx_paired_token ON paired_apps(api_token);
 	CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 	CREATE INDEX IF NOT EXISTS idx_repl_logs_target ON replication_logs(target_id);
+	CREATE INDEX IF NOT EXISTS idx_repl_logs_copy ON replication_logs(target_id, capsule_id, id);
 	`
 
 	if _, err := d.conn.Exec(schema); err != nil {
@@ -1113,6 +1119,12 @@ func (d *DB) InsertSession(ctx context.Context, s SessionRecord) error {
 		q += ` WHERE EXISTS (SELECT 1 FROM system_settings WHERE key=? AND json_extract(value,'$.Active')=1 AND json_extract(value,'$.Issuer')=? AND json_extract(value,'$.Subject')=?)`
 		args = append(args, "installer.identity."+s.UserID, s.IdentityIssuer, s.IdentitySubject)
 	}
+	if s.PasswordHash != "" {
+		// Same statement as the insert: a password changed since the login read the hash
+		// refuses the session, and one changed after it deletes it (UpdateUserPassword).
+		q += ` WHERE EXISTS (SELECT 1 FROM users WHERE id = ? AND password_hash = ?)`
+		args = append(args, s.UserID, s.PasswordHash)
+	}
 	if s.NativeSSO {
 		// Same statement as the insert, so activation cannot land between check and write.
 		q += ` WHERE NOT EXISTS (SELECT 1 FROM system_settings WHERE key=?)`
@@ -1232,8 +1244,22 @@ func (d *DB) InsertReplicationTarget(ctx context.Context, t ReplicationTargetRec
 	if err != nil {
 		return fmt.Errorf("failed sealing replication secret key: %w", err)
 	}
-	_, err = d.conn.ExecContext(ctx, q, t.ID, t.Name, t.Type, t.Endpoint, t.Bucket, t.Region, t.AccessKey, sealedSecret, t.Prefix, t.HostKey, autoSyncInt, t.Status, t.LastSyncAt, t.CreatedAt.UTC())
-	return err
+	tx, err := d.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	// A target pointed somewhere else holds none of the copies its logs record: they go,
+	// so every capsule counts as unreplicated there until it is copied again.
+	if _, err := tx.ExecContext(ctx, `DELETE FROM replication_logs WHERE target_id = ? AND EXISTS (SELECT 1 FROM replication_targets
+	      WHERE id = ? AND (type != ? OR endpoint != ? OR bucket != ? OR region != ? OR prefix != ? OR access_key != ?))`,
+		t.ID, t.ID, t.Type, t.Endpoint, t.Bucket, t.Region, t.Prefix, t.AccessKey); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, q, t.ID, t.Name, t.Type, t.Endpoint, t.Bucket, t.Region, t.AccessKey, sealedSecret, t.Prefix, t.HostKey, autoSyncInt, t.Status, t.LastSyncAt, t.CreatedAt.UTC()); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // GetReplicationTarget returns a target by ID.
@@ -1288,6 +1314,31 @@ func (d *DB) ListReplicationTargets(ctx context.Context) ([]ReplicationTargetRec
 	return list, rows.Err()
 }
 
+// UnreplicatedCounts returns, per target ID, how many capsules not marked corrupt have no
+// copy there on record: no transfer to it, or a newest transfer that failed. A failure
+// after a success can mean the replica no longer matches (SMB checks before it overwrites).
+func (d *DB) UnreplicatedCounts(ctx context.Context) (map[string]int, error) {
+	rows, err := d.conn.QueryContext(ctx, `SELECT t.id, COUNT(c.id) FROM replication_targets t
+	      JOIN capsules c ON c.status != 'corrupt'
+	      WHERE NOT EXISTS (SELECT 1 FROM replication_logs l WHERE l.target_id = t.id AND l.capsule_id = c.id AND l.status = 'success'
+	            AND NOT EXISTS (SELECT 1 FROM replication_logs n WHERE n.target_id = t.id AND n.capsule_id = c.id AND n.id > l.id))
+	      GROUP BY t.id`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	counts := map[string]int{}
+	for rows.Next() {
+		var id string
+		var n int
+		if err := rows.Scan(&id, &n); err != nil {
+			return nil, err
+		}
+		counts[id] = n
+	}
+	return counts, rows.Err()
+}
+
 // UpdateReplicationTargetLastSync updates the sync timestamp and status.
 func (d *DB) UpdateReplicationTargetLastSync(ctx context.Context, id, status string) error {
 	now := time.Now().UTC()
@@ -1309,6 +1360,22 @@ func (d *DB) InsertReplicationLog(ctx context.Context, l ReplicationLogRecord) e
 	      VALUES (?, ?, ?, ?, ?, ?, ?)`
 	_, err := d.conn.ExecContext(ctx, q, l.TargetID, l.CapsuleID, l.BytesTransferred, l.DurationMs, l.Status, l.ErrorMessage, l.CreatedAt.UTC())
 	return err
+}
+
+// RecordReplication logs a transfer made to destination t and returns the status stored.
+// A target re-pointed (or its account changed) while the transfer ran no longer names the
+// place the bytes went, so the result is stored as failed: the copy is not on record for
+// the new destination. One statement, so a re-point either lands first or deletes it.
+func (d *DB) RecordReplication(ctx context.Context, l ReplicationLogRecord, t ReplicationTargetRecord) (string, error) {
+	var status string
+	err := d.conn.QueryRowContext(ctx, `INSERT INTO replication_logs (target_id, capsule_id, bytes_transferred, duration_ms, status, error_message, created_at)
+	      SELECT ?, ?, ?, ?, CASE WHEN same THEN ? ELSE 'failed' END, CASE WHEN same THEN ? ELSE 'the target was re-pointed during the transfer' END, ?
+	      FROM (SELECT EXISTS (SELECT 1 FROM replication_targets WHERE id = ? AND type = ? AND endpoint = ? AND bucket = ?
+	            AND region = ? AND prefix = ? AND access_key = ?) AS same)
+	      RETURNING status`,
+		l.TargetID, l.CapsuleID, l.BytesTransferred, l.DurationMs, l.Status, l.ErrorMessage, l.CreatedAt.UTC(),
+		t.ID, t.Type, t.Endpoint, t.Bucket, t.Region, t.Prefix, t.AccessKey).Scan(&status)
+	return status, err
 }
 
 // ListReplicationLogs returns recent transfer logs.
@@ -1371,11 +1438,21 @@ func (d *DB) GetUserByID(ctx context.Context, id string) (*UserRecord, error) {
 	return &u, nil
 }
 
-// UpdateUserPassword updates the password hash for a user.
-func (d *DB) UpdateUserPassword(ctx context.Context, id, passwordHash string) error {
-	q := `UPDATE users SET password_hash = ? WHERE id = ?`
-	_, err := d.conn.ExecContext(ctx, q, passwordHash, id)
-	return err
+// UpdateUserPassword replaces a user's password hash and, in the same transaction, ends
+// every session of that user except keepSessionID (a raw session ID, or "" for none).
+func (d *DB) UpdateUserPassword(ctx context.Context, id, passwordHash, keepSessionID string) error {
+	tx, err := d.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if _, err := tx.ExecContext(ctx, `UPDATE users SET password_hash = ? WHERE id = ?`, passwordHash, id); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, `DELETE FROM sessions WHERE user_id = ? AND id != ?`, id, tokenHash(keepSessionID)); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // CountUsers returns the total count of registered local users.

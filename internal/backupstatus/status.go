@@ -235,6 +235,10 @@ func Evaluate(in Input) Report {
 	for _, r := range rep.Unassigned {
 		all = append(all, r.State)
 	}
+	// A scanner that has never found a repository has no row to flag, but it is still failing.
+	if in.Scan.Enabled && in.Scan.LastError != "" {
+		all = append(all, ScanError)
+	}
 	sort.Slice(rep.Services, func(i, j int) bool { return rep.Services[i].Name < rep.Services[j].Name })
 	if rep.Services == nil {
 		rep.Services = []ServiceStatus{}

@@ -88,3 +88,24 @@ func TestSessionManagement(t *testing.T) {
 		t.Fatalf("expected nil session after deletion")
 	}
 }
+
+// An admin who clears the SSO admin email in Settings must not see the KY_ADMIN_EMAIL
+// default promote that address again after a restart.
+func TestClearedAdminEmailSurvivesRestart(t *testing.T) {
+	database, err := db.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	env := auth.OIDCConfig{AdminEmail: "former-admin@example.com"}
+	m := auth.NewManager(env, database)
+	if err := m.SaveConfig(t.Context(), auth.OIDCConfig{IssuerURL: "https://id.example", ClientID: "c"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := auth.NewManager(env, database).GetConfig().AdminEmail; got != "" {
+		t.Fatalf("admin email after restart = %q, want the saved empty value", got)
+	}
+	if got := auth.NewManager(env, nil).GetConfig().AdminEmail; got != env.AdminEmail {
+		t.Fatalf("without saved settings the default applies; got %q", got)
+	}
+}

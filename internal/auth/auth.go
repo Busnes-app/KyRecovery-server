@@ -64,6 +64,9 @@ type UserInfo struct {
 	IssuedAt time.Time `json:"-"`
 	// Local is set only by password login; every other login is fenced as native SSO.
 	Local bool `json:"-"`
+	// PasswordHash is the hash a local login verified. Its session is stored only while
+	// that is still the user's hash, so a password change fences logins in flight.
+	PasswordHash string `json:"-"`
 }
 
 // Manager handles OIDC login flows, PKCE challenges, local admin auth, and sessions.
@@ -110,7 +113,9 @@ func (m *Manager) loadSettingsFromDB(ctx context.Context) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if enabled, err := m.db.GetSetting(ctx, SettingSSOEnabled); err == nil && enabled != "" {
+	enabled, err := m.db.GetSetting(ctx, SettingSSOEnabled)
+	saved := err == nil && enabled != "" // SaveConfig always writes it
+	if saved {
 		m.cfg.Enabled = enabled == "true" || enabled == "1"
 	}
 	if issuer, err := m.db.GetSetting(ctx, SettingSSOIssuerURL); err == nil && issuer != "" {
@@ -131,7 +136,9 @@ func (m *Manager) loadSettingsFromDB(ctx context.Context) {
 	if redirectURL, err := m.db.GetSetting(ctx, SettingSSORedirectURL); err == nil && redirectURL != "" {
 		m.cfg.RedirectURL = redirectURL
 	}
-	if adminEmail, err := m.db.GetSetting(ctx, SettingSSOAdminEmail); err == nil && adminEmail != "" {
+	// Once settings were saved, a cleared admin email stays cleared: the KY_ADMIN_EMAIL
+	// default must not promote that address again on the next start.
+	if adminEmail, err := m.db.GetSetting(ctx, SettingSSOAdminEmail); err == nil && (adminEmail != "" || saved) {
 		m.cfg.AdminEmail = adminEmail
 	}
 }
@@ -307,6 +314,8 @@ func (m *Manager) AuthenticateLocal(ctx context.Context, username, password stri
 		Name:    user.Name,
 		Role:    user.Role,
 		Local:   true,
+
+		PasswordHash: user.PasswordHash,
 	}, nil
 }
 
@@ -632,6 +641,8 @@ func (m *Manager) CreateSession(ctx context.Context, u *UserInfo, secure bool) (
 		Role:      u.Role,
 		ExpiresAt: now.Add(SessionDuration),
 		CreatedAt: now,
+
+		PasswordHash: u.PasswordHash,
 	}
 	if u.Issuer != "" {
 		rec.SSOIssuer, rec.SSOSubject, rec.SSOSID = u.Issuer, u.Subject, u.SessionID
