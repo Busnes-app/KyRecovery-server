@@ -287,7 +287,7 @@ func TestFreshPairingDoesNotDegradeHealth(t *testing.T) {
 	}
 	t.Cleanup(func() { database.Close() })
 	now := time.Now().UTC()
-	if err := database.InsertPairedApp(t.Context(), db.PairedAppRecord{ID: "app-1", ServiceName: "generic", AppName: "notes",
+	if err := database.InsertPairedApp(t.Context(), db.PairedAppRecord{ID: "app-1", ServiceName: "kynotes", AppName: "notes",
 		APIToken: "tok", PairingCode: "123456", Status: "pending", ExpiresAt: now.Add(time.Hour), CreatedAt: now}); err != nil {
 		t.Fatal(err)
 	}

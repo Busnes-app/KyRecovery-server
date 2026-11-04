@@ -174,6 +174,7 @@ const capsuleStatus = c => c.status === 'corrupt' ? 'Corrupt: the stored bytes f
 const shortId = id => String(id).length > 12 ? '…' + String(id).slice(-8) : String(id);
 
 function renderCapsules() {
+  const canVerify = !!currentUser && (currentUser.role === 'operator' || currentUser.role === 'admin');
   const tbody = document.getElementById('capsules-table-body');
   if (capsulesData.length === 0) {
     tbody.innerHTML = '<tr><td colspan="7">No capsules yet. Pair a product and it will deposit its own sealed backups here.</td></tr>';
@@ -200,7 +201,7 @@ function renderCapsules() {
       <dt>Payload hash</dt><dd><code>${esc(c.payload_hash)}</code> (sealer-attested)</dd>
       <dt>Deposited</dt><dd>${esc(fmtTime(c.deposited_at))}</dd>
       <dt>Created</dt><dd>${esc(fmtTime(c.created_at))} (product-reported)</dd>
-      <dt>Status</dt><dd>${esc(capsuleStatus(c))}${currentUser && (currentUser.role === 'operator' || currentUser.role === 'admin') ? ` <button type="button" class="btn btn-secondary btn-sm" data-action="verify" data-id="${esc(c.id)}">Verify capsule</button>` : ''}</dd>
+      <dt>Status</dt><dd>${esc(capsuleStatus(c))}${canVerify ? ` <button type="button" class="btn btn-secondary btn-sm" data-action="verify" data-id="${esc(c.id)}">Verify capsule</button>` : ''}</dd>
       ${c.app_version ? `<dt>App version</dt><dd>${esc(c.app_version)}</dd>` : ''}
     </dl></td></tr>`;
   }).join('');
