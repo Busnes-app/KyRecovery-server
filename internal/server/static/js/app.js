@@ -36,6 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(() => {
     loadReadiness();
     loadReplication();
+    // Backup evidence goes stale too: a missed schedule or a corrupt capsule must reach
+    // an Overview left open. The Backups tab keeps its own Refresh.
+    if (document.getElementById('tab-overview').classList.contains('active')) loadBackups();
   }, 10000);
 });
 
@@ -307,8 +310,11 @@ function backupsEvidence(data) {
   if (count('corrupt')) return ['failing', `${of(count('corrupt'))} hold a corrupt capsule.${latest}`, 'Review backups', 'tab-backups'];
   const late = count('stale') + count('never');
   if (late) return ['attention', `${of(late)} stale or never backed up.${latest}`, 'Review backups', 'tab-backups'];
-  const other = n - count('ok') - count('pending');
+  const pending = count('pending');
+  if (pending === n) return ['missing', `No service has deposited a backup yet; ${of(pending)} awaiting a first backup.`, 'Review backups', 'tab-backups'];
+  const other = n - count('ok') - pending;
   if (other) return ['attention', `${of(other)} need attention (scan or repository findings).${latest}`, 'Review backups', 'tab-backups'];
+  if (pending) return ['ok', `${of(n - pending)} backed up within the expected interval; ${pending} awaiting a first backup.${latest}`, 'Review backups', 'tab-backups'];
   return ['ok', `All ${n} service${n === 1 ? '' : 's'} backed up within the expected interval.${latest}`, 'Review backups', 'tab-backups'];
 }
 
@@ -330,7 +336,7 @@ function copiesEvidence(targets) {
   if (targets === undefined) return ['checking', 'Loading replication targets…', 'View replication', 'tab-replication'];
   if (targets === null) return ['unavailable', 'Replication targets could not be loaded.', 'View replication', 'tab-replication'];
   if (targets.length === 0) return ['missing', 'No offsite copy. Every capsule exists only on this server.', 'Add a target', 'tab-replication'];
-  const n = targets.length, failing = targets.filter(t => t.status === 'error').length;
+  const n = targets.length, failing = targets.filter(t => t.status === 'failed' || t.status === 'error').length;
   const synced = newestTime(targets.map(t => t.last_sync_at));
   const of = x => `${x} of ${n} target${n === 1 ? '' : 's'}`;
   if (failing) return ['failing', `${of(failing)} failed the last sync.`, 'View replication', 'tab-replication'];
@@ -442,7 +448,14 @@ async function verifyAuditChain() {
   try {
     const res = await fetch('/api/audit/verify', { method: 'POST' });
     const data = await res.json();
-    if (data.valid) {
+    if (!res.ok) {
+      // A refused request says nothing about the chain.
+      badge.textContent = `Could not verify: ${data.error || res.status}`;
+      badge.style.color = 'var(--text-muted)';
+    } else if (data.valid && data.append_disabled) {
+      badge.textContent = `Chain verified (${data.count} events), but new entries are refused: ${data.error || 'the ledger is not writable'}`;
+      badge.style.color = 'var(--accent-red)';
+    } else if (data.valid) {
       badge.textContent = `✓ Cryptographic Chain Verified (${data.count} events)`;
       badge.style.color = 'var(--accent-green)';
     } else {
@@ -888,7 +901,7 @@ async function loadReplicationTargets() {
           ${kyStatus('', t.auto_sync ? 'Automatic' : 'Manual')}
         </td>
         <td>
-          ${kyStatus(t.status === 'active' ? 'success' : t.status === 'error' ? 'danger' : 'warning', sentence(t.status))}
+          ${kyStatus(t.status === 'active' || t.status === 'success' ? 'success' : t.status === 'failed' || t.status === 'error' ? 'danger' : 'warning', sentence(t.status))}
         </td>
         <td>${t.last_sync_at ? new Date(t.last_sync_at).toLocaleString() : '<span style="color: var(--text-dim);">Never</span>'}</td>
         <td class="row-actions">
@@ -1300,7 +1313,9 @@ async function loadBackups() {
     renderBackups(data);
     status.textContent = `Updated ${new Date().toLocaleTimeString()}.`;
   } catch (err) {
-    if (evidence.backups === undefined) { evidence.backups = null; renderEvidence(); }
+    // A failed reload is Unavailable, not the last verdict shown as if it were current.
+    evidence.backups = null;
+    renderEvidence();
     status.textContent = err.message;
   }
 }

@@ -8,7 +8,8 @@
 .ceremony h1 { font-size: var(--ky-type-title); font-weight: 600; line-height: 1.25; margin-bottom: 24px; }
 .ceremony .panel { border: 0; border-radius: 0; background: transparent; padding: 0 0 24px; margin-bottom: 24px; border-bottom: 1px solid var(--rule); }
 .ceremony .panel > p { max-width: 72ch; }
-.ceremony #ceremony-form { display: grid; grid-template-columns: repeat(2, minmax(0, max-content)); gap: 24px 32px; border-bottom: 0; }
+/* :not([hidden]): the form hides after Generate, and a display rule would override that. */
+.ceremony #ceremony-form:not([hidden]) { display: grid; grid-template-columns: repeat(2, minmax(0, max-content)); gap: 24px 32px; border-bottom: 0; }
 .ceremony #ceremony-form .btn { grid-column: 1 / -1; justify-self: start; }
 .ceremony .form-label { display: block; margin: 0; }
 .ceremony .form-input { display: block; margin-top: 8px; max-width: 12ch; }
