@@ -20,7 +20,7 @@ export const test = base.extend({
     const url = `http://127.0.0.1:${port}`;
     const server = spawn(process.env.KY_BROWSER_BINARY, ['serve', '--port', String(port), '--data-dir', join(directory, 'data')], {
       cwd: directory, stdio: ['ignore', 'pipe', 'pipe'],
-      env: { PATH: process.env.PATH, HOME: directory, GOMAXPROCS: '2', KY_ADMIN_INITIAL_PASSWORD: password, KYRECOVERY_COOKIE_SECURE: 'false' },
+      env: { PATH: process.env.PATH, HOME: directory, PUSH_RELAY_URL: '', APNS_RELAY_URL: '', GOMAXPROCS: '2', KY_ADMIN_INITIAL_PASSWORD: password, KYRECOVERY_COOKIE_SECURE: 'false' },
     });
     let log = '', launchError;
     server.on('error', error => { launchError = error; });

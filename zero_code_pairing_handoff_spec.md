@@ -106,7 +106,11 @@ sequenceDiagram
     "service_name": "kynotes"
   }
   ```
-  `service_name` defaults to `generic` and `app_name` to `App-<code>` if omitted.
+  The service chosen at generate is authoritative. Omitting `service_name` inherits
+  that service; sending another service is `409` and leaves the code pending.
+  Only a code generated for `auto-declare` accepts the claimer's service; omitting
+  the claim service for such a code retains the `generic` default.
+  `app_name` defaults to `App-<code>` if omitted.
 - **Response** (`200 OK`):
   ```json
   {
@@ -132,8 +136,9 @@ sequenceDiagram
     read back from KyRecovery afterwards.
 - **Error Codes**:
   - `400 Bad Request`: Invalid or expired pairing code.
-  - `409 Conflict`: The pairing code was already claimed — **or** no recovery key has
-    been imported yet, meaning the ceremony has not run. In the second case the code
+  - `409 Conflict`: The claim names a different service than the generated code
+    (the code stays pending), the code was already claimed — **or** no recovery key has
+    been imported yet, meaning the ceremony has not run. When no recovery key has been imported the code
     is *not* consumed and no rate-limit attempt is charged: run the ceremony and claim
     again with the same code.
   - `429 Too Many Requests`: More than 10 failed claims from one source address (an IPv6
@@ -170,6 +175,8 @@ offsite replication.
   - `service_name` and `capsule_id` in the manifest must match
     `[A-Za-z0-9][A-Za-z0-9_.-]{0,63}` and `{0,127}` respectively — the capsule ID
     becomes a filename.
+  - Deposit reads and capsule download writes allow 5 minutes without byte progress,
+    renewed per chunk, and 24 hours total. Reverse proxies may impose shorter limits.
   - At most 60 deposits per paired product per 15 minutes, and at most 4 deposits
     in flight at once across all products.
 
@@ -300,7 +307,7 @@ curl -s -X POST https://recovery.internal:8095/api/backup/deposit \
    is kept outside the log. A deposit that cannot be recorded is refused rather than
    stored unrecorded.
 5. **Attested at rest.** Every capsule is re-hashed on demand
-   (`GET /api/capsules/{id}/verify`) and by a sweep every 24 hours; a mismatch flags
+   (`POST /api/capsules/{id}/verify`, operator session, cross-origin protected) and by a sweep every 24 hours; a mismatch flags
    the row and records `capsule_corrupt`. A flagged capsule still downloads, with
    `X-Capsule-Status: corrupt` and `X-Capsule-Digest` set.
 6. **Zero-secret logging.** Per `LOGGING.md`, logs carry capsule IDs, sequence numbers

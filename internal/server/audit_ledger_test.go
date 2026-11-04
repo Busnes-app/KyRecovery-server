@@ -9,6 +9,7 @@ import (
 
 	"github.com/Busnes-app/ky-primitives/recoverykey"
 	"github.com/Busnes-app/kyrecovery-server/internal/audit"
+	"github.com/Busnes-app/kyrecovery-server/internal/db"
 	"github.com/Busnes-app/kyrecovery-server/internal/server"
 )
 
@@ -118,5 +119,68 @@ func TestPoisonedLedgerRefusesDownloads(t *testing.T) {
 	}
 	if rr.Header().Get("Content-Disposition") != "" {
 		t.Fatal("the refused download still started sending a capsule")
+	}
+}
+
+func TestFailedAuditVerifyWarnsUntilSuccessfulVerifyButAcceptsDeposits(t *testing.T) {
+	srv, cookie, database := newAdminServer(t)
+	k, _ := recoverykey.Generate()
+	importKey(t, srv, cookie, k.Public(), 3, 5)
+	token, _ := pairProduct(t, srv, cookie, "kynotes")
+	// Remove an interior row, keeping the current tail and anchor intact.
+	var removed db.AuditRecord
+	for event, err := range database.IterAuditEvents(t.Context()) {
+		if err != nil {
+			t.Fatal(err)
+		}
+		removed = event
+		break
+	}
+	if err := database.DeleteAuditEventForTest(t.Context(), removed.Seq); err != nil {
+		t.Fatal(err)
+	}
+	if got := ask(t, srv, cookie, http.MethodPost, "/api/audit/verify"); got["valid"] != false || got["append_disabled"] == true {
+		t.Fatalf("verify: %v", got)
+	}
+	fresh := func() *server.Server {
+		s, err := server.New(server.Config{DataDir: t.TempDir()}, database, audit.NewLedger(database))
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(s.Close)
+		return s
+	}
+	srv = fresh() // failed evidence survives construction/restart
+	ready := ask(t, srv, cookie, http.MethodGet, "/api/readiness")
+	if ready["audit_chain_broken"] != true || ready["audit_append_disabled"] != false {
+		t.Fatalf("readiness: %v", ready)
+	}
+	w, health := getHealth(t, srv)
+	if w.Code != 200 || health.Checks[1].Status != "degraded" || health.Checks[1].Reason != "chain_broken" {
+		t.Fatalf("health: %d %+v", w.Code, health)
+	}
+	if rr := deposit(srv, token, sealFor(t, k.Public(), "kynotes")); rr.Code != http.StatusCreated {
+		t.Fatalf("deposit refused after failed verification: %d %s", rr.Code, rr.Body.String())
+	}
+	if ready := ask(t, srv, cookie, http.MethodGet, "/api/readiness"); ready["audit_chain_broken"] != true {
+		t.Fatal("deposit cleared warning")
+	}
+	count, hash, _, err := database.GetAuditAnchor(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := database.InsertAuditEventAndAnchor(t.Context(), removed, count, hash); err != nil {
+		t.Fatal(err)
+	}
+	if got := ask(t, srv, cookie, http.MethodPost, "/api/audit/verify"); got["valid"] != true {
+		t.Fatalf("repair verification: %v", got)
+	}
+	srv = fresh()
+	if ready := ask(t, srv, cookie, http.MethodGet, "/api/readiness"); ready["audit_chain_broken"] != false {
+		t.Fatalf("warning not cleared: %v", ready)
+	}
+	w, health = getHealth(t, srv)
+	if w.Code != 200 || health.Checks[1].Status != "ok" {
+		t.Fatalf("repaired health: %d %+v", w.Code, health)
 	}
 }

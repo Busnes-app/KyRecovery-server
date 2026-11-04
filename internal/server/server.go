@@ -328,6 +328,11 @@ func requiredRole(method, urlPath string) string {
 
 	// Capsule sub-resources: reading metadata is a viewer action, taking the
 	// sealed bytes off the server is not.
+	if strings.HasPrefix(urlPath, "/api/capsules/") && method == http.MethodPost {
+		if _, action := parseCapsulePath(urlPath); action == "verify" {
+			return auth.RoleOperator
+		}
+	}
 	if strings.HasPrefix(urlPath, "/api/capsules/") && method == http.MethodGet {
 		switch _, action := parseCapsulePath(urlPath); action {
 		case "download":
@@ -464,6 +469,7 @@ func (s *Server) handleReadiness(w http.ResponseWriter, r *http.Request) {
 		"capsule_count":         len(capsules),
 		"custodian_count":       len(custodians),
 		"audit_append_disabled": s.ledger.Healthy() != nil,
+		"audit_chain_broken":    s.ledger.VerificationFailed(),
 		"version":               appversion.String(), // the About dialog's pill; signed-in only
 	})
 }
@@ -531,14 +537,17 @@ func (s *Server) handleCapsuleDetail(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusServiceUnavailable, "Failed recording the download in the audit chain; download refused")
 			return
 		}
-		setWriteDeadline(w, capsuleTransferBudget)
+		transfer := newTransferDeadline(http.NewResponseController(w).SetWriteDeadline, capsuleTransferIdle, capsuleTransferMax)
+		defer http.NewResponseController(w).SetWriteDeadline(time.Time{})
 		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s.kycap", capsuleID))
 		w.Header().Set("Content-Type", "application/octet-stream")
 		w.Header().Set("X-Capsule-Digest", capRec.Digest)
 		w.Header().Set("X-Capsule-Status", capRec.Status)
 		// Streamed: a container may be up to capsule.MaxContainerBytes, which is not a
 		// thing to hold in memory once per concurrent download.
-		http.ServeContent(w, r, "", info.ModTime(), f)
+		http.ServeContent(&transferWriter{ResponseWriter: w, deadline: transfer}, r, "", info.ModTime(), f)
+		// Flush the final buffered bytes while the transfer deadline still applies.
+		_ = http.NewResponseController(w).Flush()
 
 	case "verify":
 		s.handleCapsuleVerify(w, r, capRec)
@@ -795,9 +804,6 @@ func (s *Server) handlePairingClaim(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusTooManyRequests, "Too many attempts for this pairing code")
 		return
 	}
-	if req.ServiceName == "" {
-		req.ServiceName = "generic"
-	}
 	if req.AppName == "" {
 		req.AppName = fmt.Sprintf("App-%s", req.PairingCode)
 	}
@@ -829,7 +835,7 @@ func (s *Server) handlePairingClaim(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.claimLimit.record(codeKey, now)
 		status := http.StatusBadRequest
-		if strings.Contains(err.Error(), "already consumed") {
+		if errors.Is(err, db.ErrPairingServiceMismatch) || strings.Contains(err.Error(), "already consumed") {
 			status = http.StatusConflict
 		}
 		writeError(w, status, err.Error())

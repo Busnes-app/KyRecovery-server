@@ -20,6 +20,10 @@ code; the response carries the API token **and** the key to seal to:
 }
 ```
 
+The generated `service_name` is authoritative: an omitted claim service inherits it;
+a different one gets `409` without consuming the code. Only `auto-declare` codes let
+the claimer choose a service (omission then keeps the `generic` default).
+
 If no recovery key has been imported the claim is refused with `409` and the
 pairing code is **not** consumed: run the ceremony before pairing anything.
 
@@ -39,7 +43,11 @@ body = a kycap/3 container sealed to the pinned public key.
 | `429 Too Many Requests` | More than 60 deposits from this product in 15 minutes. |
 | `503 Service Unavailable` | The audit ledger cannot append, or all 4 deposit slots are busy and the client went away. |
 
-`pkg/client` is the Go SDK for both halves: `ClaimPairingForService` (or `ClaimPairing`, which pairs as `generic`) and `Client.Deposit`.
+`pkg/client` is the Go SDK for both halves: `ClaimPairingForService` (a mismatched named code gets `409`) or `ClaimPairing` (inherits the generated service; `generic` only for an omitted service on an `auto-declare` code) and `Client.Deposit`.
+
+Deposit reads and capsule download writes renew a 5-minute no-progress deadline
+after each chunk that moves bytes, with a fixed 24-hour maximum. A reverse proxy
+may impose a shorter timeout; configure it for the intended transfer size and link.
 
 A stored capsule is replicated to every auto-sync offsite target configured
 under `/api/replication/targets`. A capsule marked corrupt, or whose file no longer

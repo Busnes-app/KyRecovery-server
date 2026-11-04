@@ -74,6 +74,11 @@ func (s *Server) markCorrupt(ctx context.Context, rec *db.CapsuleRecord, actor, 
 }
 
 func (s *Server) handleCapsuleVerify(w http.ResponseWriter, r *http.Request, rec *db.CapsuleRecord) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", http.MethodPost)
+		writeError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
 	valid, err := s.verifyCapsule(r.Context(), rec, s.actor(r))
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "Failed recording verification result")

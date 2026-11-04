@@ -43,14 +43,16 @@ type ClaimResponse struct {
 }
 
 // ClaimPairing exchanges a 6-digit PIN code for a permanent client Bearer token. It sends
-// no service name, so the server pairs the token as "generic"; a product whose capsules
-// name a service uses ClaimPairingForService.
+// no service name, so the token inherits the service chosen when the code was generated.
+// An auto-declare code with no claim service retains the generic default.
 func ClaimPairing(ctx context.Context, serverURL, pairingCode, appName string) (*Client, *ClaimResponse, error) {
 	return ClaimPairingForService(ctx, serverURL, pairingCode, appName, "")
 }
 
 // ClaimPairingForService is ClaimPairing for a named service: deposits are accepted only
-// for capsules whose manifest names the service the token was paired for.
+// for capsules whose manifest names the service the token was paired for. A named code
+// refuses a different service with HTTP 409 without consuming the code; auto-declare
+// codes accept the claimer's service.
 func ClaimPairingForService(ctx context.Context, serverURL, pairingCode, appName, serviceName string) (*Client, *ClaimResponse, error) {
 	payload := map[string]string{
 		"pairing_code": pairingCode,

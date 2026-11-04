@@ -213,3 +213,38 @@ test('Appearance follows the OS, persists across reload and synchronizes tabs', 
   const geometry = await page.evaluate(() => ({ width: innerWidth, content: document.documentElement.scrollWidth }));
   expect(geometry.content).toBeLessThanOrEqual(geometry.width + 1);
 });
+
+test('capsule verify button uses POST, hides from viewers and recovers from failure', async ({ page, vault }, testInfo) => {
+  await page.route('**/api/capsules', route => route.fulfill({ json: [{ id:'cap-browser', service_name:'kynotes', status:'active', deposited_at:new Date().toISOString(), size_bytes:128, threshold:3, total_shares:5 }] }));
+  let fail = true;
+  const methods = [];
+  await page.route('**/api/capsules/cap-browser/verify', route => {
+    methods.push(route.request().method());
+    return route.fulfill({ status:fail ? 503 : 200, json:fail ? {error:'Verification unavailable; try again.'} : {valid:true} });
+  });
+  await enter(page, vault);
+  await tab(page, 'Capsules');
+  await page.getByRole('button', { name:'Details for capsule cap-browser' }).click();
+  const verify = page.getByRole('button', { name:'Verify capsule', exact:true });
+  await expect(verify).toBeVisible();
+  await page.screenshot({ path:testInfo.outputPath('operator-verify.png'), fullPage:true });
+  await verify.click();
+  await expect(page.locator('#capsules-status')).toHaveText('Verification unavailable; try again.');
+  await expect(verify).toBeEnabled();
+  fail = false;
+  await verify.click();
+  await expect(page.locator('#capsules-status')).toHaveText('Stored bytes match the deposit digest.');
+  expect(methods).toEqual(['POST','POST']);
+  // Keep the server real; this response substitution checks only viewer presentation.
+  await page.route('**/api/auth/me', async route => {
+    const response = await route.fetch();
+    const body = await response.json();
+    body.user.role = 'viewer';
+    await route.fulfill({ response, json:body });
+  });
+  await page.reload();
+  await tab(page, 'Capsules');
+  await page.getByRole('button', { name:'Details for capsule cap-browser' }).click();
+  await expect(verify).toHaveCount(0);
+  await page.screenshot({ path:testInfo.outputPath('viewer-no-verify.png'), fullPage:true });
+});

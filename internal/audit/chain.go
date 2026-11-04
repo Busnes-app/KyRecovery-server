@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"iter"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/Busnes-app/ky-primitives/applysetup"
@@ -31,6 +32,8 @@ type Ledger struct {
 	chain *auditchain.Chain
 	err   error // set when the stored log does not match its anchor; every Record fails
 
+	verificationFailed atomic.Bool // persistent failed verify; never disables appends
+
 	lastPoisonLog time.Time // rate-limits the refusal log; a busy server would flood
 }
 
@@ -40,6 +43,11 @@ func NewLedger(database *db.DB) *Ledger {
 	l := &Ledger{db: database}
 	if database == nil {
 		return l
+	}
+	failed, err := database.GetSetting(context.Background(), "audit.verification_failed")
+	l.verificationFailed.Store(failed != "" || err != nil)
+	if err != nil {
+		defaultLogger.Error("ledger_verify_state", "system", "audit_events", "failed reading the last verification state", err)
 	}
 	l.key = database.Keyring().LedgerKey()
 	if err := l.resume(context.Background()); err != nil {
@@ -90,6 +98,10 @@ func toRecord(ar db.AuditRecord) auditchain.Record {
 // NewLedger and never written again, so callers read it without the lock: taking
 // it would queue them behind an in-flight append.
 func (l *Ledger) Healthy() error { return l.err }
+
+// VerificationFailed reports a failed full verification until a later successful one.
+// This evidence is independent of the append latch: backups keep being accepted.
+func (l *Ledger) VerificationFailed() bool { return l.verificationFailed.Load() }
 
 // Record appends a new event to the chain and emits a structured log line.
 func (l *Ledger) Record(ctx context.Context, action, actor, targetID string, details map[string]interface{}) (*db.AuditRecord, error) {
@@ -155,7 +167,7 @@ func (l *Ledger) record(ctx context.Context, action, actor, targetID string, det
 // Verify streams the whole log against the anchor and returns the anchor it was
 // checked against. It does not page: kyrecovery's previous verifier read a fixed
 // 100000 rows and reported a gap on a healthy chain past that.
-func (l *Ledger) Verify(ctx context.Context) (auditchain.Anchor, error) {
+func (l *Ledger) Verify(ctx context.Context) (anchor auditchain.Anchor, err error) {
 	if l.db == nil {
 		return auditchain.Anchor{}, nil
 	}
@@ -163,11 +175,29 @@ func (l *Ledger) Verify(ctx context.Context) (auditchain.Anchor, error) {
 	// and the last row makes a healthy chain look one record longer than its anchor.
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	defer func() {
+		if err == nil && !l.verificationFailed.Load() {
+			return
+		}
+		value := ""
+		if err != nil {
+			value = "true"
+		}
+		// Failed persistence must not turn a known failure into a healthy display.
+		l.verificationFailed.Store(true)
+		saveCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		defer cancel()
+		if saveErr := l.db.SetSetting(saveCtx, "audit.verification_failed", value); saveErr != nil {
+			err = errors.Join(err, fmt.Errorf("persisting audit verification result: %w", saveErr))
+			return
+		}
+		l.verificationFailed.Store(value != "")
+	}()
 	count, hash, found, err := l.db.GetAuditAnchor(ctx)
 	if err != nil {
 		return auditchain.Anchor{}, err
 	}
-	anchor := auditchain.Anchor{Count: count, Hash: hash}
+	anchor = auditchain.Anchor{Count: count, Hash: hash}
 	if !found {
 		// The package exports no genesis constant; a fresh chain is the empty anchor.
 		empty, err := auditchain.New(l.key)

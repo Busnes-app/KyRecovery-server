@@ -904,7 +904,11 @@ func (d *DB) GetPairedAppByToken(ctx context.Context, token string) (*PairedAppR
 	return &a, nil
 }
 
-// ClaimPairingCode consumes a pairing code and marks it paired with specific app name/service.
+// ErrPairingServiceMismatch leaves a code pending when the claimer names another service.
+var ErrPairingServiceMismatch = errors.New("claim service does not match the generated pairing service")
+
+// ClaimPairingCode consumes a code for its generated service. Only auto-declare lets
+// the claimer choose; an omitted service inherits the generated service.
 // It mints the product's API token here and stores only its hash, so the returned record is
 // the one and only place the token exists in plaintext.
 func (d *DB) ClaimPairingCode(ctx context.Context, code, serviceName, appName, recoveryKeyID string) (*PairedAppRecord, error) {
@@ -920,6 +924,17 @@ func (d *DB) ClaimPairingCode(ctx context.Context, code, serviceName, appName, r
 	}
 	if time.Now().After(app.ExpiresAt) {
 		return nil, errors.New("pairing code expired")
+	}
+
+	if app.ServiceName == "auto-declare" {
+		if serviceName == "" {
+			serviceName = "generic"
+		}
+	} else {
+		if serviceName != "" && serviceName != app.ServiceName {
+			return nil, ErrPairingServiceMismatch
+		}
+		serviceName = app.ServiceName
 	}
 
 	// The status and expiry guards live in the UPDATE so two concurrent claims of the same

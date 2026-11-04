@@ -4,6 +4,13 @@
 
 ### Security
 
+- Pairing codes keep the service selected at generation. An omitted claim service
+  inherits it; a mismatch gets `409` without consuming the code. Only `auto-declare`
+  codes accept the claimer's service (`generic` when omitted).
+- Capsule verification now requires an operator `POST`, protected against cross-origin
+  requests. GET returns `405`; the dashboard offers Verify capsule only to operators
+  and administrators.
+
 - Every dashboard write refuses a request from another origin, sibling subdomains included.
 - `KY_ADMIN_EMAIL` matches only an email the issuer marks verified (`email_verified: true`).
   Microsoft Entra does not send that claim by default: map a verified claim or use
@@ -27,6 +34,17 @@
   client shares the proxy's sign-in and pairing limits.
 
 ### Fixed
+
+- An incomplete deposit that times out keeps its read deadline while HTTP/1.1 finalizes
+  the error response, so it closes without waiting for more body bytes.
+
+- A failed full audit verification persists across restarts until a successful verify.
+  Overview says Chain broken, readiness reports `audit_chain_broken`, and `/healthz`
+  reports `chain_broken` in its body without changing HTTP status. Deposits continue
+  while the append latch is healthy.
+
+- Deposit reads and capsule download writes now allow 5 minutes without byte progress,
+  renewed per chunk, with a 24-hour maximum, replacing the fixed 15-minute timeout.
 
 - Replication never sends a capsule marked corrupt or whose file no longer matches its
   digest, so a bad local copy cannot overwrite a good replica.

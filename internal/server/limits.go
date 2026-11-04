@@ -37,18 +37,17 @@ const (
 	// maxPairingTTL caps how long a six-digit code stays guessable.
 	maxPairingTTL = 60 * time.Minute
 
-	// capsuleTransferBudget is how long one deposit or download may take end to end.
-	// A whole container at capsule.MaxContainerBytes needs roughly 430 KiB/s to finish
-	// inside it — slow enough to survive a bad link, short enough to bound a stuck peer.
-	capsuleTransferBudget = 15 * time.Minute
+	// Transfers may continue while bytes move, but stalled peers and total lifetime are bounded.
+	capsuleTransferIdle = 5 * time.Minute
+	capsuleTransferMax  = 24 * time.Hour
 )
 
 // defaultReadBudget is how long any one request has to deliver its body, and the value
 // Server.readBudget starts at. The listener sets no ReadTimeout — a capsule does not fit
 // one — so without this a client trickling a byte a second at a 1 MiB route would hold a
 // goroutine for as long as it liked: MaxBytesReader bounds the bytes, nothing bounded the
-// clock, and IdleTimeout does not apply mid-request. The two capsule routes raise it to
-// capsuleTransferBudget for themselves.
+// clock, and IdleTimeout does not apply mid-request. Deposits use sliding transfer
+// deadlines instead.
 const defaultReadBudget = 30 * time.Second
 
 // requestHasBody reports whether a request has anything left to read. Only those are
@@ -69,10 +68,6 @@ func requestHasBody(r *http.Request) bool { return r.ContentLength != 0 }
 // identity provider round trip before it writes a byte.
 func setReadDeadline(w http.ResponseWriter, d time.Duration) {
 	_ = http.NewResponseController(w).SetReadDeadline(time.Now().Add(d))
-}
-
-func setWriteDeadline(w http.ResponseWriter, d time.Duration) {
-	_ = http.NewResponseController(w).SetWriteDeadline(time.Now().Add(d))
 }
 
 // serviceNamePattern is what may appear in a capsule ID, and therefore in a

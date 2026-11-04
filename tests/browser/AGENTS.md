@@ -25,6 +25,8 @@ Browser tests qualify existing behavior without changing the product's documente
 - Empty Restore visibility is checked before pairing and after revoke/clear; the real pairing flow proves configured controls remain available.
 - Browser cases verify the retention policy disclosure, required endpoint labels for every preset, and escaped hostile ledger text in desktop/phone layouts.
 
+- Capsule detail Verify uses POST, recovers after an API failure, and hides for viewers; its browser case substitutes capsule/role responses for presentation only. Real role, method and cross-origin enforcement is in the Go HTTP regression tests.
+
 ## Verification
 
 `npm ci && npx playwright install chromium && npm test` from this directory.

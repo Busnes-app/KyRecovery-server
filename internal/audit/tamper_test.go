@@ -114,3 +114,43 @@ func TestChainRecomputedUnderAnotherKeyIsDetected(t *testing.T) {
 		t.Fatal("a chain recomputed under another key was reported as valid")
 	}
 }
+
+// Q5 B preserves new evidence after an interior edit. Its warning survives ledger
+// construction/restart and appends, and only a successful full verify clears it.
+func TestFailedVerificationPersistsWithoutBlockingAppends(t *testing.T) {
+	database, raw := openLedgerDB(t)
+	ledger := audit.NewLedger(database)
+	for _, action := range []string{"first", "second", "third"} {
+		if _, err := ledger.Record(t.Context(), action, "actor", "target", nil); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := raw.Exec(`UPDATE audit_events SET action = 'tampered' WHERE seq = 2`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := ledger.Verify(t.Context()); err == nil {
+		t.Fatal("tampered chain verified")
+	}
+	if !ledger.VerificationFailed() || ledger.Healthy() != nil {
+		t.Fatal("failed verification did not warn independently of append latch")
+	}
+	ledger = audit.NewLedger(database)
+	if !ledger.VerificationFailed() {
+		t.Fatal("warning did not survive ledger restart")
+	}
+	if _, err := ledger.Record(t.Context(), "new evidence", "actor", "target", nil); err != nil {
+		t.Fatalf("backup evidence blocked: %v", err)
+	}
+	if !ledger.VerificationFailed() {
+		t.Fatal("append cleared failed verify")
+	}
+	if _, err := raw.Exec(`UPDATE audit_events SET action = 'second' WHERE seq = 2`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := ledger.Verify(t.Context()); err != nil {
+		t.Fatalf("repaired chain: %v", err)
+	}
+	if ledger.VerificationFailed() || audit.NewLedger(database).VerificationFailed() {
+		t.Fatal("successful verify did not clear persistent warning")
+	}
+}
