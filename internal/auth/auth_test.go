@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/Busnes-app/kyrecovery-server/internal/auth"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
@@ -133,5 +134,27 @@ func TestSSORoleChangeEndsSessionsWithTheOldRole(t *testing.T) {
 		if s, _ := database.GetSession(t.Context(), id); (s != nil) != want {
 			t.Fatalf("session %s alive = %v, want %v", id[:6], s != nil, want)
 		}
+	}
+}
+
+// Callbacks can finish out of order. An admin sign-in whose ID token predates the viewer
+// sign-in that already completed is the stale grant: it is refused and the viewer stays.
+func TestStaleSSOCallbackCannotRestoreTheOldRole(t *testing.T) {
+	database, err := db.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	m := auth.NewManager(auth.OIDCConfig{}, database)
+	now := time.Now().UTC()
+	viewer, err := m.CreateSession(t.Context(), &auth.UserInfo{Issuer: "https://id.example", Subject: "s1", Role: auth.RoleViewer, IssuedAt: now}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := m.CreateSession(t.Context(), &auth.UserInfo{Issuer: "https://id.example", Subject: "s1", Role: auth.RoleAdmin, IssuedAt: now.Add(-time.Minute)}, false); err == nil {
+		t.Fatal("a stale admin callback created a session")
+	}
+	if s, _ := database.GetSession(t.Context(), viewer.Value); s == nil {
+		t.Fatal("the stale callback ended the newer viewer session")
 	}
 }

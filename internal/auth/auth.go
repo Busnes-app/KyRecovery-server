@@ -675,9 +675,9 @@ func (m *Manager) CreateSession(ctx context.Context, u *UserInfo, secure bool) (
 	if rec.NativeSSO && rec.SSOIssuer != "" {
 		// SSO roles follow the identity provider: a sign-in with a new role ends the
 		// subject's sessions that still carry the old one.
-		if err := m.db.EndSSORoleChange(ctx, rec.SSOIssuer, rec.SSOSubject, rec.Role, sessionID); err != nil {
+		if err := m.db.EndSSORoleChange(ctx, rec); err != nil {
 			_ = m.db.DeleteSession(ctx, sessionID)
-			return nil, fmt.Errorf("failed ending sessions with the previous role: %w", err)
+			return nil, fmt.Errorf("applying the SSO role: %w", err)
 		}
 	}
 

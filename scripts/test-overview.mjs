@@ -119,8 +119,8 @@ for (const failure of ['http', 'network', 'json']) {
     [context.copiesEvidence([{ status: 'success', last_sync_at: day }]), 'ok'],
     // A later success on another capsule does not make a missing copy current.
     [context.copiesEvidence([{ status: 'success', last_sync_at: day, unreplicated: 1 }]), 'attention'],
-    // The last transfer failed, but every intact capsule is already on the target.
-    [context.copiesEvidence([{ status: 'failed', last_sync_at: day, unreplicated: 0 }]), 'ok'],
+    // A failed last transfer stays visible even when every capsule has a copy on record.
+    [context.copiesEvidence([{ status: 'failed', last_sync_at: day, unreplicated: 0 }]), 'failing'],
   ];
   assert(!/^All /.test(context.backupsEvidence(report([svc, svc], { ok: 1, pending: 1 }))[1]), 'a pending service is not backed up');
   for (const [[state, summary, label, go], want, target] of cases) {

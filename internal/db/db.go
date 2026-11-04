@@ -1221,12 +1221,28 @@ func (d *DB) DeleteUserSessionsExcept(ctx context.Context, userID, keepSessionID
 	return err
 }
 
-// EndSSORoleChange ends the other sessions of an SSO subject that carry a role other than
-// role: the identity provider's mapping changed, and the old grant must not outlive it.
-func (d *DB) EndSSORoleChange(ctx context.Context, issuer, subject, role, keepSessionID string) error {
-	_, err := d.conn.ExecContext(ctx, `DELETE FROM sessions WHERE sso_issuer = ? AND sso_subject = ? AND role != ? AND id != ?`,
-		issuer, subject, role, tokenHash(keepSessionID))
-	return err
+// ErrRoleSuperseded refuses a sign-in whose ID token is older than one already used to
+// sign the same subject in with another role.
+var ErrRoleSuperseded = errors.New("a newer sign-in carries another role")
+
+// EndSSORoleChange applies the role of the session s just inserted to its SSO subject,
+// ordered by ID-token issue time (created_at): sessions issued earlier with another role
+// end, and if a later one carries another role, s itself is the stale grant and ends.
+// Each racing callback runs both statements after its insert, so the newest token wins.
+func (d *DB) EndSSORoleChange(ctx context.Context, s SessionRecord) error {
+	if _, err := d.conn.ExecContext(ctx, `DELETE FROM sessions WHERE sso_issuer = ? AND sso_subject = ? AND role != ? AND id != ? AND created_at < ?`,
+		s.SSOIssuer, s.SSOSubject, s.Role, tokenHash(s.ID), s.CreatedAt.UTC()); err != nil {
+		return err
+	}
+	var newer bool
+	if err := d.conn.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM sessions WHERE sso_issuer = ? AND sso_subject = ? AND role != ? AND created_at > ?)`,
+		s.SSOIssuer, s.SSOSubject, s.Role, s.CreatedAt.UTC()).Scan(&newer); err != nil {
+		return err
+	}
+	if newer {
+		return ErrRoleSuperseded
+	}
+	return nil
 }
 
 // DeleteSession removes a session, given its raw ID, from SQLite.
@@ -1252,8 +1268,22 @@ func (d *DB) InsertReplicationTarget(ctx context.Context, t ReplicationTargetRec
 	if err != nil {
 		return fmt.Errorf("failed sealing replication secret key: %w", err)
 	}
-	_, err = d.conn.ExecContext(ctx, q, t.ID, t.Name, t.Type, t.Endpoint, t.Bucket, t.Region, t.AccessKey, sealedSecret, t.Prefix, t.HostKey, autoSyncInt, t.Status, t.LastSyncAt, t.CreatedAt.UTC())
-	return err
+	tx, err := d.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	// A target pointed somewhere else holds none of the copies its logs record: they go,
+	// so every capsule counts as unreplicated there until it is copied again.
+	if _, err := tx.ExecContext(ctx, `DELETE FROM replication_logs WHERE target_id = ? AND EXISTS (SELECT 1 FROM replication_targets
+	      WHERE id = ? AND (type != ? OR endpoint != ? OR bucket != ? OR region != ? OR prefix != ?))`,
+		t.ID, t.ID, t.Type, t.Endpoint, t.Bucket, t.Region, t.Prefix); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, q, t.ID, t.Name, t.Type, t.Endpoint, t.Bucket, t.Region, t.AccessKey, sealedSecret, t.Prefix, t.HostKey, autoSyncInt, t.Status, t.LastSyncAt, t.CreatedAt.UTC()); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // GetReplicationTarget returns a target by ID.

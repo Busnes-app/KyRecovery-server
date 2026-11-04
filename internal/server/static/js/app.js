@@ -339,11 +339,11 @@ function copiesEvidence(targets) {
   if (targets.length === 0) return ['missing', 'No offsite copy. Every capsule exists only on this server.', 'Add a target', 'tab-replication'];
   // A target's status is only its last transfer; unreplicated counts the capsules it lacks.
   const n = targets.length, behind = targets.filter(t => t.status !== 'disabled' && t.unreplicated > 0);
-  const failing = behind.filter(t => t.status === 'failed' || t.status === 'error').length;
+  const failing = targets.filter(t => t.status === 'failed' || t.status === 'error').length;
   const missing = behind.reduce((sum, t) => sum + t.unreplicated, 0);
   const synced = newestTime(targets.map(t => t.last_sync_at));
   const of = x => `${x} of ${n} target${n === 1 ? '' : 's'}`;
-  if (failing) return ['failing', `${of(failing)} failed the last sync; ${missing} capsule cop${missing === 1 ? 'y is' : 'ies are'} missing.`, 'View replication', 'tab-replication'];
+  if (failing) return ['failing', `${of(failing)} failed the last sync.`, 'View replication', 'tab-replication'];
   if (!synced) return ['attention', `${of(n)} configured, never synced.`, 'View replication', 'tab-replication'];
   if (behind.length) return ['attention', `${of(behind.length)} ${behind.length === 1 ? 'lacks' : 'lack'} ${missing} capsule cop${missing === 1 ? 'y' : 'ies'}. Use Sync all on the Replication tab.`, 'View replication', 'tab-replication'];
   return ['ok', `${n} target${n === 1 ? '' : 's'}, last synced ${fmtAgo(synced)}.`, 'View replication', 'tab-replication'];
