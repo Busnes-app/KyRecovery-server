@@ -22,7 +22,7 @@ func TestUnreplicatedCountsCapsulesWithoutACopy(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []string{"a", "b", "c"} {
+	for _, id := range []string{"a", "b", "c", "d"} {
 		if err := database.InsertCapsule(ctx, db.CapsuleRecord{ID: id, ServiceName: "kynotes", FilePath: "/x/" + id,
 			Digest: id, Status: "active", CreatedAt: time.Now().UTC()}); err != nil {
 			t.Fatal(err)
@@ -35,7 +35,9 @@ func TestUnreplicatedCountsCapsulesWithoutACopy(t *testing.T) {
 	}
 	logAt("a", "failed") // a: failed, never copied
 	logAt("b", "success")
-	logAt("b", "failed") // b: a later failed retry does not remove the copy
+	logAt("b", "failed") // b: the newest transfer failed, so the replica is in doubt
+	logAt("d", "failed")
+	logAt("d", "success") // d: a retry that succeeded is a copy
 	if err := database.SetCapsuleStatus(ctx, "c", "corrupt"); err != nil {
 		t.Fatal(err) // c: corrupt capsules are never replicated, so they are not missing
 	}
@@ -43,8 +45,8 @@ func TestUnreplicatedCountsCapsulesWithoutACopy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if counts["t1"] != 1 {
-		t.Fatalf("unreplicated = %d, want 1 (capsule a)", counts["t1"])
+	if counts["t1"] != 2 {
+		t.Fatalf("unreplicated = %d, want 2 (capsules a and b)", counts["t1"])
 	}
 }
 

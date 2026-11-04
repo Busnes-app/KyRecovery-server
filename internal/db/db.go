@@ -463,7 +463,7 @@ func (d *DB) migrate() error {
 	CREATE INDEX IF NOT EXISTS idx_paired_token ON paired_apps(api_token);
 	CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 	CREATE INDEX IF NOT EXISTS idx_repl_logs_target ON replication_logs(target_id);
-	CREATE INDEX IF NOT EXISTS idx_repl_logs_copy ON replication_logs(target_id, capsule_id, status);
+	CREATE INDEX IF NOT EXISTS idx_repl_logs_copy ON replication_logs(target_id, capsule_id, id);
 	`
 
 	if _, err := d.conn.Exec(schema); err != nil {
@@ -1338,12 +1338,14 @@ func (d *DB) ListReplicationTargets(ctx context.Context) ([]ReplicationTargetRec
 	return list, rows.Err()
 }
 
-// UnreplicatedCounts returns, per target ID, how many capsules not marked corrupt have
-// never been copied to it successfully. Capsules are immutable, so one success is a copy.
+// UnreplicatedCounts returns, per target ID, how many capsules not marked corrupt have no
+// copy there on record: no transfer to it, or a newest transfer that failed. A failure
+// after a success can mean the replica no longer matches (SMB checks before it overwrites).
 func (d *DB) UnreplicatedCounts(ctx context.Context) (map[string]int, error) {
 	rows, err := d.conn.QueryContext(ctx, `SELECT t.id, COUNT(c.id) FROM replication_targets t
 	      JOIN capsules c ON c.status != 'corrupt'
-	      WHERE NOT EXISTS (SELECT 1 FROM replication_logs l WHERE l.target_id = t.id AND l.capsule_id = c.id AND l.status = 'success')
+	      WHERE NOT EXISTS (SELECT 1 FROM replication_logs l WHERE l.target_id = t.id AND l.capsule_id = c.id AND l.status = 'success'
+	            AND NOT EXISTS (SELECT 1 FROM replication_logs n WHERE n.target_id = t.id AND n.capsule_id = c.id AND n.id > l.id))
 	      GROUP BY t.id`)
 	if err != nil {
 		return nil, err
