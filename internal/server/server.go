@@ -338,6 +338,19 @@ func requiredRole(method, urlPath string) string {
 	return auth.RoleAdmin
 }
 
+// crossOrigin allows safe methods and same-origin or non-browser requests.
+var crossOrigin = http.NewCrossOriginProtection()
+
+// notCookieAuthenticated lists the /api/ routes that carry their own credential (a product
+// token, a pairing code, a signed logout token or directory) and are never called by the
+// dashboard, so the cross-origin check does not apply to them.
+var notCookieAuthenticated = map[string]bool{
+	"/api/backup/deposit":          true,
+	"/api/pairing/claim":           true,
+	"/api/auth/backchannel-logout": true,
+	"/api/installer/directory":     true,
+}
+
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Security headers
 	w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -366,6 +379,17 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if path.Clean(r.URL.Path) != r.URL.Path {
 			writeError(w, http.StatusBadRequest, "Bad Request: path is not canonical")
 			return
+		}
+
+		// A session cookie is SameSite=Lax, so a page on the same site (a sibling subdomain,
+		// another port) can still send it with a text/plain POST. Every cookie-authenticated
+		// write is therefore refused when the browser says it came from another origin.
+		// Routes whose credential is not a cookie are called by products and peers.
+		if !notCookieAuthenticated[r.URL.Path] {
+			if err := crossOrigin.Check(r); err != nil {
+				writeError(w, http.StatusForbidden, "Forbidden: cross-origin request")
+				return
+			}
 		}
 
 		if required := requiredRole(r.Method, r.URL.Path); required != rolePublic {
@@ -748,9 +772,13 @@ func (s *Server) handlePairingClaim(w http.ResponseWriter, r *http.Request) {
 	}
 
 	now := time.Now()
-	ipKey := "ip:" + s.clientIP(r)
+	ipKey := "ip:" + limitAddr(s.clientIP(r))
 	if s.claimLimit.exceeded(ipKey, claimAttemptsPerIP, now) {
 		writeError(w, http.StatusTooManyRequests, "Too many pairing attempts from this address")
+		return
+	}
+	if s.claimLimit.exceeded(claimGlobalKey, claimFailuresGlobal, now) {
+		writeError(w, http.StatusTooManyRequests, "Too many failed pairing attempts; try again later")
 		return
 	}
 
@@ -788,6 +816,7 @@ func (s *Server) handlePairingClaim(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.claimLimit.record(ipKey, now)
 		s.claimLimit.record(codeKey, now)
+		s.claimLimit.record(claimGlobalKey, now)
 		status := http.StatusBadRequest
 		if strings.Contains(err.Error(), "already consumed") {
 			status = http.StatusConflict
@@ -900,20 +929,34 @@ func (s *Server) handleAuthLoginLocal(w http.ResponseWriter, r *http.Request) {
 
 	// Argon2id makes each guess expensive for the server as well as the attacker,
 	// so unauthenticated login attempts are capped per source address and per account.
+	// The account cap is per account and address: keyed on the account alone, five bad
+	// passwords from anywhere would lock the admin out. An exhausted account answers
+	// like a wrong password, so the cap tells a guesser nothing.
 	now := time.Now()
-	ipKey := "login-ip:" + s.clientIP(r)
-	accKey := "login-user:" + strings.ToLower(strings.TrimSpace(req.Username))
-	if s.loginLimit.exceeded(ipKey, loginAttemptsPerIP, now) || s.loginLimit.exceeded(accKey, loginAttemptsPerAcc, now) {
+	addr := limitAddr(s.clientIP(r))
+	// The claimed name goes into the append-only ledger; an unauthenticated caller
+	// must not be able to grow it by a megabyte per attempt.
+	claimed := req.Username
+	if len(claimed) > 64 {
+		claimed = strings.ToValidUTF8(claimed[:64], "")
+	}
+	ipKey := "login-ip:" + addr
+	accKey := "login-user:" + addr + "|" + strings.ToLower(strings.TrimSpace(claimed))
+	if s.loginLimit.exceeded(ipKey, loginAttemptsPerIP, now) {
 		writeError(w, http.StatusTooManyRequests, "Too many failed sign-in attempts; try again later")
 		return
 	}
 
-	userInfo, err := s.authMgr.AuthenticateLocal(r.Context(), req.Username, req.Password)
+	var userInfo *auth.UserInfo
+	err := errors.New("invalid username or password")
+	if !s.loginLimit.exceeded(accKey, loginAttemptsPerAcc, now) {
+		userInfo, err = s.authMgr.AuthenticateLocal(r.Context(), req.Username, req.Password)
+	}
 	if err != nil {
 		s.loginLimit.record(ipKey, now)
 		s.loginLimit.record(accKey, now)
 		_, _ = s.ledger.Record(r.Context(), "user_login_failed", "anonymous", s.clientIP(r),
-			map[string]interface{}{"claimed_username": req.Username})
+			map[string]interface{}{"claimed_username": claimed})
 		writeError(w, http.StatusUnauthorized, err.Error())
 		return
 	}
@@ -1049,9 +1092,13 @@ func (s *Server) handleSSOConfig(w http.ResponseWriter, r *http.Request) {
 			"client_id":  req.ClientID,
 		})
 
+		saved := s.authMgr.GetConfig()
+		if saved.ClientSecret != "" {
+			saved.ClientSecret = "••••••••" // masked as GET masks it; the secret never leaves the store
+		}
 		writeJSON(w, http.StatusOK, map[string]interface{}{
 			"status":  "saved",
-			"config":  s.authMgr.GetConfig(),
+			"config":  saved,
 			"enabled": s.authMgr.IsEnabled(),
 		})
 

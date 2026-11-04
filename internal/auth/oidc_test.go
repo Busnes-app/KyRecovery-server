@@ -126,14 +126,15 @@ func TestExchangeCodeVerifiesIDToken(t *testing.T) {
 
 	base := func() map[string]interface{} {
 		return map[string]interface{}{
-			"iss":   iss.URL,
-			"aud":   clientID,
-			"sub":   "user-1",
-			"email": "operator@example.com",
-			"name":  "Ops Person",
-			"nonce": nonce,
-			"exp":   time.Now().Add(time.Hour).Unix(),
-			"iat":   time.Now().Unix(),
+			"iss":            iss.URL,
+			"aud":            clientID,
+			"sub":            "user-1",
+			"email":          "operator@example.com",
+			"email_verified": true,
+			"name":           "Ops Person",
+			"nonce":          nonce,
+			"exp":            time.Now().Add(time.Hour).Unix(),
+			"iat":            time.Now().Unix(),
 		}
 	}
 	withClaim := func(k string, v interface{}) map[string]interface{} {
@@ -310,5 +311,39 @@ func TestAuthorizationEndpointRetainsQuery(t *testing.T) {
 	}
 	if u.Query().Get("audience") != "retained" || u.Query().Get("state") != "actual-state" || u.Query().Get("nonce") != "actual-nonce" {
 		t.Fatalf("authorization parameters changed: %v", u.Query())
+	}
+}
+
+// An issuer may let a user type any address. Only a verified one is kept, so an unverified
+// claim of the configured admin address does not promote the login.
+func TestUnverifiedEmailNeverPromotesToAdmin(t *testing.T) {
+	iss := newFakeIssuer(t)
+	const nonce = "nonce-verified"
+	claims := func(verified any) map[string]interface{} {
+		c := map[string]interface{}{"iss": iss.URL, "aud": "kyrecovery", "sub": "user-2", "email": "boss@example.com",
+			"nonce": nonce, "exp": time.Now().Add(time.Hour).Unix(), "iat": time.Now().Unix()}
+		if verified != nil {
+			c["email_verified"] = verified
+		}
+		return c
+	}
+	iss.tokens["absent"] = iss.sign(t, iss.key, claims(nil))
+	iss.tokens["false"] = iss.sign(t, iss.key, claims(false))
+	iss.tokens["string"] = iss.sign(t, iss.key, claims("true"))
+	iss.tokens["verified"] = iss.sign(t, iss.key, claims(true))
+	mgr := auth.NewManager(auth.OIDCConfig{Enabled: true, IssuerURL: iss.URL, ClientID: "kyrecovery",
+		RedirectURL: "http://localhost:8095/api/auth/callback", AdminEmail: "boss@example.com"}, nil)
+	for _, code := range []string{"absent", "false", "string"} {
+		info, err := mgr.ExchangeCode(context.Background(), code, "verifier", nonce)
+		if err != nil {
+			t.Fatalf("%s: %v", code, err)
+		}
+		if info.Role == auth.RoleAdmin || info.Email != "" {
+			t.Fatalf("%s: unverified address kept or promoted: %+v", code, info)
+		}
+	}
+	info, err := mgr.ExchangeCode(context.Background(), "verified", "verifier", nonce)
+	if err != nil || info.Role != auth.RoleAdmin {
+		t.Fatalf("verified admin address: %+v %v", info, err)
 	}
 }

@@ -581,11 +581,14 @@ func (m *Manager) verifyIDToken(ctx context.Context, verifier *oidc.IDTokenVerif
 	}
 
 	var claims struct {
-		SID   string   `json:"sid"`
-		Email string   `json:"email"`
-		Name  string   `json:"name"`
-		Role  string   `json:"role"`
-		Roles []string `json:"roles"`
+		SID   string `json:"sid"`
+		Email string `json:"email"`
+		// any, not bool: some issuers send "true" as a string, and a type error here
+		// would refuse the whole login rather than just the email.
+		EmailVerified any      `json:"email_verified"`
+		Name          string   `json:"name"`
+		Role          string   `json:"role"`
+		Roles         []string `json:"roles"`
 	}
 	if err := idToken.Claims(&claims); err != nil {
 		return nil, fmt.Errorf("failed reading id_token claims: %w", err)
@@ -594,6 +597,11 @@ func (m *Manager) verifyIDToken(ctx context.Context, verifier *oidc.IDTokenVerif
 	role := claims.Role
 	if role == "" && len(claims.Roles) > 0 {
 		role = claims.Roles[0]
+	}
+	// An address the issuer has not verified is a profile field anyone may have typed:
+	// it is kept only when verified, so it can neither match AdminEmail nor name an actor.
+	if claims.EmailVerified != true {
+		claims.Email = ""
 	}
 
 	return &UserInfo{
@@ -668,13 +676,20 @@ func (m *Manager) CreateSession(ctx context.Context, u *UserInfo, secure bool) (
 }
 
 // GetSession retrieves the current session from request cookie or Authorization header.
-func (m *Manager) GetSession(ctx context.Context, r *http.Request) (*db.SessionRecord, error) {
-	sessionID := ""
+// sessionToken is the session a request presents: the cookie, else a bearer token.
+// Authentication and logout both read it here, so logout ends the session that was used.
+func sessionToken(r *http.Request) string {
 	if cookie, err := r.Cookie(SessionCookieName); err == nil && cookie.Value != "" {
-		sessionID = cookie.Value
-	} else if authHeader := r.Header.Get("Authorization"); strings.HasPrefix(authHeader, "Bearer ") {
-		sessionID = strings.TrimPrefix(authHeader, "Bearer ")
+		return cookie.Value
 	}
+	if authHeader := r.Header.Get("Authorization"); strings.HasPrefix(authHeader, "Bearer ") {
+		return strings.TrimPrefix(authHeader, "Bearer ")
+	}
+	return ""
+}
+
+func (m *Manager) GetSession(ctx context.Context, r *http.Request) (*db.SessionRecord, error) {
+	sessionID := sessionToken(r)
 	if sessionID == "" {
 		return nil, nil
 	}
@@ -700,8 +715,8 @@ func (m *Manager) GetSession(ctx context.Context, r *http.Request) (*db.SessionR
 
 // InvalidateSession deletes the current session and clears the cookie.
 func (m *Manager) InvalidateSession(ctx context.Context, r *http.Request) *http.Cookie {
-	if cookie, err := r.Cookie(SessionCookieName); err == nil && cookie.Value != "" {
-		_ = m.db.DeleteSession(ctx, cookie.Value)
+	if sessionID := sessionToken(r); sessionID != "" {
+		_ = m.db.DeleteSession(ctx, sessionID)
 	}
 	return &http.Cookie{
 		Name:     SessionCookieName,

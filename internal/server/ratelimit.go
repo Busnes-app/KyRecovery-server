@@ -13,7 +13,22 @@ const (
 	claimWindow          = 15 * time.Minute
 	claimAttemptsPerIP   = 10
 	claimAttemptsPerCode = 5
+	// The per-code count is keyed on the guess, so it cannot stop enumeration, and one
+	// IPv6 /64 or a botnet has many addresses. Failed claims from everywhere share one
+	// budget: at 100 per window, a pending code survives a window with odds of 9,000 to 1.
+	claimFailuresGlobal = 100
+	claimGlobalKey      = "claim-global"
 )
+
+// limitAddr is the address a limit is charged to: an IPv6 client controls its whole /64,
+// so it is one source; IPv4 addresses stand alone.
+func limitAddr(ip string) string {
+	addr := net.ParseIP(ip)
+	if addr == nil || addr.To4() != nil {
+		return ip
+	}
+	return addr.Mask(net.CIDRMask(64, 128)).String() + "/64"
+}
 
 // rateLimiter is a fixed-window attempt counter.
 // ponytail: per-process only; move the counts to SQLite or Redis if KyRecovery is ever load-balanced.
