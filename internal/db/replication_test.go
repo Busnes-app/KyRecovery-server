@@ -84,3 +84,37 @@ func TestRepointedTargetForgetsItsCopies(t *testing.T) {
 		t.Fatalf("re-pointed target still counts the old copy: %v", counts)
 	}
 }
+
+// A transfer that started before the target was re-pointed finishes afterwards: its bytes
+// went to the old destination, so it is stored as failed and the capsule stays missing.
+func TestTransferFinishingAfterARepointIsNotACopy(t *testing.T) {
+	ctx := t.Context()
+	database, err := db.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	old := db.ReplicationTargetRecord{ID: "t1", Name: "R2", Type: "s3", Endpoint: "https://r2.example", Bucket: "a", Region: "auto",
+		AccessKey: "k1", Prefix: "capsules/", AutoSync: true, Status: "active", CreatedAt: time.Now().UTC()}
+	if err := database.InsertReplicationTarget(ctx, old); err != nil {
+		t.Fatal(err)
+	}
+	if err := database.InsertCapsule(ctx, db.CapsuleRecord{ID: "a", ServiceName: "kynotes", FilePath: "/x/a", Digest: "a", Status: "active", CreatedAt: time.Now().UTC()}); err != nil {
+		t.Fatal(err)
+	}
+	log := db.ReplicationLogRecord{TargetID: "t1", CapsuleID: "a", Status: "success", CreatedAt: time.Now().UTC()}
+	if got, err := database.RecordReplication(ctx, log, old); err != nil || got != "success" {
+		t.Fatalf("transfer to the current destination stored %q, %v", got, err)
+	}
+	moved := old
+	moved.AccessKey = "k2" // another account is another destination
+	if err := database.InsertReplicationTarget(ctx, moved); err != nil {
+		t.Fatal(err)
+	}
+	if got, err := database.RecordReplication(ctx, log, old); err != nil || got != "failed" {
+		t.Fatalf("transfer to the old destination stored %q, %v", got, err)
+	}
+	if counts, _ := database.UnreplicatedCounts(ctx); counts["t1"] != 1 {
+		t.Fatalf("unreplicated = %v, want the capsule missing on the new destination", counts)
+	}
+}

@@ -158,3 +158,25 @@ func TestStaleSSOCallbackCannotRestoreTheOldRole(t *testing.T) {
 		t.Fatal("the stale callback ended the newer viewer session")
 	}
 }
+
+// Two sign-ins with different roles and ID tokens from the same second cannot be ordered,
+// so neither grant stands: both sessions end and the user signs in again.
+func TestSSORoleTieFailsClosed(t *testing.T) {
+	database, err := db.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	m := auth.NewManager(auth.OIDCConfig{}, database)
+	at := time.Now().UTC().Truncate(time.Second)
+	admin, err := m.CreateSession(t.Context(), &auth.UserInfo{Issuer: "https://id.example", Subject: "s1", Role: auth.RoleAdmin, IssuedAt: at}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := m.CreateSession(t.Context(), &auth.UserInfo{Issuer: "https://id.example", Subject: "s1", Role: auth.RoleViewer, IssuedAt: at}, false); err == nil {
+		t.Fatal("a same-second sign-in with another role was accepted")
+	}
+	if s, _ := database.GetSession(t.Context(), admin.Value); s != nil {
+		t.Fatal("the same-second admin session survived a viewer sign-in")
+	}
+}

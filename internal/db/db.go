@@ -1230,6 +1230,16 @@ var ErrRoleSuperseded = errors.New("a newer sign-in carries another role")
 // end, and if a later one carries another role, s itself is the stale grant and ends.
 // Each racing callback runs both statements after its insert, so the newest token wins.
 func (d *DB) EndSSORoleChange(ctx context.Context, s SessionRecord) error {
+	// Tokens issued in the same second cannot be ordered: both grants end (fail closed),
+	// and the user signs in again with a fresh token.
+	tie, err := d.conn.ExecContext(ctx, `DELETE FROM sessions WHERE sso_issuer = ? AND sso_subject = ? AND role != ? AND id != ? AND created_at = ?`,
+		s.SSOIssuer, s.SSOSubject, s.Role, tokenHash(s.ID), s.CreatedAt.UTC())
+	if err != nil {
+		return err
+	}
+	if n, err := tie.RowsAffected(); err != nil || n > 0 {
+		return ErrRoleSuperseded
+	}
 	if _, err := d.conn.ExecContext(ctx, `DELETE FROM sessions WHERE sso_issuer = ? AND sso_subject = ? AND role != ? AND id != ? AND created_at < ?`,
 		s.SSOIssuer, s.SSOSubject, s.Role, tokenHash(s.ID), s.CreatedAt.UTC()); err != nil {
 		return err
@@ -1276,8 +1286,8 @@ func (d *DB) InsertReplicationTarget(ctx context.Context, t ReplicationTargetRec
 	// A target pointed somewhere else holds none of the copies its logs record: they go,
 	// so every capsule counts as unreplicated there until it is copied again.
 	if _, err := tx.ExecContext(ctx, `DELETE FROM replication_logs WHERE target_id = ? AND EXISTS (SELECT 1 FROM replication_targets
-	      WHERE id = ? AND (type != ? OR endpoint != ? OR bucket != ? OR region != ? OR prefix != ?))`,
-		t.ID, t.ID, t.Type, t.Endpoint, t.Bucket, t.Region, t.Prefix); err != nil {
+	      WHERE id = ? AND (type != ? OR endpoint != ? OR bucket != ? OR region != ? OR prefix != ? OR access_key != ?))`,
+		t.ID, t.ID, t.Type, t.Endpoint, t.Bucket, t.Region, t.Prefix, t.AccessKey); err != nil {
 		return err
 	}
 	if _, err := tx.ExecContext(ctx, q, t.ID, t.Name, t.Type, t.Endpoint, t.Bucket, t.Region, t.AccessKey, sealedSecret, t.Prefix, t.HostKey, autoSyncInt, t.Status, t.LastSyncAt, t.CreatedAt.UTC()); err != nil {
@@ -1384,6 +1394,22 @@ func (d *DB) InsertReplicationLog(ctx context.Context, l ReplicationLogRecord) e
 	      VALUES (?, ?, ?, ?, ?, ?, ?)`
 	_, err := d.conn.ExecContext(ctx, q, l.TargetID, l.CapsuleID, l.BytesTransferred, l.DurationMs, l.Status, l.ErrorMessage, l.CreatedAt.UTC())
 	return err
+}
+
+// RecordReplication logs a transfer made to destination t and returns the status stored.
+// A target re-pointed (or its account changed) while the transfer ran no longer names the
+// place the bytes went, so the result is stored as failed: the copy is not on record for
+// the new destination. One statement, so a re-point either lands first or deletes it.
+func (d *DB) RecordReplication(ctx context.Context, l ReplicationLogRecord, t ReplicationTargetRecord) (string, error) {
+	var status string
+	err := d.conn.QueryRowContext(ctx, `INSERT INTO replication_logs (target_id, capsule_id, bytes_transferred, duration_ms, status, error_message, created_at)
+	      SELECT ?, ?, ?, ?, CASE WHEN same THEN ? ELSE 'failed' END, CASE WHEN same THEN ? ELSE 'the target was re-pointed during the transfer' END, ?
+	      FROM (SELECT EXISTS (SELECT 1 FROM replication_targets WHERE id = ? AND type = ? AND endpoint = ? AND bucket = ?
+	            AND region = ? AND prefix = ? AND access_key = ?) AS same)
+	      RETURNING status`,
+		l.TargetID, l.CapsuleID, l.BytesTransferred, l.DurationMs, l.Status, l.ErrorMessage, l.CreatedAt.UTC(),
+		t.ID, t.Type, t.Endpoint, t.Bucket, t.Region, t.Prefix, t.AccessKey).Scan(&status)
+	return status, err
 }
 
 // ListReplicationLogs returns recent transfer logs.

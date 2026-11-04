@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -66,7 +67,10 @@ func (m *Manager) SyncCapsule(ctx context.Context, capsuleID, targetID string) (
 
 	// A caller that hung up cancelled the transfer, not the record of it.
 	done := context.WithoutCancel(ctx)
-	_ = m.db.InsertReplicationLog(done, logRec)
+	if stored, err := m.db.RecordReplication(done, logRec, *target); err == nil && stored != status {
+		status, logRec.Status, logRec.ErrorMessage = stored, stored, "the target was re-pointed during the transfer"
+		transferErr = errors.New(logRec.ErrorMessage)
+	}
 	_ = m.db.UpdateReplicationTargetLastSync(done, target.ID, status)
 
 	if m.ledger != nil {
