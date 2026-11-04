@@ -5,6 +5,7 @@ import (
 	"crypto/fips140"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
@@ -18,6 +19,18 @@ import (
 	"github.com/Busnes-app/ky-primitives/offsite"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
 )
+
+// flatPEM is a PEM block whose line breaks were lost: a browser password field strips them.
+var flatPEM = regexp.MustCompile(`^\s*(-----BEGIN [A-Z0-9 ]+-----)\s*([A-Za-z0-9+/=]+)\s*(-----END [A-Z0-9 ]+-----)\s*$`)
+
+// sshSecret restores the line breaks of a private key pasted into a single-line field, so
+// it is used as a key rather than failing PEM parsing and being sent as a password.
+func sshSecret(secret string) string {
+	if m := flatPEM.FindStringSubmatch(secret); m != nil {
+		return m[1] + "\n" + m[2] + "\n" + m[3] + "\n"
+	}
+	return secret
+}
 
 var replicaID = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$`)
 
@@ -66,6 +79,13 @@ func targetLocation(t db.ReplicationTargetRecord, id string) (location, error) {
 		u.Host = addr
 		u.Path = "/" + strings.Trim(t.Prefix, "/")
 		l.absoluteSFTP = strings.HasPrefix(t.Prefix, "/")
+		l.config.Secret = sshSecret(t.SecretKey)
+		// A key that does not parse as PEM would otherwise be offered to the server as a password.
+		if strings.Contains(l.config.Secret, "-----BEGIN") {
+			if block, _ := pem.Decode([]byte(l.config.Secret)); block == nil {
+				return l, errors.New("SFTP private key is not a complete PEM block; paste the whole key file")
+			}
+		}
 	case "smb":
 		addr, share, dir, err := offsite.ParseSMBEndpoint(t.Endpoint, t.Bucket, t.Prefix)
 		if err != nil {

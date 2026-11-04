@@ -50,7 +50,7 @@ func NewSFTPClient(addr, user, secret, dir, hostKey string) *SFTPClient {
 	if _, _, err := net.SplitHostPort(addr); err != nil {
 		addr = net.JoinHostPort(addr, "22")
 	}
-	return &SFTPClient{Addr: addr, User: user, Secret: secret, Dir: strings.TrimSuffix(dir, "/"), HostKey: hostKey}
+	return &SFTPClient{Addr: addr, User: user, Secret: sshSecret(secret), Dir: strings.TrimSuffix(dir, "/"), HostKey: hostKey}
 }
 
 // auth picks key or password by PEM structure, never by prefix: a private key
