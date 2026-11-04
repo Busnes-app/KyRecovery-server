@@ -138,7 +138,7 @@ sequenceDiagram
   - `400 Bad Request`: Invalid or expired pairing code.
   - `409 Conflict`: The claim names a different service than the generated code
     (the code stays pending), the code was already claimed — **or** no recovery key has
-    been imported yet, meaning the ceremony has not run. In the second case the code
+    been imported yet, meaning the ceremony has not run. When no recovery key has been imported the code
     is *not* consumed and no rate-limit attempt is charged: run the ceremony and claim
     again with the same code.
   - `429 Too Many Requests`: More than 10 failed claims from one source address (an IPv6
