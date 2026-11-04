@@ -62,7 +62,31 @@ func (l *rateLimiter) exceeded(key string, limit int, now time.Time) bool {
 func (l *rateLimiter) record(key string, now time.Time) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	l.recordLocked(key, now)
+}
 
+// take charges one attempt to key unless its budget is already spent, in one step, so
+// requests in flight together cannot all pass a check made before any was charged. An
+// attempt that turns out not to be a failure is given back with refund.
+func (l *rateLimiter) take(key string, limit int, now time.Time) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if c, ok := l.counts[key]; ok && !now.After(c.resetAt) && c.n >= limit {
+		return false
+	}
+	l.recordLocked(key, now)
+	return true
+}
+
+func (l *rateLimiter) refund(key string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if c, ok := l.counts[key]; ok && c.n > 0 {
+		c.n--
+	}
+}
+
+func (l *rateLimiter) recordLocked(key string, now time.Time) {
 	if len(l.counts) > 1024 {
 		for k, c := range l.counts {
 			if now.After(c.resetAt) {

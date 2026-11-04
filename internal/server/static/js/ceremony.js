@@ -55,9 +55,17 @@ document.getElementById('import-btn').addEventListener('click', async ev => {
   // key being replaced. The shares are never in this request.
   const fields = { public_key: result.public_key_b64, threshold: result.threshold, total_shares: result.total_shares };
   if (replaces) fields.replaces_key_id = replaces;
-  const res = await fetch(replaces ? '/api/recovery-key/rotate' : '/api/recovery-key', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields),
-  });
+  let res;
+  try {
+    res = await fetch(replaces ? '/api/recovery-key/rotate' : '/api/recovery-key', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields),
+    });
+  } catch {
+    // Nothing reached the store: the same cards can be imported again.
+    status.textContent = 'Import failed: the server could not be reached. Try again.';
+    button.disabled = false;
+    return;
+  }
   const body = await res.json().catch(() => ({}));
   if (!res.ok) { status.textContent = `Import failed: ${body.error || res.status}`; button.disabled = false; return; }
   const repair = (body.products_to_repair || []).map(p => `${p.service_name} (${p.app_name})`).join(', ');

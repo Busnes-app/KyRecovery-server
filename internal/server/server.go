@@ -812,11 +812,20 @@ func (s *Server) handlePairingClaim(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// The attempt is charged before it is made and given back if it succeeds, so guesses
+	// held open together cannot all pass the checks above before any of them is charged.
+	if !s.claimLimit.take(ipKey, claimAttemptsPerIP, now) {
+		writeError(w, http.StatusTooManyRequests, "Too many pairing attempts from this address")
+		return
+	}
+	if !s.claimLimit.take(claimGlobalKey, claimFailuresGlobal, now) {
+		s.claimLimit.refund(ipKey)
+		writeError(w, http.StatusTooManyRequests, "Too many failed pairing attempts; try again later")
+		return
+	}
 	app, err := s.db.ClaimPairingCode(r.Context(), req.PairingCode, req.ServiceName, req.AppName, key.KeyID)
 	if err != nil {
-		s.claimLimit.record(ipKey, now)
 		s.claimLimit.record(codeKey, now)
-		s.claimLimit.record(claimGlobalKey, now)
 		status := http.StatusBadRequest
 		if strings.Contains(err.Error(), "already consumed") {
 			status = http.StatusConflict
@@ -825,6 +834,8 @@ func (s *Server) handlePairingClaim(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.claimLimit.refund(ipKey)
+	s.claimLimit.refund(claimGlobalKey)
 	_, _ = s.ledger.Record(r.Context(), "product_paired", "pairing-code:"+app.ID, app.ID, map[string]interface{}{
 		"service_name":     app.ServiceName,
 		"claimed_app_name": app.AppName,
@@ -940,21 +951,26 @@ func (s *Server) handleAuthLoginLocal(w http.ResponseWriter, r *http.Request) {
 	if len(claimed) > 64 {
 		claimed = strings.ToValidUTF8(claimed[:64], "")
 	}
+	// The account key is the whole normalized name the password check uses, hashed to
+	// bound its size; padding the name must not open a fresh bucket for the same account.
 	ipKey := "login-ip:" + addr
-	accKey := "login-user:" + addr + "|" + strings.ToLower(strings.TrimSpace(claimed))
-	if s.loginLimit.exceeded(ipKey, loginAttemptsPerIP, now) {
+	accKey := fmt.Sprintf("login-user:%s|%x", addr, sha256.Sum256([]byte(strings.ToLower(strings.TrimSpace(req.Username)))))
+	// Charged before the password check and given back on success, so attempts held
+	// open together during the Argon2 check cannot all pass the budget.
+	if !s.loginLimit.take(ipKey, loginAttemptsPerIP, now) {
 		writeError(w, http.StatusTooManyRequests, "Too many failed sign-in attempts; try again later")
 		return
 	}
 
 	var userInfo *auth.UserInfo
 	err := errors.New("invalid username or password")
-	if !s.loginLimit.exceeded(accKey, loginAttemptsPerAcc, now) {
+	if s.loginLimit.take(accKey, loginAttemptsPerAcc, now) {
 		userInfo, err = s.authMgr.AuthenticateLocal(r.Context(), req.Username, req.Password)
 	}
-	if err != nil {
-		s.loginLimit.record(ipKey, now)
-		s.loginLimit.record(accKey, now)
+	if err == nil {
+		s.loginLimit.refund(ipKey)
+		s.loginLimit.refund(accKey)
+	} else {
 		_, _ = s.ledger.Record(r.Context(), "user_login_failed", "anonymous", s.clientIP(r),
 			map[string]interface{}{"claimed_username": claimed})
 		writeError(w, http.StatusUnauthorized, err.Error())

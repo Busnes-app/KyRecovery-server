@@ -186,6 +186,10 @@ func TestLocalLoginIsThrottled(t *testing.T) {
 	if code := login(guesser, "admin", adminPass).Code; code != http.StatusUnauthorized {
 		t.Fatalf("the account cap should apply to the guessing address, got %d", code)
 	}
+	// Padding the name reaches the same account, so it must reach the same bucket.
+	if code := login(guesser, strings.Repeat(" ", 61)+"ADMIN", adminPass).Code; code != http.StatusUnauthorized {
+		t.Fatalf("a padded name escaped the account cap: %d", code)
+	}
 
 	// The cap is per account and address: the real admin elsewhere still signs in,
 	// including from another address in an IPv6 /64 the guesser does not control.
