@@ -250,3 +250,50 @@ func TestCapsuleInsertRefusesARetiredKey(t *testing.T) {
 		t.Fatalf("insert sealed to the current key: %v", err)
 	}
 }
+
+func TestClaimKeepsGeneratedService(t *testing.T) {
+	for _, tc := range []struct {
+		generated, claim, want string
+		mismatch               bool
+	}{
+		{"kynotes", "", "kynotes", false},
+		{"kynotes", "kynotes", "kynotes", false},
+		{"kynotes", "kypost", "", true},
+		{"auto-declare", "kypost", "kypost", false},
+		{"auto-declare", "", "generic", false},
+	} {
+		t.Run(tc.generated+"/"+tc.claim, func(t *testing.T) {
+			d, err := db.Open(":memory:")
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer d.Close()
+			now := time.Now().UTC()
+			if err := d.InsertPairedApp(t.Context(), db.PairedAppRecord{ID: "pair-service", ServiceName: tc.generated, PairingCode: "123456", Status: "pending", CreatedAt: now, ExpiresAt: now.Add(time.Hour)}); err != nil {
+				t.Fatal(err)
+			}
+			app, err := d.ClaimPairingCode(t.Context(), "123456", tc.claim, "app", "key")
+			if tc.mismatch {
+				if !errors.Is(err, db.ErrPairingServiceMismatch) {
+					t.Fatalf("got %v", err)
+				}
+				pending, err := d.GetPairedAppByCode(t.Context(), "123456")
+				if err != nil || pending.Status != "pending" || pending.ServiceName != tc.generated {
+					t.Fatalf("mismatch changed pending record: %+v %v", pending, err)
+				}
+				app, err = d.ClaimPairingCode(t.Context(), "123456", tc.generated, "app", "key")
+				if err != nil || app.ServiceName != tc.generated {
+					t.Fatalf("retry: %+v %v", app, err)
+				}
+				return
+			}
+			if err != nil || app.ServiceName != tc.want {
+				t.Fatalf("got %+v %v", app, err)
+			}
+			stored, err := d.GetPairedAppByToken(t.Context(), app.APIToken)
+			if err != nil || stored.ServiceName != tc.want {
+				t.Fatalf("stored %+v %v", stored, err)
+			}
+		})
+	}
+}

@@ -29,7 +29,7 @@ func TestVerifyDetectsAFlippedByte(t *testing.T) {
 	id := caps[0].ID
 
 	verify := func() (int, string) {
-		req := httptest.NewRequest(http.MethodGet, "/api/capsules/"+id+"/verify", nil)
+		req := httptest.NewRequest(http.MethodPost, "/api/capsules/"+id+"/verify", nil)
 		req.AddCookie(cookie)
 		rr := httptest.NewRecorder()
 		srv.ServeHTTP(rr, req)
@@ -76,7 +76,7 @@ func TestVerifyOfAMissingFileFlagsCorrupt(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/api/capsules/"+rec.ID+"/verify", nil)
+	req := httptest.NewRequest(http.MethodPost, "/api/capsules/"+rec.ID+"/verify", nil)
 	req.AddCookie(cookie)
 	rr := httptest.NewRecorder()
 	srv.ServeHTTP(rr, req)
@@ -123,7 +123,7 @@ func TestVerifyRecordsTheCallerAsActor(t *testing.T) {
 	caps, _ := database.ListCapsules(t.Context())
 	id := caps[0].ID
 
-	req := httptest.NewRequest(http.MethodGet, "/api/capsules/"+id+"/verify", nil)
+	req := httptest.NewRequest(http.MethodPost, "/api/capsules/"+id+"/verify", nil)
 	req.AddCookie(cookie)
 	rr := httptest.NewRecorder()
 	srv.ServeHTTP(rr, req)
@@ -169,7 +169,7 @@ func TestVerifyOfAnUnreadableFileDoesNotFlagCorrupt(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/api/capsules/"+id+"/verify", nil)
+	req := httptest.NewRequest(http.MethodPost, "/api/capsules/"+id+"/verify", nil)
 	req.AddCookie(cookie)
 	rr := httptest.NewRecorder()
 	srv.ServeHTTP(rr, req)
@@ -196,12 +196,12 @@ func TestActorIsNeverTheDisplayName(t *testing.T) {
 		t.Fatalf("deposit: %d", rec.Code)
 	}
 	caps, _ := database.ListCapsules(t.Context())
-	const sid = "sso-viewer-session-0123456789abcdef0123"
+	const sid = "sso-operator-session-0123456789abcdef0123"
 	if err := database.InsertSession(t.Context(), db.SessionRecord{ID: sid, UserID: "idp-subject-7", Name: "admin@kyrecovery.local",
-		Role: "viewer", ExpiresAt: time.Now().Add(time.Hour), CreatedAt: time.Now(), NativeSSO: true}); err != nil {
+		Role: "operator", ExpiresAt: time.Now().Add(time.Hour), CreatedAt: time.Now(), NativeSSO: true}); err != nil {
 		t.Fatal(err)
 	}
-	req := httptest.NewRequest(http.MethodGet, "/api/capsules/"+caps[0].ID+"/verify", nil)
+	req := httptest.NewRequest(http.MethodPost, "/api/capsules/"+caps[0].ID+"/verify", nil)
 	req.AddCookie(&http.Cookie{Name: auth.SessionCookieName, Value: sid})
 	rr := httptest.NewRecorder()
 	srv.ServeHTTP(rr, req)
@@ -212,6 +212,48 @@ func TestActorIsNeverTheDisplayName(t *testing.T) {
 	for _, e := range events {
 		if e.Action == "capsule_verified" && e.Actor != "idp-subject-7" {
 			t.Fatalf("capsule_verified actor = %q, want the subject", e.Actor)
+		}
+	}
+}
+
+func TestCapsuleVerifyRequiresProtectedOperatorPost(t *testing.T) {
+	srv, admin, database := newAdminServer(t)
+	k, _ := recoverykey.Generate()
+	importKey(t, srv, admin, k.Public(), 3, 5)
+	token, _ := pairProduct(t, srv, admin, "kynotes")
+	if got := deposit(srv, token, sealFor(t, k.Public(), "kynotes")); got.Code != http.StatusCreated {
+		t.Fatal(got.Body.String())
+	}
+	caps, _ := database.ListCapsules(t.Context())
+	url := "/api/capsules/" + caps[0].ID + "/verify"
+	for _, tc := range []struct {
+		method, role string
+		cross        bool
+		want         int
+	}{
+		{http.MethodGet, auth.RoleViewer, false, 405},
+		{http.MethodGet, auth.RoleOperator, false, 405},
+		{http.MethodPost, auth.RoleViewer, false, 403},
+		{http.MethodPost, auth.RoleOperator, true, 403},
+		{http.MethodPost, auth.RoleAdmin, true, 403},
+		{http.MethodPost, auth.RoleOperator, false, 200},
+		{http.MethodPost, auth.RoleAdmin, false, 200},
+	} {
+		req := httptest.NewRequest(tc.method, url, nil)
+		req.AddCookie(sessionCookie(t, database, tc.role))
+		if tc.cross {
+			req.Header.Set("Origin", "https://sibling.example")
+			req.Header.Set("Sec-Fetch-Site", "same-site")
+		}
+		before, _ := database.ListAuditEvents(t.Context(), 100)
+		rr := httptest.NewRecorder()
+		srv.ServeHTTP(rr, req)
+		if rr.Code != tc.want {
+			t.Fatalf("%s %s cross=%v: %d %s", tc.method, tc.role, tc.cross, rr.Code, rr.Body.String())
+		}
+		after, _ := database.ListAuditEvents(t.Context(), 100)
+		if tc.want != 200 && len(after) != len(before) {
+			t.Fatal("refused verification appended an audit event")
 		}
 	}
 }

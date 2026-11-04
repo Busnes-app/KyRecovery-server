@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -64,7 +65,7 @@ func TestClientClaimsPairingCode(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ClaimPairing failed: %v", err)
 	}
-	if claimResp.APIToken == "" || claimResp.Status != "paired" {
+	if claimResp.APIToken == "" || claimResp.Status != "paired" || claimResp.ServiceName != "kybookmarks" {
 		t.Fatalf("unexpected claim response: %+v", claimResp)
 	}
 	if claimResp.RecoveryPublicKey != base64.StdEncoding.EncodeToString(pub.Bytes()) {
@@ -76,6 +77,9 @@ func TestClientClaimsPairingCode(t *testing.T) {
 	second, err := pairing.GeneratePairingCode(ctx, database, 15*time.Minute, "kynotes", "Pending App")
 	if err != nil {
 		t.Fatal(err)
+	}
+	if _, _, err := client.ClaimPairingForService(ctx, ts.URL, second.PairingCode, "KyPost", "kypost"); err == nil || !strings.Contains(err.Error(), "HTTP 409") {
+		t.Fatalf("mismatched service: %v", err)
 	}
 	_, named, err := client.ClaimPairingForService(ctx, ts.URL, second.PairingCode, "KyNotes", "kynotes")
 	if err != nil || named.ServiceName != "kynotes" {

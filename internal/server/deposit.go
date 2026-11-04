@@ -60,10 +60,10 @@ func (s *Server) handleDeposit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// A whole container may be on the wire; give the read its own budget rather than
-	// letting a header-sized timeout truncate it into a bogus 400.
-	setReadDeadline(w, capsuleTransferBudget)
-	raw, err := io.ReadAll(r.Body) // MaxBytesReader in ServeHTTP caps this at capsule.MaxContainerBytes
+	transfer := newTransferDeadline(http.NewResponseController(w).SetReadDeadline, capsuleTransferIdle, capsuleTransferMax)
+	raw, err := io.ReadAll(&transferReader{Reader: r.Body, deadline: transfer}) // MaxBytesReader caps the bytes
+	// Body delivery is complete: do not cancel subsequent disk work on a read-ahead timeout.
+	_ = http.NewResponseController(w).SetReadDeadline(time.Time{})
 	if err != nil {
 		var tooLarge *http.MaxBytesError
 		if errors.As(err, &tooLarge) {

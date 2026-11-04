@@ -6,17 +6,19 @@ Commands and unlinked file paths below are relative to the repository root.
 
 ## Integrity
 
-- `GET /api/capsules/{id}/verify` (viewer) re-reads the blob, compares its
+- `POST /api/capsules/{id}/verify` (operator, cross-origin protected) re-reads the blob, compares its
   SHA-256 with the stored digest, appends `capsule_verified` or
   `capsule_corrupt`, and flags the row on a mismatch. A missing file counts as
-  corrupt.
+  corrupt. GET is refused with `405`; viewers cannot verify. The capsule detail
+  row offers Verify capsule to operators and admins.
 - A sweep does the same for every capsule every 24 hours, as actor
   `integrity-sweep`.
 - `GET /api/capsules/{id}/download` (operator) returns the bytes with
   `X-Capsule-Digest` and `X-Capsule-Status`. A capsule flagged corrupt still
   downloads, for forensics; the header is how you know.
 - `GET /api/readiness` (viewer) reports `capsule_count`, `custodian_count` and
-  `audit_append_disabled`. A blind store cannot open a capsule, so it never
+  `audit_append_disabled` and `audit_chain_broken`. A failed full audit verify
+  shows Chain broken in Overview until a later successful verify. A blind store cannot open a capsule, so it never
   claims a verified restore.
 - `GET /healthz` is public and serves the suite `ky.health/1` response for
   `kyrecovery`. It checks whether SQLite answers and whether the audit ledger
@@ -41,3 +43,14 @@ Two operational facts:
 - If the log and the anchor disagree at startup the ledger refuses to append and
   every deposit gets `503` until an operator repairs the log and restarts. The
   latch is per-process; it is not cleared by anything short of a restart.
+
+A failed full verification persists across restarts and new deposits. Overview shows
+**Chain broken**, `/api/readiness` reports `audit_chain_broken: true`, and `/healthz`
+reports its audit check as degraded with reason `chain_broken`, still HTTP 200.
+Deposits and audited writes continue while the append latch remains healthy: the
+warning preserves evidence of the past failure without refusing new backups. Only
+a successful full verification clears it. The existing startup append latch for an
+anchor/tail mismatch remains separate and still refuses appends. A cancelled or
+unreadable verification also retains the warning; investigate the returned error
+and repeat the full verification after repair. Health results may be cached for
+five seconds.

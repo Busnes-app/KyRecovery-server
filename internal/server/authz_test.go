@@ -45,7 +45,8 @@ func TestRequiredRolePolicy(t *testing.T) {
 		{http.MethodGet, "/api/capsules/diff", auth.RoleViewer},
 		{http.MethodGet, "/api/capsules/timeline", auth.RoleViewer},
 		{http.MethodGet, "/api/capsules/cap-abc", auth.RoleViewer},
-		{http.MethodGet, "/api/capsules/cap-abc/verify", auth.RoleViewer},
+		{http.MethodGet, "/api/capsules/cap-abc/verify", auth.RoleViewer}, // handler refuses GET with 405
+		{http.MethodPost, "/api/capsules/cap-abc/verify", auth.RoleOperator},
 		{http.MethodGet, "/api/custodians", auth.RoleViewer},
 		{http.MethodGet, "/api/audit", auth.RoleViewer},
 		{http.MethodGet, "/api/recovery-key", auth.RoleViewer}, // the public half and the topology

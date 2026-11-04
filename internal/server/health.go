@@ -9,6 +9,7 @@ import (
 )
 
 var auditUnavailable = health.DeclareReason("append_disabled")
+var auditChainBroken = health.DeclareReason("chain_broken")
 
 func healthHandler(s *Server, lg *logging.Logger) http.Handler {
 	return health.Handler("kyrecovery", lg,
@@ -16,6 +17,9 @@ func healthHandler(s *Server, lg *logging.Logger) http.Handler {
 		health.Check{Name: "audit", Run: func(context.Context) error {
 			if s.ledger.Healthy() != nil {
 				return health.Degrade(auditUnavailable)
+			}
+			if s.ledger.VerificationFailed() {
+				return health.Degrade(auditChainBroken)
 			}
 			return nil
 		}},

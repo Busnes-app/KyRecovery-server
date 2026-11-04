@@ -128,7 +128,7 @@ async function loadReadiness() {
     if (!res.ok) return;
     const data = await res.json();
 
-    document.getElementById('overview-audit-status').textContent = data.audit_append_disabled === true ? 'Appends blocked' : data.audit_append_disabled === false ? 'Accepting entries' : 'Unknown';
+    document.getElementById('overview-audit-status').textContent = data.audit_chain_broken === true ? 'Chain broken' : data.audit_append_disabled === true ? 'Appends blocked' : data.audit_append_disabled === false ? 'Accepting entries' : 'Unknown';
     const capsuleCount = Number(data.capsule_count) || 0;
     document.getElementById('metric-capsules').textContent = capsuleCount;
     document.getElementById('metric-custodians').textContent = Number(data.custodian_count) || 0;
@@ -200,7 +200,7 @@ function renderCapsules() {
       <dt>Payload hash</dt><dd><code>${esc(c.payload_hash)}</code> (sealer-attested)</dd>
       <dt>Deposited</dt><dd>${esc(fmtTime(c.deposited_at))}</dd>
       <dt>Created</dt><dd>${esc(fmtTime(c.created_at))} (product-reported)</dd>
-      <dt>Status</dt><dd>${esc(capsuleStatus(c))}</dd>
+      <dt>Status</dt><dd>${esc(capsuleStatus(c))}${currentUser && (currentUser.role === 'operator' || currentUser.role === 'admin') ? ` <button type="button" class="btn btn-secondary btn-sm" data-action="verify" data-id="${esc(c.id)}">Verify capsule</button>` : ''}</dd>
       ${c.app_version ? `<dt>App version</dt><dd>${esc(c.app_version)}</dd>` : ''}
     </dl></td></tr>`;
   }).join('');
@@ -217,6 +217,22 @@ async function onCapsulesClick(e) {
     return;
   }
   const status = document.getElementById('capsules-status');
+  if (btn.dataset.action === 'verify') {
+    btn.disabled = true;
+    status.textContent = 'Verifying stored capsule bytes…';
+    try {
+      const res = await fetch('/api/capsules/' + encodeURIComponent(id) + '/verify', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Verification failed; try again.');
+      status.textContent = data.valid ? 'Stored bytes match the deposit digest.' : 'Capsule is corrupt: stored bytes do not match the deposit digest or the file is missing.';
+      await loadCapsules();
+    } catch (err) {
+      status.textContent = err.message;
+    } finally {
+      btn.disabled = false;
+    }
+    return;
+  }
   try {
     await navigator.clipboard.writeText(id);
     status.textContent = 'Copied capsule ID ' + id + '.';

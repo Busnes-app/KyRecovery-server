@@ -175,3 +175,34 @@ console.log('Overview audit, count, failure, recovery and evidence states passed
   assert.match(context.historyRow({ service_name: 'p', state: 'pending', expected_seconds: 3600, runs: [], instances: [{ state: 'pending' }] }),
     /aria-label="p: No backups yet; due every 1 h\."/);
 }
+
+// The shipped capsule action is role-aware, uses POST and recovers after errors.
+for (const role of ['viewer', 'operator', 'admin']) {
+  const { context, elements } = runtime({});
+  context.roleForTest = role;
+  runInNewContext(`currentUser = {role:roleForTest}; capsulesData = [{id:'cap-test',service_name:'kynotes'}]; capsulesOpen.add('cap-test'); renderCapsules();`, context);
+  assert.equal(elements.get('capsules-table-body').innerHTML.includes('data-action="verify"'), role !== 'viewer');
+  if (role === 'viewer') continue;
+  for (const fails of [true, false]) {
+    const calls = [];
+    context.fetch = async (url, opts) => {
+      calls.push([url, opts?.method]);
+      if (url === '/api/capsules') return { ok:true, json:async () => [] };
+      return { ok:!fails, json:async () => fails ? {error:'Try verification again'} : {valid:true} };
+    };
+    const button = {dataset:{action:'verify',id:'cap-test'},disabled:false};
+    await context.onCapsulesClick({target:{closest:() => button}});
+    assert.deepEqual(calls[0], ['/api/capsules/cap-test/verify', 'POST']);
+    assert.equal(button.disabled, false);
+    assert.equal(elements.get('capsules-status').textContent, fails ? 'Try verification again' : 'Stored bytes match the deposit digest.');
+  }
+}
+
+{
+  const {context, elements, state} = runtime({audit_append_disabled:false, audit_chain_broken:true});
+  await context.loadReadiness();
+  assert.equal(elements.get('overview-audit-status').textContent, 'Chain broken');
+  state.body.audit_chain_broken = false;
+  await context.loadReadiness();
+  assert.equal(elements.get('overview-audit-status').textContent, 'Accepting entries');
+}
