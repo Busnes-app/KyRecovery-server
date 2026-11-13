@@ -2,7 +2,7 @@ module github.com/Busnes-app/kyrecovery-server
 
 go 1.26.9
 
-toolchain go1.27.3
+toolchain go1.27.4
 
 require (
 	github.com/Busnes-app/ky-primitives v0.10.1
