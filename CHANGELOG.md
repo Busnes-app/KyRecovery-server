@@ -32,6 +32,9 @@
 - The log warns once when forwarded requests arrive from a proxy that is not in
   `KYRECOVERY_TRUSTED_PROXIES`. Behind a proxy that setting is required: without it every
   client shares the proxy's sign-in and pairing limits.
+- The image is built with Go 1.27.4 (was 1.27.3) for GO-2026-6859: an HTTP/1 request
+  could crash the server through a race in `net/http`'s `MaxBytesReader`. `go.mod` sets
+  `toolchain go1.27.4` so `go build` from source uses it too.
 
 ### Fixed
 
