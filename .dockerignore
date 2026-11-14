@@ -3,6 +3,7 @@ data
 .gitignore
 *.kycap
 kyrecovery
+/ceremony-wasm
 .env
 **/.env.*
 !**/.env.example
