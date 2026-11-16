@@ -99,3 +99,12 @@ KyRecovery is released under the [MIT License](LICENSE.txt).
 - [Verifying releases](docs/VERIFYING-RELEASES.md) — Check a release image's signature and source commit, and rebuild its binary to the same bytes.
 - [Assurance case](docs/ASSURANCE-CASE.md) — Threat model, trust boundaries, and why the security requirements are met.
 - [Contributing](CONTRIBUTING.md) — How to report bugs, propose changes, the test policy and the coding standard.
+
+## User manual
+
+Read the [online manual](https://busnes.app/manuals/kyrecovery-server/) or browse its
+[Markdown sources](docs/src/introduction.md).
+
+Build and check it with `mdbook build docs` and `python3 docs/check-links.py`,
+then open `docs/book/index.html`. The documentation workflow also provides a
+downloadable `documentation-book` artifact.
