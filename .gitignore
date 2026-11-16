@@ -21,3 +21,6 @@ data/
 
 # Built by scripts/build-wasm.sh, never committed
 /internal/server/static/wasm/ceremony.wasm
+
+# Generated mdBook manual
+/docs/book/
