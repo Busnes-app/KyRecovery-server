@@ -6,7 +6,7 @@ toolchain go1.27.4
 
 require (
 	github.com/Busnes-app/ky-primitives v0.10.1
-	github.com/Busnes-app/ky-primitives/offsite v0.2.3-0.20261026050236-bae5c14dba4c
+	github.com/Busnes-app/ky-primitives/offsite v0.3.0
 	github.com/aws/aws-sdk-go-v2 v1.48.0
 	github.com/cloudsoda/go-smb2 v0.0.0-20261105190815-95be04a983b8
 	github.com/coreos/go-oidc/v3 v3.21.0

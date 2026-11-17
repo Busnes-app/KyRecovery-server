@@ -1,7 +1,7 @@
 github.com/Busnes-app/ky-primitives v0.10.1 h1:ZwEem4SUokQz8OmMUzUHZM5fHU2iKSsQjsqFPTMoCQA=
 github.com/Busnes-app/ky-primitives v0.10.1/go.mod h1:LCDCdz9jpoNNehLQRytkI4qZ/a9J33DeJAnr5BalcgU=
-github.com/Busnes-app/ky-primitives/offsite v0.2.3-0.20261026050236-bae5c14dba4c h1:EM9kcnLCsrkFtcdS9xQTBj766+Y8tPlpuh4YO2i6NRA=
-github.com/Busnes-app/ky-primitives/offsite v0.2.3-0.20261026050236-bae5c14dba4c/go.mod h1:yyUHDnaCGS8pD6pKPObwTh3JkmLkEf9NMDjC4JgW4Lg=
+github.com/Busnes-app/ky-primitives/offsite v0.3.0 h1:E0ycngO0BHAooTDRvDagmrJlkZlTeRqBNX5pLwQMlg0=
+github.com/Busnes-app/ky-primitives/offsite v0.3.0/go.mod h1:UYfgJk5VJ/Z4Dff5wvSPeOn4dwS1qLGDeNPTTkEguKI=
 github.com/aws/aws-sdk-go-v2 v1.48.0 h1:tFU7EJVm7MfyaXLsXdYTZ0Vd6vwt9OljCyqq0gqk0Mc=
 github.com/aws/aws-sdk-go-v2 v1.48.0/go.mod h1:oeKU5p+TQBnpeLmU42WZLWvzv+ORLn+74n4QVLnm/Z0=
 github.com/aws/smithy-go v1.28.9 h1:zkZ058OpNX0iGTK24b+ZUEQSMc11CBA6oO7xtKZfzkY=
