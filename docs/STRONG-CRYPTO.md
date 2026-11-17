@@ -16,9 +16,8 @@ keys. Losing or replacing it breaks sealed credentials and audit bindings; it
 is not a remedy for an incompatible remote certificate or SSH key.
 
 The root `ky-primitives` dependency and recovery format are unchanged. The
-independently versioned `offsite` module is pinned to merged source `bae5c14dba4c`
-(`v0.2.3-0.20261026050236-bae5c14dba4c`) containing the SSH key/algorithm guards.
-`offsite/v0.2.2` predates them. Absolute-directory SFTP retains a compatibility
+independently versioned `offsite` module is pinned to the tagged
+`offsite/v0.3.0` release containing the SSH key/algorithm guards. Absolute-directory SFTP retains a compatibility
 client with the same minimums; its destination and staging-cleanup rules remain.
 
 Before upgrading:
