@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Refresh compatible dependency versions and lockfiles. Rebuild or install the updated application; no database, configuration, account or key migration is required.
+
 ### Security
 
 - Pairing codes keep the service selected at generation. An omitted claim service
