@@ -2,6 +2,7 @@
 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15934/badge)](https://www.bestpractices.dev/projects/15934)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Busnes-app/KyRecovery-server/badge)](https://scorecard.dev/viewer/?uri=github.com/Busnes-app/KyRecovery-server)
+[![OctoCounts](https://api.octocounts.com/badge/Busnes-app/KyRecovery-server/branch/main)](https://octocounts.com/github/Busnes-app/KyRecovery-server/tree/main)
 
 **Start here:** [Standalone installation](INSTALL.md). Local operator sign-in works without KyIdentity. The browser ceremony creates the recovery key and custodian cards; the server stores sealed capsules, public-key metadata and audit evidence. Stored capsules alone do not prove that a restore or off-site custody has been tested.
 
@@ -81,12 +82,6 @@ account.
   previous key still needed to open retained capsules. Custodian names, paired-app
   API tokens, and the server keyring for its own secrets.
 
-## License
-
-KyRecovery is released under the [MIT License](LICENSE.txt).
-
-[![OctoCounts](https://api.octocounts.com/badge/Busnes-app/KyRecovery-server/branch/main)](https://octocounts.com/github/Busnes-app/KyRecovery-server/tree/main)
-
 ## Documentation
 
 - [Ceremony](docs/CEREMONY.md) — Ceremony: creating the suite recovery keypair, and rotating it. <a id="ceremony-creating-the-suite-recovery-keypair"></a>
@@ -96,6 +91,7 @@ KyRecovery is released under the [MIT License](LICENSE.txt).
 - [Recovery and security](docs/RECOVERY-AND-SECURITY.md) — Restore, Security model, Upgrading from the previous KyRecovery. <a id="restore"></a><a id="security-model"></a><a id="upgrading-from-the-previous-kyrecovery"></a>
 - [Backup status](docs/BACKUP-STATUS.md) — Backup status and restore planning. <a id="backup-status-and-restore-planning"></a>
 - [Operations](docs/OPERATIONS.md) — CLI, Configuration, Verify, Upgrading to the secure compose defaults, and related procedures. <a id="cli"></a><a id="configuration"></a><a id="verify"></a><a id="upgrading-to-the-secure-compose-defaults"></a><a id="installer-setup"></a>
+- [Installer setup](docs/INSTALLER_SETUP.md) — Non-interactive installer setup, managed OIDC, and forwarded-header security contracts.
 - [Verifying releases](docs/VERIFYING-RELEASES.md) — Check a release image's signature and source commit, and rebuild its binary to the same bytes.
 - [Assurance case](docs/ASSURANCE-CASE.md) — Threat model, trust boundaries, and why the security requirements are met.
 - [Contributing](CONTRIBUTING.md) — How to report bugs, propose changes, the test policy and the coding standard.
@@ -108,3 +104,7 @@ Read the [online manual](https://busnes.app/manuals/kyrecovery-server/) or brows
 Build and check it with `mdbook build docs` and `python3 docs/check-links.py`,
 then open `docs/book/index.html`. The documentation workflow also provides a
 downloadable `documentation-book` artifact.
+
+## License
+
+KyRecovery is released under the [MIT License](LICENSE.txt).

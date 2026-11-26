@@ -53,12 +53,15 @@ for reports. Pair one product, deposit a capsule and verify its receipt/audit en
 
 `./data` persists the blind store, pairings and server keys. The entrypoint assigns it to
 UID 10001 before dropping privileges. Local capsule integrity and audit checks do not
-prove an off-site replica or a restore with real cards. Follow the README’s restore and
-replication procedures and record those checks separately.
+prove an off-site replica or a restore with real cards. Follow
+[Recovery and security](docs/RECOVERY-AND-SECURITY.md) and the replication procedures in
+[Operations](docs/OPERATIONS.md), and record those checks separately.
 
 Source builds: retain `docker-compose.build.yml` in the `.env` `COMPOSE_FILE` chain and
 use `docker compose up -d --build`. Old Compose files through release 0.4.2 have different
-bind/environment behavior: read the secure-defaults upgrade section before reusing them.
+bind/environment behavior: read
+[Upgrading to the secure compose defaults](docs/OPERATIONS.md#upgrading-to-the-secure-compose-defaults)
+before reusing them.
 
 ## Keep it recoverable
 
