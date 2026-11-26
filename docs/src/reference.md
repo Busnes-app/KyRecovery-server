@@ -6,14 +6,12 @@ The [repository README](https://github.com/Busnes-app/KyRecovery-server/blob/mai
 environment reference and supported deployment/distribution paths. Read the version matching your installation.
 The links below open repository documents and need network access.
 
-
-
 ## Detailed product guides
 
 - [Standalone installation](https://github.com/Busnes-app/KyRecovery-server/blob/main/INSTALL.md)
 - [Strong-key configuration](https://github.com/Busnes-app/KyRecovery-server/blob/main/docs/STRONG-CRYPTO.md)
-- [Upgrading to the secure compose defaults](https://github.com/Busnes-app/KyRecovery-server/blob/main/docs/OPERATIONS.md)
-- [ceremony](https://github.com/Busnes-app/KyRecovery-server/blob/main/docs/CEREMONY.md)
+- [Operations](https://github.com/Busnes-app/KyRecovery-server/blob/main/docs/OPERATIONS.md)
+- [Ceremony](https://github.com/Busnes-app/KyRecovery-server/blob/main/docs/CEREMONY.md)
 - [Deposits](https://github.com/Busnes-app/KyRecovery-server/blob/main/docs/DEPOSITS.md)
 - [Integrity and audit](https://github.com/Busnes-app/KyRecovery-server/blob/main/docs/INTEGRITY-AND-AUDIT.md)
 - [Retention](https://github.com/Busnes-app/KyRecovery-server/blob/main/docs/RETENTION.md)
