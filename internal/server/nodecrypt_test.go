@@ -24,12 +24,23 @@ const primitives = "github.com/Busnes-app/ky-primitives"
 var allowedSelectors = map[string]map[string]bool{
 	// Parsing and holding the public half is the whole of the server's business with it.
 	primitives + "/recoverykey": {"ParsePublicKey": true, "PublicKey": true},
-	// Reading the unencrypted manifest and knowing how big a container may be.
-	// UnverifiedManifest is what ReadUnverifiedManifest returns; Manifest is what Open and
-	// Seal return, so naming it means holding the output of a decryption.
-	primitives + "/capsule": {"ReadUnverifiedManifest": true, "UnverifiedManifest": true, "MaxContainerBytes": true},
-	primitives + "/shamir":  {},
-	"crypto/hpke":           {},
+	// Reading or verifying the unencrypted manifest and knowing how big a container may be.
+	// UnverifiedManifest and VerifiedManifest never carry decrypted payload files; Manifest
+	// is what Open and Seal return, so naming it still fails this guard.
+	primitives + "/capsule": {
+		"ReadUnverifiedManifest": true,
+		"UnverifiedManifest":     true,
+		"VerifyManifest":         true,
+		"VerifiedManifest":       true,
+		"ErrMissingSignature":    true,
+		"ErrInvalidSignature":    true,
+		"MaxContainerBytes":      true,
+	},
+	// Parsing and holding a paired product's hybrid verification public key only; private
+	// signing keys (Generate, FromSeeds, PrivateKey) remain off limits.
+	primitives + "/hybridsig": {"ParsePublicKey": true, "PublicKey": true},
+	primitives + "/shamir":    {},
+	"crypto/hpke":             {},
 }
 
 // forbiddenImports are packages no file linked into the server may name directly. The

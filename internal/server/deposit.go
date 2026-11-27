@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -15,12 +16,15 @@ import (
 	"time"
 
 	"github.com/Busnes-app/ky-primitives/capsule"
+	"github.com/Busnes-app/ky-primitives/hybridsig"
 	"github.com/Busnes-app/kyrecovery-server/internal/db"
 )
 
-// handleDeposit stores a sealed container. It reads the manifest without a key, decides on
-// exactly two of its fields — the recovery key ID against the pin and the service name
-// against the paired app — and records the rest as the sealer attested it.
+// handleDeposit stores a sealed container. When the paired product registered a
+// hybridsig signer public key, it verifies the manifest signature via
+// capsule.VerifyManifest without decrypting the payload; otherwise it reads the
+// unverified manifest as before. In both cases it checks the recovery key ID against
+// the pin and the service name against the paired app.
 func (s *Server) handleDeposit(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -73,10 +77,45 @@ func (s *Server) handleDeposit(w http.ResponseWriter, r *http.Request) {
 	}
 	// Only complete bodies release the deadline: failed reads still need a bounded response drain.
 	_ = http.NewResponseController(w).SetReadDeadline(time.Time{})
-	m, err := capsule.ReadUnverifiedManifest(raw)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "Body is not a kycap/3 container")
-		return
+
+	var m capsule.UnverifiedManifest
+	manifestVerified := false
+	verifiedSignerID := ""
+	if app.SignerPublicKey != "" {
+		pubBytes, decErr := base64.StdEncoding.Strict().DecodeString(app.SignerPublicKey)
+		if decErr != nil {
+			log.Printf("deposit: paired app %s has corrupt signer_public_key: %v", app.ID, decErr)
+			writeError(w, http.StatusInternalServerError, "Paired product signer key is unreadable")
+			return
+		}
+		pub, parseErr := hybridsig.ParsePublicKey(pubBytes)
+		if parseErr != nil {
+			log.Printf("deposit: paired app %s has invalid signer_public_key: %v", app.ID, parseErr)
+			writeError(w, http.StatusInternalServerError, "Paired product signer key is invalid")
+			return
+		}
+		var vm capsule.VerifiedManifest
+		vm, err = capsule.VerifyManifest(raw, pub)
+		if err != nil {
+			switch {
+			case errors.Is(err, capsule.ErrMissingSignature):
+				writeError(w, http.StatusBadRequest, "Capsule manifest signature is required for this paired product")
+			case errors.Is(err, capsule.ErrInvalidSignature):
+				writeError(w, http.StatusBadRequest, "Capsule manifest signature verification failed")
+			default:
+				writeError(w, http.StatusBadRequest, "Body is not a kycap/3 container")
+			}
+			return
+		}
+		m = vm.UnverifiedManifest
+		manifestVerified = true
+		verifiedSignerID = pub.ID()
+	} else {
+		m, err = capsule.ReadUnverifiedManifest(raw)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "Body is not a kycap/3 container")
+			return
+		}
 	}
 	key, err := s.db.GetRecoveryKey(ctx)
 	if err != nil || key == nil {
@@ -139,9 +178,17 @@ func (s *Server) handleDeposit(w http.ResponseWriter, r *http.Request) {
 		CreatedAt: m.CreatedAt, DepositedAt: now.UTC(), PairedAppID: app.ID, Status: "active",
 	}
 	record := func(ctx context.Context) error {
-		_, err := s.ledger.Record(ctx, "capsule_deposited", "paired-app:"+app.ID, rec.ID, map[string]interface{}{
-			"service_name": rec.ServiceName, "digest": digest, "size_bytes": rec.SizeBytes, "recovery_key_id": rec.RecoveryKeyID,
-		})
+		details := map[string]interface{}{
+			"service_name":      rec.ServiceName,
+			"digest":            digest,
+			"size_bytes":        rec.SizeBytes,
+			"recovery_key_id":   rec.RecoveryKeyID,
+			"manifest_verified": manifestVerified,
+		}
+		if verifiedSignerID != "" {
+			details["signer_key_id"] = verifiedSignerID
+		}
+		_, err := s.ledger.Record(ctx, "capsule_deposited", "paired-app:"+app.ID, rec.ID, details)
 		return err
 	}
 	if err := s.publishCapsule(ctx, rec, raw, record); err != nil {

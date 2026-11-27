@@ -87,6 +87,10 @@ type PairedAppRecord struct {
 	CreatedAt    time.Time  `json:"created_at"`
 	// RecoveryKeyID is the key this product was handed at pairing.
 	RecoveryKeyID string `json:"recovery_key_id,omitempty"`
+	// SignerPublicKey is the optional base64-encoded hybridsig.PublicKey registered
+	// by the product at pairing so deposits verify manifest signatures via capsule.VerifyManifest.
+	SignerPublicKey string `json:"signer_public_key,omitempty"`
+	SignerKeyID     string `json:"signer_key_id,omitempty"`
 }
 
 // RecoveryKeyRecord is a suite recovery public key this store has held. Exactly one is
@@ -323,6 +327,8 @@ func (d *DB) migrate() error {
 		pairing_code TEXT NOT NULL,
 		status TEXT NOT NULL DEFAULT 'pending',
 		recovery_key_id TEXT NOT NULL DEFAULT '',
+		signer_public_key TEXT NOT NULL DEFAULT '',
+		signer_key_id TEXT NOT NULL DEFAULT '',
 		expires_at DATETIME NOT NULL,
 		paired_at DATETIME,
 		last_backup_at DATETIME,
@@ -470,6 +476,12 @@ func (d *DB) migrate() error {
 		return err
 	}
 	if err := d.addColumn("replication_targets", "host_key", "TEXT NOT NULL DEFAULT ''"); err != nil {
+		return err
+	}
+	if err := d.addColumn("paired_apps", "signer_public_key", "TEXT NOT NULL DEFAULT ''"); err != nil {
+		return err
+	}
+	if err := d.addColumn("paired_apps", "signer_key_id", "TEXT NOT NULL DEFAULT ''"); err != nil {
 		return err
 	}
 	for _, column := range []string{"identity_issuer", "identity_subject", "sso_issuer", "sso_subject"} {
@@ -851,7 +863,7 @@ func (d *DB) DeleteAuditEventForTest(ctx context.Context, seq uint64) error {
 
 // pairedAppColumns never includes api_token or pairing_code: they hold hashes, and a hash
 // copied into APIToken or PairingCode would read as the credential it is not.
-const pairedAppColumns = `id, service_name, app_name, status, recovery_key_id, expires_at, paired_at, last_backup_at, created_at`
+const pairedAppColumns = `id, service_name, app_name, status, recovery_key_id, signer_public_key, signer_key_id, expires_at, paired_at, last_backup_at, created_at`
 
 // InsertPairedApp stores a pairing record, keeping only the hashes of its pairing code and
 // API token. A record with no API token (a pending code) gets the hash of a random value
@@ -864,10 +876,10 @@ func (d *DB) InsertPairedApp(ctx context.Context, app PairedAppRecord) error {
 			return err
 		}
 	}
-	q := `INSERT INTO paired_apps (id, service_name, app_name, api_token, pairing_code, status, recovery_key_id, expires_at, created_at)
-	      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	q := `INSERT INTO paired_apps (id, service_name, app_name, api_token, pairing_code, status, recovery_key_id, signer_public_key, signer_key_id, expires_at, created_at)
+	      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	_, err := d.conn.ExecContext(ctx, q, app.ID, app.ServiceName, app.AppName, tokenHash(token), d.codeHash(app.PairingCode), app.Status,
-		app.RecoveryKeyID, app.ExpiresAt.UTC(), app.CreatedAt.UTC())
+		app.RecoveryKeyID, app.SignerPublicKey, app.SignerKeyID, app.ExpiresAt.UTC(), app.CreatedAt.UTC())
 	return err
 }
 
@@ -877,7 +889,7 @@ func (d *DB) GetPairedAppByCode(ctx context.Context, code string) (*PairedAppRec
 	      FROM paired_apps WHERE pairing_code = ?`
 	row := d.conn.QueryRowContext(ctx, q, d.codeHash(code))
 	var a PairedAppRecord
-	err := row.Scan(&a.ID, &a.ServiceName, &a.AppName, &a.Status, &a.RecoveryKeyID, &a.ExpiresAt, &a.PairedAt, &a.LastBackupAt, &a.CreatedAt)
+	err := row.Scan(&a.ID, &a.ServiceName, &a.AppName, &a.Status, &a.RecoveryKeyID, &a.SignerPublicKey, &a.SignerKeyID, &a.ExpiresAt, &a.PairedAt, &a.LastBackupAt, &a.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -894,7 +906,7 @@ func (d *DB) GetPairedAppByToken(ctx context.Context, token string) (*PairedAppR
 	      FROM paired_apps WHERE api_token = ? AND status = 'paired'`
 	row := d.conn.QueryRowContext(ctx, q, tokenHash(token))
 	var a PairedAppRecord
-	err := row.Scan(&a.ID, &a.ServiceName, &a.AppName, &a.Status, &a.RecoveryKeyID, &a.ExpiresAt, &a.PairedAt, &a.LastBackupAt, &a.CreatedAt)
+	err := row.Scan(&a.ID, &a.ServiceName, &a.AppName, &a.Status, &a.RecoveryKeyID, &a.SignerPublicKey, &a.SignerKeyID, &a.ExpiresAt, &a.PairedAt, &a.LastBackupAt, &a.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -907,11 +919,18 @@ func (d *DB) GetPairedAppByToken(ctx context.Context, token string) (*PairedAppR
 // ErrPairingServiceMismatch leaves a code pending when the claimer names another service.
 var ErrPairingServiceMismatch = errors.New("claim service does not match the generated pairing service")
 
-// ClaimPairingCode consumes a code for its generated service. Only auto-declare lets
-// the claimer choose; an omitted service inherits the generated service.
-// It mints the product's API token here and stores only its hash, so the returned record is
-// the one and only place the token exists in plaintext.
+// ClaimPairingCode consumes a code for its generated service without registering a
+// manifest signing key. See ClaimPairingCodeWithSigner.
 func (d *DB) ClaimPairingCode(ctx context.Context, code, serviceName, appName, recoveryKeyID string) (*PairedAppRecord, error) {
+	return d.ClaimPairingCodeWithSigner(ctx, code, serviceName, appName, recoveryKeyID, "", "")
+}
+
+// ClaimPairingCodeWithSigner consumes a code for its generated service and optionally pins
+// a hybridsig public key (base64 + key ID) so future deposits require verified manifest
+// signatures. Only auto-declare lets the claimer choose; an omitted service inherits the
+// generated service. It mints the product's API token here and stores only its hash, so the
+// returned record is the one and only place the token exists in plaintext.
+func (d *DB) ClaimPairingCodeWithSigner(ctx context.Context, code, serviceName, appName, recoveryKeyID, signerPublicKey, signerKeyID string) (*PairedAppRecord, error) {
 	app, err := d.GetPairedAppByCode(ctx, code)
 	if err != nil {
 		return nil, err
@@ -944,9 +963,9 @@ func (d *DB) ClaimPairingCode(ctx context.Context, code, serviceName, appName, r
 		return nil, err
 	}
 	now := time.Now().UTC()
-	q := `UPDATE paired_apps SET status = 'paired', service_name = ?, app_name = ?, paired_at = ?, recovery_key_id = ?, api_token = ?
+	q := `UPDATE paired_apps SET status = 'paired', service_name = ?, app_name = ?, paired_at = ?, recovery_key_id = ?, signer_public_key = ?, signer_key_id = ?, api_token = ?
 	      WHERE id = ? AND status = 'pending' AND expires_at > ?`
-	res, err := d.conn.ExecContext(ctx, q, serviceName, appName, now, recoveryKeyID, tokenHash(token), app.ID, now)
+	res, err := d.conn.ExecContext(ctx, q, serviceName, appName, now, recoveryKeyID, signerPublicKey, signerKeyID, tokenHash(token), app.ID, now)
 	if err != nil {
 		return nil, err
 	}
@@ -962,6 +981,8 @@ func (d *DB) ClaimPairingCode(ctx context.Context, code, serviceName, appName, r
 	app.AppName = appName
 	app.PairedAt = &now
 	app.RecoveryKeyID = recoveryKeyID
+	app.SignerPublicKey = signerPublicKey
+	app.SignerKeyID = signerKeyID
 	return app, nil
 }
 
@@ -986,7 +1007,7 @@ func (d *DB) ListPairedApps(ctx context.Context) ([]PairedAppRecord, error) {
 	var list []PairedAppRecord
 	for rows.Next() {
 		var a PairedAppRecord
-		if err := rows.Scan(&a.ID, &a.ServiceName, &a.AppName, &a.Status, &a.RecoveryKeyID, &a.ExpiresAt, &a.PairedAt, &a.LastBackupAt, &a.CreatedAt); err != nil {
+		if err := rows.Scan(&a.ID, &a.ServiceName, &a.AppName, &a.Status, &a.RecoveryKeyID, &a.SignerPublicKey, &a.SignerKeyID, &a.ExpiresAt, &a.PairedAt, &a.LastBackupAt, &a.CreatedAt); err != nil {
 			return nil, err
 		}
 		list = append(list, a)

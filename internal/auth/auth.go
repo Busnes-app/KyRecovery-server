@@ -413,6 +413,20 @@ func (m *Manager) oidcProvider(ctx context.Context) (*oidc.Provider, *oidc.IDTok
 		m.providerErrAt, m.providerErrID = time.Now(), key
 		return nil, nil, m.providerErr
 	}
+	var discovery struct {
+		Issuer  string   `json:"issuer"`
+		JWKSURL string   `json:"jwks_uri"`
+		Algs    []string `json:"id_token_signing_alg_values_supported"`
+	}
+	if err := p.Claims(&discovery); err != nil || discovery.JWKSURL == "" {
+		m.providerErr = fmt.Errorf("OIDC discovery for %s missing jwks_uri", issuer)
+		m.providerErrAt, m.providerErrID = time.Now(), key
+		return nil, nil, m.providerErr
+	}
+	discoveredIssuer := discovery.Issuer
+	if discoveredIssuer == "" {
+		discoveredIssuer = issuer
+	}
 	m.providerErr = nil
 	client := *oidcHTTPClient()
 	base := client.Transport
@@ -420,7 +434,11 @@ func (m *Manager) oidcProvider(ctx context.Context) (*oidc.Provider, *oidc.IDTok
 		base = http.DefaultTransport
 	}
 	client.Transport = &spacedTransport{base: strongJWKSTransport{base: base}, every: oidcRefetchInterval}
-	verifier := p.VerifierContext(oidc.ClientContext(ctx, &client), &oidc.Config{ClientID: cfg.ClientID})
+	keySet := newRemoteJWKSKeySet(&client, discovery.JWKSURL)
+	verifier := oidc.NewVerifier(discoveredIssuer, keySet, &oidc.Config{
+		ClientID:             cfg.ClientID,
+		SupportedSigningAlgs: allowedOIDCSigningAlgs(discovery.Algs),
+	})
 	m.provider, m.providerIssuer, m.providerClientID, m.providerVerifier = p, issuer, cfg.ClientID, verifier
 	return p, verifier, nil
 }

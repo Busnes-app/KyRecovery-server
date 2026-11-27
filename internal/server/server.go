@@ -21,6 +21,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Busnes-app/ky-primitives/hybridsig"
 	"github.com/Busnes-app/ky-primitives/logging"
 	"github.com/Busnes-app/ky-primitives/offsite"
 	"github.com/Busnes-app/kyrecovery-server/internal/appversion"
@@ -770,9 +771,28 @@ func (s *Server) handlePairingClear(w http.ResponseWriter, r *http.Request) {
 
 // 13. Pairing Claim
 type pairingClaimRequest struct {
-	PairingCode string `json:"pairing_code"`
-	ServiceName string `json:"service_name"`
-	AppName     string `json:"app_name"`
+	PairingCode     string `json:"pairing_code"`
+	ServiceName     string `json:"service_name"`
+	AppName         string `json:"app_name"`
+	SignerPublicKey string `json:"signer_public_key,omitempty"`
+}
+
+func parseOptionalSignerPublicKey(raw string) (canonicalB64, keyID string, err error) {
+	if raw == "" {
+		return "", "", nil
+	}
+	if strings.ContainsAny(raw, "\r\n") {
+		return "", "", errors.New("signer_public_key must be standard base64 without line breaks")
+	}
+	pubBytes, err := base64.StdEncoding.Strict().DecodeString(raw)
+	if err != nil {
+		return "", "", errors.New("signer_public_key is not valid standard base64")
+	}
+	pub, err := hybridsig.ParsePublicKey(pubBytes)
+	if err != nil {
+		return "", "", errors.New("signer_public_key is not a valid hybridsig public key")
+	}
+	return base64.StdEncoding.EncodeToString(pub.Bytes()), pub.ID(), nil
 }
 
 func (s *Server) handlePairingClaim(w http.ResponseWriter, r *http.Request) {
@@ -796,6 +816,12 @@ func (s *Server) handlePairingClaim(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.PairingCode == "" {
 		s.claimLimit.record(ipKey, now)
 		writeError(w, http.StatusBadRequest, "PairingCode is required")
+		return
+	}
+	signerPubB64, signerKeyID, err := parseOptionalSignerPublicKey(req.SignerPublicKey)
+	if err != nil {
+		s.claimLimit.record(ipKey, now)
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	// Hashed like the login account key, so a megabyte-long guess cannot sit in the limiter.
@@ -831,7 +857,7 @@ func (s *Server) handlePairingClaim(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusTooManyRequests, "Too many failed pairing attempts; try again later")
 		return
 	}
-	app, err := s.db.ClaimPairingCode(r.Context(), req.PairingCode, req.ServiceName, req.AppName, key.KeyID)
+	app, err := s.db.ClaimPairingCodeWithSigner(r.Context(), req.PairingCode, req.ServiceName, req.AppName, key.KeyID, signerPubB64, signerKeyID)
 	if err != nil {
 		s.claimLimit.record(codeKey, now)
 		status := http.StatusBadRequest
@@ -844,14 +870,18 @@ func (s *Server) handlePairingClaim(w http.ResponseWriter, r *http.Request) {
 
 	s.claimLimit.refund(ipKey)
 	s.claimLimit.refund(claimGlobalKey)
-	_, _ = s.ledger.Record(r.Context(), "product_paired", "pairing-code:"+app.ID, app.ID, map[string]interface{}{
+	auditDetails := map[string]interface{}{
 		"service_name":     app.ServiceName,
 		"claimed_app_name": app.AppName,
 		"source_address":   s.clientIP(r),
 		"recovery_key_id":  key.KeyID,
-	})
+	}
+	if app.SignerKeyID != "" {
+		auditDetails["signer_key_id"] = app.SignerKeyID
+	}
+	_, _ = s.ledger.Record(r.Context(), "product_paired", "pairing-code:"+app.ID, app.ID, auditDetails)
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{
+	resp := map[string]interface{}{
 		"id":                  app.ID,
 		"status":              "paired",
 		"api_token":           app.APIToken,
@@ -862,7 +892,11 @@ func (s *Server) handlePairingClaim(w http.ResponseWriter, r *http.Request) {
 		"recovery_public_key": base64.StdEncoding.EncodeToString(key.PublicKey),
 		"threshold":           key.Threshold,
 		"total_shares":        key.TotalShares,
-	})
+	}
+	if app.SignerKeyID != "" {
+		resp["signer_key_id"] = app.SignerKeyID
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
 // 15. Auth Config (Public status)
