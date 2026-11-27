@@ -12,7 +12,9 @@
 # scripts/verify-restic-overlay.sh proves this arrangement end to end.
 services:
   rest-server:
-    image: restic/rest-server:0.14.0@sha256:d2aff06f47eb38637dff580c3e6bce4af98f386c396a25d32eb6727ec96214a5
+    # Go 1.26.10; verified hybrid TLS defaults and digest: docs/STRONG-CRYPTO.md.
+    # 0.14.0 used Go 1.24.3 but disabled hybrid exchange in its embedded build defaults.
+    image: restic/rest-server:0.15.0@sha256:5922067eb6f1ed8a632bc56101677ab4968a3b88a28806423e95ebb5eeecdebb
     container_name: kyrecovery-rest-server
     restart: unless-stopped
     # --group-accessible-repos writes repository files group-readable; the group is KyRecovery's.

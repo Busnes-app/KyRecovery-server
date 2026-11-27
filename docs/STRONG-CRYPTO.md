@@ -110,6 +110,65 @@ Configure paths/routing for the actual proxy and verify it before rollout.
 Go's setting does not configure browsers, an external proxy or a separate
 rest-server. Keep secure cookies and trusted-proxy restrictions as documented.
 
+## Restic to rest-server transport
+
+`docker-compose.restic.yml` requires `--tls` with the existing certificate/key
+paths and pins upstream `restic/rest-server:0.15.0` to
+`sha256:5922067eb6f1ed8a632bc56101677ab4968a3b88a28806423e95ebb5eeecdebb`.
+Inspection of the pulled `linux/amd64` image on 2026-11-26 found
+`go1.26.10-X:nodwarf5` in both `rest-server --version` and the binary's Go build
+information. It has no embedded `DefaultGODEBUG` override disabling ML-KEM.
+[Upstream 0.15.0](https://github.com/restic/rest-server/releases/tag/v0.15.0)
+requires Go 1.26 or newer. Its TLS config leaves curve preferences unset.
+
+The previous `0.14.0` image, digest
+`sha256:d2aff06f47eb38637dff580c3e6bce4af98f386c396a25d32eb6727ec96214a5`,
+was built with Go 1.24.3 **but embedded `DefaultGODEBUG=…,tlsmlkem=0,…`**.
+A real handshake selected classical `X25519`. Compiler version >= 1.24 alone
+does not prove hybrid defaults: inspect the binary and probe the pinned image.
+Do not restore that pin to resolve an unrelated deployment problem.
+
+To inspect a replacement without trusting the tag's Dockerfile:
+
+```sh
+# Use the exact candidate tag@sha256 digest, not latest.
+image=restic/rest-server:0.15.0@sha256:5922067eb6f1ed8a632bc56101677ab4968a3b88a28806423e95ebb5eeecdebb
+docker pull "$image"
+docker run --rm --entrypoint rest-server "$image" --version
+work=$(mktemp -d)
+container=$(docker create "$image")
+docker cp "$container:/usr/bin/rest-server" "$work/rest-server"
+docker rm -v "$container"
+go version -m "$work/rest-server"
+rm "$work/rest-server"
+rmdir "$work"
+```
+
+`scripts/check-pqc-tls.sh` runs offline Go tests that bind the Compose digest to
+this evidence, require the active TLS/repository options, and verify TLS 1.3
+`X25519MLKEM768` on both sides with default curve preferences in ordinary and
+`GODEBUG=fips140=on` processes. No Docker or external endpoint is needed for
+these tests. New pins require fresh evidence, not merely changing the expected
+digest in the test.
+
+With Docker and the Go toolchain installed, run
+`scripts/verify-restic-overlay.sh`. It uses the actual Compose image/options,
+disposable credentials and a trusted local P-256 certificate on a random
+loopback port, performs real restic backups, and probes the TLS connection with
+ordinary and FIPS-mode Go clients. It also recreates rest-server with
+`GODEBUG=fips140=on` and repeats the FIPS-client probe. The existing file-mode,
+read-only scanner, credential-isolation and base-install checks still run.
+The inspected amd64 image negotiated TLS 1.3 `X25519MLKEM768` in all three
+combinations on 2026-11-26, with normal certificate and hostname verification.
+
+Hybrid negotiation here concerns the direct Go/restic → rest-server link.
+Both peers must support it; upstream retains TLS 1.2/classical compatibility.
+An older client or a TLS-terminating proxy needs its own qualification. The
+test does not certify restic repository encryption, a deployed endpoint or
+other image architectures. KyRecovery's `.env` process profile does not enable
+FIPS mode in a separate rest-server container; configure that process explicitly
+when required and retain all other settings.
+
 ## Explicit SMB compatibility outside the profile
 
 SMB accepts `host`, `host:port`, `\\host\share\dir`, `//host/share/dir` or
