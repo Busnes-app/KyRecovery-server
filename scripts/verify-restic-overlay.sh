@@ -33,7 +33,7 @@ fail() { echo "FAIL: $*" >&2; exit 1; }
 docker build -q -t "$image" "$repo" >/dev/null
 mkdir -p "$work/base" "$work/restic" "$work/config/tls"
 openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -nodes -days 1 -subj /CN=rest-server \
-	-addext subjectAltName=DNS:rest-server -keyout "$work/config/tls/key.pem" -out "$work/config/tls/cert.pem" 2>/dev/null
+	-addext subjectAltName=DNS:rest-server,IP:127.0.0.1 -keyout "$work/config/tls/key.pem" -out "$work/config/tls/cert.pem" 2>/dev/null
 docker run --rm --entrypoint htpasswd "$rs_image" -B -bn alice alice-pass >"$work/config/htpasswd"
 chmod -R a+rX "$work/config"
 docker run --rm -v "$work/restic:/d" alpine sh -c 'chown 10002:10001 /d && chmod 0750 /d'
@@ -56,6 +56,8 @@ cat >>"$work/test.yml" <<'EOF'
   rest-server:
     container_name: !reset null
     ports: !override ["127.0.0.1::8000"]
+    environment:
+      GODEBUG: ${REST_SERVER_TEST_GODEBUG:-}
 EOF
 sed '/^  rest-server:/,$d' "$work/test.yml" >"$work/base/test.yml"
 echo "KYRECOVERY_IMAGE=$image" >"$work/base/.env"
@@ -70,6 +72,23 @@ restic() {
 for _ in $(seq 1 30); do restic init 2>/dev/null && break; sleep 1; done
 restic backup /src
 restic backup /src
+
+# Probe the exact Compose image and flags with default and FIPS-mode Go clients.
+# The optional Go test uses this disposable CA, never insecure verification.
+compose exec -T rest-server rest-server --version
+probe_tls() {
+	local port
+	port=$(compose port rest-server 8000 | sed 's/.*://')
+	KYRECOVERY_REST_SERVER_TEST_URL="https://127.0.0.1:$port/alice/kynotes/config" \
+	KYRECOVERY_REST_SERVER_TEST_CA="$work/config/tls/cert.pem" \
+		go -C "$repo" test -race -count=1 -v -run '^TestRestServerContainerTLSHandshake$' ./scripts
+}
+probe_tls
+GODEBUG=fips140=on probe_tls
+# Also exercise a FIPS-mode server, independently of the client's profile.
+REST_SERVER_TEST_GODEBUG=fips140=on compose up -d --no-deps rest-server >/dev/null
+for _ in $(seq 1 30); do restic snapshots 2>/dev/null && break; sleep 1; done
+GODEBUG=fips140=on probe_tls
 
 # Every file rest-server wrote: owned 10002:10001, group-readable, never group-writable or world-readable.
 modes=$(docker run --rm -v "$work/restic:/d:ro" alpine find /d -mindepth 1 -exec stat -c '%u:%g %a %n' {} +)

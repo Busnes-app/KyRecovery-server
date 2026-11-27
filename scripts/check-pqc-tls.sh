@@ -38,3 +38,8 @@ fi
 # 3. Prove KyRecovery's outbound TLS client negotiates X25519MLKEM768 in both modes.
 go test -race -count=1 -run '^TestOutboundPQTLSHandshake$' ./internal/auth
 GODEBUG=fips140=on go test -race -count=1 -run '^TestOutboundPQTLSHandshake$' ./internal/auth
+
+# 4. Keep rest-server's verified Go >= 1.24 image/TLS flags and prove the
+# default Go client/server exchange offline, including restic's FIPS profile.
+go test -race -count=1 ./scripts
+GODEBUG=fips140=on go test -race -count=1 ./scripts

@@ -125,6 +125,7 @@ ceremony and deployment guidance, not by the software.
 | Tampering with the history | `ky-primitives/auditchain` keyed from the keyring, anchor kept outside the log; `POST /api/audit/verify` checks it; failed verification persists a visible warning across restarts until success while deposits continue (Q5 B); failed appends still refuse the action | `internal/audit/chain.go` |
 | Vulnerable dependencies | Dependabot, `govulncheck` in the `security` job, OSV ignore list with reasons; dependency-only releases ship daily | `.github/`, `osv-scanner.toml` |
 | Supply-chain tampering | Actions and base images pinned by digest; images carry build provenance verified before `:stable` or `:latest` moves; the binary and the ceremony module rebuild to the same bytes | [VERIFYING-RELEASES.md](VERIFYING-RELEASES.md) |
+| Classical-only defaults on the restic transport | The rest-server overlay requires TLS and pins an inspected Go 1.26 image; offline tests guard the pin/options and default hybrid exchange, and the disposable Docker overlay probe checks real-image `X25519MLKEM768` negotiation in ordinary/FIPS profiles. Legacy clients and TLS proxies require independent qualification | `docker-compose.restic.yml`, `scripts/rest_server_tls_test.go`, `scripts/verify-restic-overlay.sh`, [STRONG-CRYPTO.md](STRONG-CRYPTO.md#restic-to-rest-server-transport) |
 
 ## Supported key-strength configuration
 

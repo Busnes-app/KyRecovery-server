@@ -38,4 +38,6 @@ takes a capsule yet.
 
 To enable restic status, add `docker-compose.restic.yml` to `COMPOSE_FILE` and
 follow the setup at its top. `scripts/verify-restic-overlay.sh` proves the
-arrangement with real backups (needs Docker).
+arrangement with real backups and hybrid TLS probes (needs Docker and Go).
+The pinned image, inspected compiler/build defaults and transport verification
+are documented in [Strong crypto](STRONG-CRYPTO.md#restic-to-rest-server-transport).
